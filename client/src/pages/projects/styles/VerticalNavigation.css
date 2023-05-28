@@ -1,0 +1,53 @@
+.vertical-nav-container {
+    width: 4rem;
+    position: fixed;
+    height: 100vh;
+    background: var(--darkest-blue);
+    padding: 0px;
+    transition: 200ms ease-in width;
+    overflow: hidden;
+}
+
+.vertical-nav-container:hover {
+    width: 16rem;
+}
+
+.vertical-nav-container:hover .vert-nav-text {
+    display: block;
+}
+
+.vertical-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.vert-nav-item {
+    width: 100%;
+}
+
+.vert-nav-link {
+    display: flex;
+    align-items: center;
+    height: 5rem;
+    color: lightgray;
+    text-decoration: none;
+}
+
+
+.vert-nav-text {
+    display: none;
+    ;
+}
+
+.menu-icon {
+    min-width: 2rem;
+    margin: 0 1.5rem;
+}
+
+.vert-nav-item:last-child {
+    margin-top: auto;
+}
