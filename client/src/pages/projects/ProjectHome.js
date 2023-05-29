@@ -10,7 +10,7 @@ export default function ProjectHome() {
     return (
         <div className="projectHome">
             <HorizontalNavigation/>
-            <VerticalNavigation/>
+            {/* <VerticalNavigation/> */}
             <div className="projects-container">
 
             </div>
