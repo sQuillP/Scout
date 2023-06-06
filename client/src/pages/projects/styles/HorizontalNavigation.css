@@ -6,6 +6,9 @@
   justify-content: flex-end;
   align-items: center;
   border-bottom: 5px solid lightblue;
+  top: 0;
+  left: 0;
+  z-index: 2;
 }
 
 .horizontal-nav-content {
