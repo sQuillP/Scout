@@ -1,16 +1,65 @@
-.projectHome{
-    position: relative;
-}
+.projectHome{position: relative;}
 
-.section {
-    margin-top: 10vh;
-}
+.section {margin-top: 10vh;}
 
 .projects-container {
     overflow-x: auto;
     max-height: 600px;
     box-shadow: rgba(0, 0, 0, 0.25) 0px 14px 28px, rgba(0, 0, 0, 0.22) 0px 10px 10px;
-    border-radius: 10px 10px 0 0;
+}
+
+
+.project-navigation {
+    box-shadow: rgba(14,30,37,0.12) 0px 2px 4px 0px, rgba(14,30,37,0.32) 0px 2px 16px 0px;
+    width: 90vw;
+    margin: 0 auto;
+    box-sizing: border-box;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 2.5em;
+    margin-bottom: 50px;
+
+}
+
+
+.project-nav:last-child button {
+    outline: none;
+    border: none;
+    padding: 10px;
+    color: white;
+    background: var(--darkest-blue);
+    font-size: 1.2rem;
+    cursor: pointer;
+
+}
+
+.project-nav:last-child {
+    position: relative;
+}
+
+.project-nav:last-child button:hover {
+    background: #2675ff;
+}
+
+.search-project {
+    padding: 15px;
+    border: none;
+    outline: none;
+    background: #eee;
+    margin-right: 10px;
+    border-radius: 10px;
+    padding-right: 50px;
+    max-width: 200px;
+    box-sizing: border-box;
+}
+
+.project-search-icon {
+    position: absolute;
+    right: 240px;
+    top: 30px;
+    color: gray;
+    font-size: 1.3rem;;
 }
 
 .project-content-wrapper {
@@ -72,7 +121,6 @@ tbody.pt-item:last-child{
     padding: 20px;
     background: var(--darkest-blue);
     color: white;
-    border-radius: 0 0 10px 10px;
     box-shadow: rgba(0, 0, 0, 0.25) 0px 14px 28px, rgba(0, 0, 0, 0.22) 0px 10px 10px;
 
 }
@@ -87,12 +135,14 @@ tbody.pt-item:last-child{
     margin-left: 20px;
 }
 
+#_page-selector {
+    outline: none;
+    border: none;
+    padding: 5px;
+    font-size: 1.2em;
+}
 
 @media screen and (max-width: 880px) {
-    /* .projects-container, .pt-pagination { */
-        /* width: 100vw; */
-    /* } */
-
     .project-content-wrapper {
         width: 100%;
     }
@@ -102,6 +152,35 @@ tbody.pt-item:last-child{
     }
     .pt-pagination {
         justify-content: space-between;
+    }
+}
+
+@media screen and (max-width:730px){
+    .project-navigation{
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        padding: 0;
+    }
+
+    .project-nav:last-child {
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    .project-nav {
+        margin: 10px 0px
+    }
+
+    .project-nav:last-child >* {
+        margin-bottom: 20px;
+    }
+
+    .project-nav:last-child button {
+        font-size: 0.9rem;
+        padding: 10px;
     }
 }
 

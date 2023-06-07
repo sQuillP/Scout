@@ -1,0 +1,14 @@
+.sr-container {
+    background: white;
+    display: flex;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.sr-container:hover {
+    background: #eee;;
+}
+
+.user-info {
+    margin-left: 10px;
+}

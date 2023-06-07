@@ -18,6 +18,20 @@ body, html {
   padding: 0;
 }
 
+.sm {
+  font-size: 0.7rem;
+}
+
+.md {
+  font-size: 1.0rem;
+}
+
+.icon-wrapper {
+  position: relative;
+  ;
+}
+
+
 
 /* body {
   margin: 0;

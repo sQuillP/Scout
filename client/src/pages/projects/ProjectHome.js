@@ -9,6 +9,8 @@ import IconButton from "@mui/material/IconButton";
 import { useState } from "react";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import Modal from "@mui/material/Modal";
+import ProjectModalContent from "./components/ProjectModalContent";
 
 //make a request to get a list of projects for a user.
 const dummy_data = [
@@ -68,20 +70,45 @@ export default function ProjectHome() {
 
     const [currentPage, setCurrentPage] = useState(1);
     const [resultsPerPage, setResultsPerPage] = useState(5);
+    const [openProjectModal, setOpenProjectModal] = useState(false);
+
+
+    function onCloseModal() {
+        
+        setOpenProjectModal(false);
+    }
+
 
     return (
         <div className="projectHome">
             <HorizontalNavigation/>
+            <Modal
+                open={openProjectModal}
+                onClose={onCloseModal}
+                sx={{paddingTop:'20vh'}}
+            >
+                <>
+                    <ProjectModalContent/>
+                </>
+            </Modal>
 
             {/* section */}
             <div className="section">
+
                 <div className="project-navigation">
-                    <p className="project-welcome">Project List</p>
-                    <div className="project-nav-right">
-                        <input type="text" className="search-project"/>
-                        <button>Create New Project</button>
+                    <div className="project-nav">
+                        <p className="project-welcome text">Project List</p>
+                        <p className="text project md">All your projects in one place</p>
+                    </div>
+                    <div className="project-nav">
+                        <input placeholder="Search any project..." type="text" className="search-project"/>
+                        <button
+                            onClick={()=> setOpenProjectModal(true)}
+                        >Create New Project <i className="add-icon fas fa-plus"></i></button>
+                        <i className="project-search-icon fas fa-search"></i>
                     </div>
                 </div>
+
                 <div className="project-content-wrapper">
                     <div className="projects-container">
                         <table cellSpacing={0} className="project-table">
