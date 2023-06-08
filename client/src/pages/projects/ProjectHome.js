@@ -101,11 +101,13 @@ export default function ProjectHome() {
                         <p className="text project md">All your projects in one place</p>
                     </div>
                     <div className="project-nav">
-                        <input placeholder="Search any project..." type="text" className="search-project"/>
+                        <div className="icon-wrapper">
+                            <input placeholder="Search any project..." type="text" className="search-project"/>
+                            <i className="project-search-icon fas fa-search"></i>
+                        </div>
                         <button
                             onClick={()=> setOpenProjectModal(true)}
                         >Create New Project <i className="add-icon fas fa-plus"></i></button>
-                        <i className="project-search-icon fas fa-search"></i>
                     </div>
                 </div>
 

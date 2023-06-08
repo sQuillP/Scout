@@ -22,6 +22,11 @@
     padding: 20px;
 }
 
+.pm-intro {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
 .pm-content {
     display: flex;
     justify-content: center;;
@@ -85,16 +90,24 @@
 }
 
 
+
+/*
+ fix input responsivity
+
+*/
 @media screen and (max-width: 550px) {
     .pm-form-section{
         min-width: unset;
         width: 100%;
     }
-    .pm-form-section >* {
-        padding: 20px 0px 0px 0px;
+
+
+    .pm-input{
+        width: 90vw;
     }
-    .pm-field {
-        width: 100%;
+
+    .user-search {
+        width: 90vw;
     }
 
 }

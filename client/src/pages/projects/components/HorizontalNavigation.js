@@ -92,6 +92,10 @@ export default function HorizontalNavigation() {
 
     return (
         <div className="horizontal-main">
+            <div className="horizontal-nav-item">
+                <img src="https://style.helpscout.com/images/logo/help-scout-logo-square-blue.svg" alt="" className="logo" />
+                <p className="text app-title">Scout!</p>
+            </div>
             <ul className="horizontal-nav-content">
                 <li className="horizontal-nav-item">
                     <div className='icon-container'>

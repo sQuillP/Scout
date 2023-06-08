@@ -3,12 +3,25 @@
   width: 100%;
   background-color: var(--darkest-blue);
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   border-bottom: 5px solid lightblue;
   top: 0;
   left: 0;
   z-index: 2;
+}
+
+.app-title {
+    font-size: 2em;
+    font-weight: bold;
+    color: white;
+}
+
+
+.logo {
+    height: 50px;
+    width: 50px;
+    object-fit: cover;
 }
 
 .horizontal-nav-content {
