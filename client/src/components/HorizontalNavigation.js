@@ -1,12 +1,14 @@
 import { useSelector } from 'react-redux'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import Badge from '../../../components/Badge'
+import Badge from './Badge'
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { Popover } from '@mui/material';
-import AlertItem from './AlertItem';
-import "../styles/HorizontalNavigation.css"
+import AlertItem from '../pages/projects/components/AlertItem';
+
+
+import "./styles/HorizontalNavigation.css";
 
 const dummy_data = [
     {

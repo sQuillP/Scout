@@ -26,9 +26,32 @@ body, html {
   font-size: 1.0rem;
 }
 
-.icon-wrapper {
+.input-wrapper {
   position: relative;
   display: inline-block;
+}
+
+.input-wrapper >* {
+  display: block;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;;
+}
+
+::-webkit-scrollbar-track {
+  background: white;;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 5px;
+  ;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
 

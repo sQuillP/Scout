@@ -4,6 +4,7 @@ import Login from './pages/auth/Login';
 import Auth from './pages/auth/Auth';
 import Signup from './pages/auth/Signup';
 import ProjectHome from './pages/projects/ProjectHome';
+import ProjectDashboard from './pages/project dashboard/ProjectDashboard';
 
 
 function App() {
@@ -14,7 +15,8 @@ function App() {
         <Route path='signup' element={<Signup/>}/>
       </Route>
       <Route path='/projects' element={<ProjectHome/>}/>
-
+      <Route path='/projects/:projectId' element={<ProjectDashboard/>}/>
+      
       <Route path='*' Component={()=> <Navigate to='/auth/login'/>}/>
       {/* Home page will have a list of all projects */}
       {/* <Route path='/projects' element={<Projects/>}> */}

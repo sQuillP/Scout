@@ -65,7 +65,7 @@
 .project-search-icon {
     position: absolute;
     right: 30px;
-    top: 30px;
+    top: 15px;
     color: gray;
     font-size: 1.3rem;;
 }
@@ -191,6 +191,17 @@ tbody.pt-item:last-child{
         font-size: 0.9rem;
         padding: 10px;
     }
+
+
+    .search-project {
+        max-width: unset;
+        width: 90vw;
+        margin-right: 0;
+    }
+
+    .project-nav:last-child button {
+        width: 90vw;
+    }
 }
 
 @media screen and (max-width: 450px) {
@@ -202,16 +213,6 @@ tbody.pt-item:last-child{
 
     .pagination-item:last-child {
         margin-top: 20px;
-    }
-
-    .search-project {
-        max-width: unset;
-        width: 90vw;
-        margin-right: 0;
-    }
-
-    .project-nav:last-child button {
-        width: 90vw;
     }
     
   

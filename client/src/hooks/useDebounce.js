@@ -4,7 +4,7 @@ import { useState } from "react";
 
 
 
-export default function useDebounce({term, delay}) {
+export default function useDebounce(term,delay) {
 
     const [debouncedTerm, setDebouncedTerm] = useState('');
 

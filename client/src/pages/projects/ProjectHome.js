@@ -1,6 +1,6 @@
 
 import { Chip } from "@mui/material";
-import HorizontalNavigation from "./components/HorizontalNavigation"
+import HorizontalNavigation from "../../components/HorizontalNavigation";
 import "./styles/ProjectHome.css";
 import Tooltip from "@mui/material/Tooltip";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -85,10 +85,12 @@ export default function ProjectHome() {
             <Modal
                 open={openProjectModal}
                 onClose={onCloseModal}
-                sx={{paddingTop:'20vh'}}
+                sx={{paddingTop:'5vh'}}
             >
                 <>
-                    <ProjectModalContent/>
+                    <ProjectModalContent
+                        onCloseModal={onCloseModal}
+                    />
                 </>
             </Modal>
 
@@ -101,7 +103,7 @@ export default function ProjectHome() {
                         <p className="text project md">All your projects in one place</p>
                     </div>
                     <div className="project-nav">
-                        <div className="icon-wrapper">
+                        <div className="input-wrapper">
                             <input placeholder="Search any project..." type="text" className="search-project"/>
                             <i className="project-search-icon fas fa-search"></i>
                         </div>
