@@ -5,6 +5,7 @@ import Auth from './pages/auth/Auth';
 import Signup from './pages/auth/Signup';
 import ProjectHome from './pages/projects/ProjectHome';
 import ProjectDashboard from './pages/project dashboard/ProjectDashboard';
+import Members from './pages/projects/Members';
 
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
       </Route>
       <Route path='/projects' element={<ProjectHome/>}/>
       <Route path='/projects/:projectId' element={<ProjectDashboard/>}/>
+      <Route path='/projects/:projectId/members' element={<Members/>}/>
       
       <Route path='*' Component={()=> <Navigate to='/auth/login'/>}/>
       {/* Home page will have a list of all projects */}

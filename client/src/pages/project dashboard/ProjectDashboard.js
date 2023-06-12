@@ -74,7 +74,6 @@ export default function ProjectDashboard() {
                             <RecentTicketsTable/>
                         </div>
                     </div>
-                    
                 </div>
             </div>
         </>
