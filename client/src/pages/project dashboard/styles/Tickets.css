@@ -1,0 +1,47 @@
+.tickets-main {
+    margin: 75px 25px 0 100px;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    position: relative;
+}
+
+.tickets-title {
+    text-align: center;
+}
+
+
+.tickets-filter-section {
+    padding: 20px;
+    border-top: 2px solid lightgray;
+    border-bottom: 2px solid lightgray;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    box-sizing: border-box;
+    position: sticky;
+    top: 0;
+    left: 0;
+    text-align: center;
+}
+
+
+.tickets-filter-options {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+
+.create-ticket {
+    margin: 0px 20px;
+    border: none;
+    background: none;
+    ;
+}
+
+
+@media screen and (max-width: 970px) {
+    .tickets-main {
+        margin: 75px 0 0 0;
+    }
+}

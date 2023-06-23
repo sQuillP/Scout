@@ -11,7 +11,7 @@ export default function DashboardPanel({title,content,overlayContent, color}) {
             </div>
             <div className="pd-panel-content">
                 <div className="pd-circle">
-                    <Typography align="center" variant="h3" textAlign='center'>{content}</Typography>
+                    <Typography align="center" variant="h4" textAlign='center'>{content}</Typography>
                 </div>
             </div>
             <div className="pd-panel-overlay">

@@ -1,0 +1,46 @@
+.ct-container {
+    
+    background: white;
+    box-shadow: rgba(0, 0, 0, 0.56) 0px 22px 70px 4px;    width: 900px;
+    margin: 10vh auto 0 auto;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+
+.ct-end {
+    padding: 1rem 0.5rem;
+    background: var(--darkest-blue);
+}
+
+.ct-header {
+    
+}
+
+
+.ct-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin: 0;
+}
+
+.required {
+    color: red;
+}
+
+
+.ct-form-body {
+    max-height: 600px;
+    overflow-y: auto;
+    padding: 20px;
+    ;
+}
+
+.ct-input-row {
+    padding: 10px 0;
+}
+
+.ct-select, .ct-input {
+    padding: 5px;
+    margin: 0 5px;
+}

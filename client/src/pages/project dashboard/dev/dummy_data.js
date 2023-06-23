@@ -23,6 +23,42 @@ export const  memberRows = [
         role:'admin',
         id: 1234321
     },
+    {
+        name:"Richard suarez",
+        email:'richard@gmail.com',
+        role:'admin',
+        id: 123432221
+    },
+    // {
+    //     name:"Richard suarez",
+    //     email:'richard@gmail.com',
+    //     role:'admin',
+    //     id: 1
+    // },
+//     {
+//         name:"Richard suarez",
+//         email:'richard@gmail.com',
+//         role:'admin',
+//         id: 12
+//     },
+//     {
+//         name:"Richard suarez",
+//         email:'richard@gmail.com',
+//         role:'admin',
+//         id: 12399
+//     },
+//     {
+//         name:"Richard suarez",
+//         email:'richard@gmail.com',
+//         role:'admin',
+//         id: 340983457
+//     },
+//     {
+//         name:"Richard suarez",
+//         email:'richard@gmail.com',
+//         role:'admin',
+//         id: 34023
+//     },
 ];
 
 
