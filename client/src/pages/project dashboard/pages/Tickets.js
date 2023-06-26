@@ -16,6 +16,7 @@ import {
     Paper,
     Button,
     Modal,
+    Box,
  } from '@mui/material';
 
 import {
@@ -35,20 +36,27 @@ export default function Tickets() {
 
     const [menuRef, setMenuRef] = useState(null);
     const [openModal, setOpenModal] = useState(true);
+
+    const [confirmModal, setConfirmModal] = useState(false);
+
     const navigation = useNavigate();
+
     const [ticketFilters, setTicketFilters] = useState({
 
     });
+
     const [loadingContent, setLoadingContent] = useState(false);
     const openMenuRef = Boolean(menuRef);
     const [collapseTable, setCollapseTable] = useState(false);
+
+
     function onShowTableMenu(e) {
         setMenuRef(e.currentTarget);
     }
 
     function handleMenuAction(action) {
         if(action ==='resolve'){
-            navigation('/projects/asdf')
+            navigation('/projects/asdf');
         }
         onCloseMenu();
         return;
@@ -73,16 +81,39 @@ export default function Tickets() {
         }
     }
 
+    function onCancelTicket(cancel) {
+        if(cancel) {
+            setOpenModal(false);
+        }
+        setConfirmModal(false);
+    }
+
     return (
         <div className="tickets-main">
             <Modal
                 open={openModal}
-                onClose={onCloseModal}
-
+                onClose={()=> setConfirmModal(true)}
             >
                 <>
-                    <CreateTicket/>
+                    <CreateTicket
+                        onCancelTicket={()=> setConfirmModal(true)}
+                    />
                 </>
+            </Modal>
+            <Modal 
+                open={confirmModal}
+                onClose={()=> setConfirmModal(false)}
+            >
+                <Box  maxWidth={'550px'} sx={{margin:'30vh auto 0 auto'}}>
+                    <Paper sx={{padding: '25px'}} elevation={10}>
+                        <Typography align='center' sx={{fontSize:'2rem'}}>Are you sure you want to delete this ticket?</Typography>
+                        <Typography align='center' variant="body1">All current ticket information will be lost.</Typography>
+                        <Stack direction={'row'} marginTop={'10px'} justifyContent={'center'} spacing={1}>
+                            <Button sx={{textTransform:'unset'}} onClick={()=> onCancelTicket(false)} variant='outlined' color="error">No</Button>
+                            <Button sx={{textTransform:'unset'}} onClick={()=> onCancelTicket(true)} variant="outlined">Yes</Button>
+                        </Stack>
+                    </Paper>
+                </Box>
             </Modal>
             <Menu
                 open={openMenuRef}

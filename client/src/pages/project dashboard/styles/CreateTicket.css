@@ -1,22 +1,18 @@
 .ct-container {
     
     background: white;
-    box-shadow: rgba(0, 0, 0, 0.56) 0px 22px 70px 4px;    width: 900px;
+    box-shadow: rgba(0, 0, 0, 0.56) 0px 22px 70px 4px; 
     margin: 10vh auto 0 auto;
+    max-width: 750px;
+    max-height: 800px;
     border-radius: 10px;
-    overflow: hidden;
+    overflow-y: auto;
 }
-
 
 .ct-end {
-    padding: 1rem 0.5rem;
+    padding: 1rem;
     background: var(--darkest-blue);
 }
-
-.ct-header {
-    
-}
-
 
 .ct-footer {
     display: flex;
@@ -30,17 +26,80 @@
 
 
 .ct-form-body {
-    max-height: 600px;
-    overflow-y: auto;
+    height: 600px;
+    overflow: auto;
     padding: 20px;
+    box-sizing: border-box
     ;
 }
 
+
 .ct-input-row {
-    padding: 10px 0;
+    margin: 25px;
+    position: relative;
+}
+
+.ct-input-row >* {
+    display: block;
 }
 
 .ct-select, .ct-input {
+    margin: 0 ;
+}
+
+.ct-input {
+    padding: 10px;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+    border: 2px solid black;
+}
+
+.ct-label {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.ct-select {
     padding: 5px;
-    margin: 0 5px;
+    border: 2px solid black;
+    outline: none;
+    box-sizing: border-box;
+}
+
+
+.ct-select option {
+    padding: 5px;
+
+}
+
+.ct-textarea {
+    resize: none;
+    outline: none;
+    padding: 10px;
+    box-sizing: border-box;
+    font-family: inherit;
+    width: 100%;
+    height: 150px;
+    border: 2px solid black;
+}
+
+
+@media screen and (max-height: 825px) {
+    .ct-container {
+        margin: 0 auto;
+        padding: 0;
+        overflow-y: auto;
+    }
+
+    .ct-container::-webkit-scrollbar {
+        display: none;;
+    }
+}
+
+@media screen and (max-height: 740px) {
+    .ct-container {
+        height: 100%;
+        border-radius: 0;;
+    }
 }
