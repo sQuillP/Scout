@@ -17,13 +17,16 @@ import {
     Button,
     Modal,
     Box,
+    Snackbar,
+    Alert,
  } from '@mui/material';
 
 import {
     FilterList,
     Pageview,
     MoreVert,
-    Label
+    Label,
+    AddTask,
 } from '@mui/icons-material'
 
 import { useNavigate } from 'react-router-dom'
@@ -35,15 +38,20 @@ import CreateTicket from '../components/CreateTicket';
 export default function Tickets() {
 
     const [menuRef, setMenuRef] = useState(null);
-    const [openModal, setOpenModal] = useState(true);
 
+    /* state for creating a ticket */
+    const [openModal, setOpenModal] = useState(false);
+
+
+    /* Stateful condition to ask a user if they want to delete ticket */
     const [confirmModal, setConfirmModal] = useState(false);
+
+    /* when user submits/creates a new ticket, dipslay success message in snackbar */
+    const [openSnackbar, setOpenSnackbar] = useState(false);
 
     const navigation = useNavigate();
 
-    const [ticketFilters, setTicketFilters] = useState({
-
-    });
+    const [ticketFilters, setTicketFilters] = useState({});
 
     const [loadingContent, setLoadingContent] = useState(false);
     const openMenuRef = Boolean(menuRef);
@@ -66,9 +74,6 @@ export default function Tickets() {
         setMenuRef(null);
     }
 
-    function onCloseModal() {
-        setOpenModal(false);
-    }
 
     function getPriorityColor(priority) {
         switch(priority){
@@ -96,7 +101,14 @@ export default function Tickets() {
             >
                 <>
                     <CreateTicket
-                        onCancelTicket={()=> setConfirmModal(true)}
+                        onCloseTicketForm={(submitted)=>{ 
+                            if(!submitted)
+                                setConfirmModal(true);
+                            else {
+                                setOpenSnackbar(true);
+                                setOpenModal(false);
+                            }
+                        }}
                     />
                 </>
             </Modal>
@@ -106,15 +118,25 @@ export default function Tickets() {
             >
                 <Box  maxWidth={'550px'} sx={{margin:'30vh auto 0 auto'}}>
                     <Paper sx={{padding: '25px'}} elevation={10}>
-                        <Typography align='center' sx={{fontSize:'2rem'}}>Are you sure you want to delete this ticket?</Typography>
-                        <Typography align='center' variant="body1">All current ticket information will be lost.</Typography>
-                        <Stack direction={'row'} marginTop={'10px'} justifyContent={'center'} spacing={1}>
-                            <Button sx={{textTransform:'unset'}} onClick={()=> onCancelTicket(false)} variant='outlined' color="error">No</Button>
-                            <Button sx={{textTransform:'unset'}} onClick={()=> onCancelTicket(true)} variant="outlined">Yes</Button>
+                        <Typography align='center' sx={{fontSize:'2rem', paddingBottom:'10px', marginBottom:'10px', borderBottom:'1px solid lightgray'}}>Delete this ticket?</Typography>
+                        <Typography align='center' variant="body1">All ticket information cannot be recovered.</Typography>
+                        <Stack direction={'row'} marginTop={'20px'} justifyContent={'center'} spacing={1}>
+                            <Button sx={{textTransform:'unset'}} onClick={()=> onCancelTicket(false)} variant='outlined' color="error">Cancel</Button>
+                            <Button sx={{textTransform:'unset'}} onClick={()=> onCancelTicket(true)} variant="outlined">Delete ticket</Button>
                         </Stack>
                     </Paper>
                 </Box>
             </Modal>
+            <Snackbar
+                open={openSnackbar}
+                onClose={()=> setOpenSnackbar(false)}
+                autoHideDuration={3500}
+                anchorOrigin={{horizontal:'center', vertical:'bottom'}}
+            >
+                <Alert severity="success" sx={{ width: '100%', display:'flex', alignItems:'center' }}>
+                    <Typography variant='body1' fontSize={'1.2rem'}>Ticket has been successfully created!</Typography>
+                </Alert>
+            </Snackbar>
             <Menu
                 open={openMenuRef}
                 anchorEl={menuRef}

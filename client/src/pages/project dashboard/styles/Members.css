@@ -8,6 +8,7 @@
 
 
 
+
 .mem-flex-section {
     display: flex;
     padding: 20px;
@@ -27,6 +28,7 @@
 .member-col>.input-wrapper {
     padding-bottom: 5px;
 }
+
 
 
 .mem-input-icon {

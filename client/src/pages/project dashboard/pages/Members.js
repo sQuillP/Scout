@@ -37,10 +37,11 @@ export default function Members() {
 
     const debouncedTerm = useDebounce(searchUserTerm,1000);
 
+
+    /* add loading animation when user types into the keyboard. */
     useEffect(()=> {
         setLoadingUsers(false);
         if(debouncedTerm.trim() === '') return;
-        
     },[debouncedTerm])
 
 
@@ -52,10 +53,8 @@ export default function Members() {
     }
 
     function onHandleInvite() {
-
         //async code to invite user to app.
         setSnackbarOpen(true);
-
     }
 
     function onChooseSearchFilter(filter){

@@ -8,6 +8,7 @@ import ProjectDashboard from './pages/project dashboard/pages/ProjectDashboard';
 import Members from './pages/project dashboard/pages/Members';
 import Project from './pages/project dashboard/Project';
 import Tickets from './pages/project dashboard/pages/Tickets';
+import ViewTicket from './pages/project dashboard/pages/ViewTicket';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route path='members' element={<Members/>}/>
         {/* /tickets */}
         <Route path='tickets' element={<Tickets/>}/>
+        <Route path='tickets/:ticketId' element={<ViewTicket/>}/>
         {/* settings */}
         {/* analytics */}
       </Route>

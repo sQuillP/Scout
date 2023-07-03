@@ -46,6 +46,10 @@ body, html {
   letter-spacing: 0.03rem;
 }
 
+.required {
+  color: red;
+}
+
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;;

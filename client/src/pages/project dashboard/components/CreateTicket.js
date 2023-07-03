@@ -32,27 +32,46 @@ const dummy_data = [
     },
 ];
 
-
-
 const MAX_SUMMARY_CHAR_COUNT = 75;
 
-export default function CreateTicket({onCancelTicket }) {
+/**
+ * @description - Create a new ticket request for a user.
+ * @param {()=> void} onCloseTicketForm - function that accepts a boolean, tells parent whether or not form was successfully submitted.
+ */
 
-    const [ticketForm, setTicketForm] = useState({
+export default function CreateTicket({onCloseTicketForm}) {
+
+    const emptyForm = {
         ticketType:'',
         briefDescription:'',
         summary:'',
         priority:'',
         assignTo:null,
-    });
+    };
 
-    const [confirmModal, setConfirmModal] = useState(false);
+    const [ticketForm, setTicketForm] = useState(emptyForm);
 
+    const [formErrors, setFormErrors] = useState({});
+
+    const keyMap = {
+        ticketType: 'Ticket Type',
+        briefDescription:'Brief Description',
+        summary:'Summary',
+        priority:'Priority',
+        assignTo:'Assign To'
+    };
 
     function handleTicketChange(field,value) {
         //ensure less than 75 character count.
         if(field ==='summary' && value.length>=MAX_SUMMARY_CHAR_COUNT+1)
             return;
+
+        if(field === 'assignTo' || value.trim() !== ''){
+            setFormErrors((oldFormErrors)=> {
+                delete oldFormErrors[field];
+                return {...oldFormErrors};
+            });
+        }
 
         setTicketForm((oldForm)=> {
             return{
@@ -63,11 +82,38 @@ export default function CreateTicket({onCancelTicket }) {
     }
 
 
+    /* Return true if there are empty fields present. Update state as well to 
+    reflect in ui accordingly */
+    function validateRequiredFields() {
+        let hasNoEmptyFields = false;
+        Object.keys(ticketForm).forEach((key)=> {
+            //cannot be null or empty
+            if(key ==='assignTo' && ticketForm[key] == null){
+                setFormErrors((formErrors)=> {
+                    return {...formErrors,[key]: `${keyMap[key]} cannot be empty`};
+                });
+                hasNoEmptyFields = true;
+            }
+            //if empty string or only spaces
+            if(key !== 'assignTo' && ticketForm[key].trim() === ''){
+                setFormErrors((formErrors)=> {
+                    return {...formErrors, [key]: `${keyMap[key]} is required`};
+                });
+                hasNoEmptyFields = true;
+            }
+        });
+        return hasNoEmptyFields;
+    }
+
+
     function onSubmit(e) {
 
+        if(validateRequiredFields() === true) return;
+
         console.log('submitting');
-        //create submission form
+        onCloseTicketForm(true);
     }
+
 
     return (
         <div className="ct-container">
@@ -76,7 +122,7 @@ export default function CreateTicket({onCancelTicket }) {
             </div>
             <div className="ct-form-body">
                     <div className="ct-input-row">
-                        <label className="ct-label" htmlFor="_ct-type">Ticket Type <span className="required">*</span></label>
+                        <label className="ct-label" htmlFor="_ct-type">Ticket Type <span className="required">* {formErrors['ticketType']}</span></label>
                         <select 
                             onChange={(e)=> handleTicketChange('ticketType',e.target.value)} 
                             className="ct-select"
@@ -88,7 +134,7 @@ export default function CreateTicket({onCancelTicket }) {
                         </select>
                     </div>
                     <div className="ct-input-row">
-                        <label className="ct-label" htmlFor="_ct-priority">Priority <span className="required">*</span></label>
+                        <label className="ct-label" htmlFor="_ct-priority">Priority <span className="required">* {formErrors['priority']}</span></label>
                         <select 
                             onChange={(e)=> handleTicketChange('priority',e.target.value)}
                             value={ticketForm.priority}
@@ -102,7 +148,7 @@ export default function CreateTicket({onCancelTicket }) {
                         </select>
                     </div>
                     <div className="ct-input-row">
-                        <label className="ct-label" htmlFor="_ct-title">Ticket Summary <span className="required">*</span></label>
+                        <label className="ct-label" htmlFor="_ct-title">Ticket Summary <span className="required">* {formErrors['summary']}</span></label>
                         <input 
                             onChange={(e)=> handleTicketChange('summary',e.target.value)} 
                             type="text" 
@@ -116,18 +162,21 @@ export default function CreateTicket({onCancelTicket }) {
                         >{ticketForm.summary.length}/{MAX_SUMMARY_CHAR_COUNT} characters</p>
                     </div>
                     <div className="ct-input-row">
-                        <label htmlFor="" className="ct-label">Assign to <span className="required">*</span></label>
+                        <label htmlFor="" className="ct-label">Assign to <span className="required">* {formErrors['assignTo']}</span></label>
                         <Autocomplete
                             onChange={(e,value)=> handleTicketChange('assignTo',value)}
                             size="small"
+                            value={ticketForm.assignTo}
                             getOptionLabel={(option)=> option.email}
                             options={dummy_data}
                             renderInput={(options)=> <TextField {...options} variant="standard" />}
                         />
                     </div>
                     <div className="ct-input-row">
-                        <label htmlFor="_ct-description" className="ct-label">Description <span className="required">*</span></label>
+                        <label htmlFor="_ct-description" className="ct-label">Description <span className="required">* {formErrors['briefDescription']}</span></label>
                         <textarea 
+                            value={ticketForm.briefDescription}
+                            onChange={(e)=> handleTicketChange('briefDescription',e.target.value)}
                             id="_ct-description" 
                             name="ct-description" 
                             className="ct-textarea"
@@ -136,7 +185,7 @@ export default function CreateTicket({onCancelTicket }) {
                     </div>
             </div>
             <div className="ct-end ct-footer">
-                <Button onClick={onCancelTicket} sx={{textTransform:'unset', marginRight:'10px'}} variant="contained" color="error" size="medium">
+                <Button onClick={()=>onCloseTicketForm(false)} sx={{textTransform:'unset', marginRight:'10px'}} variant="contained" color="error" size="medium">
                     Cancel
                 </Button>
                 <Button 
