@@ -7,5 +7,52 @@
 .vt-header {
     font-size: 1.4rem;
     font-weight: bold;
-    padding: 20px;
+    padding: 20px 20px 50px 20px;
+}
+
+.vt-section {
+    position: relative;
+    border-top: 1px solid lightgray;
+    padding: 15px 0 15px 15px;
+}
+
+.vt-section-label {
+    background: white;
+    padding: 2px 5px 2px 20px;
+    position: absolute;
+    left: 0px;
+
+    font-size: 1.3rem;
+    top: -20px;
+}
+
+.vt-flex-container {
+    display: flex;;
+}
+
+.vt-th-label, .vt-td-value {
+    padding: 10px;
+}
+
+.vt-description-wrapper {
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.vt-smalltext {
+    font-size: 0.8rem;
+    color: gray;
+}
+
+
+
+@media screen and (max-width: 970px){
+    .vt-container {
+        margin: 75px 0 0 0;
+    }
+
+    .vt-tr {
+        display: flex;
+        flex-direction: column;
+    }
 }

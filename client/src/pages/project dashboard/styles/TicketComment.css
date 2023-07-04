@@ -1,0 +1,44 @@
+.tc-main {
+    /* flex-wrap: wrap; */
+    padding: 10px;
+    box-sizing: border-box;
+    border-bottom: 1px solid #eee;
+    width: 450px;
+}
+
+.tc-header {
+    display: flex;
+    align-items: center;
+}
+
+.tc-username {
+    font-size: .90rem;;
+}
+
+.tc-email, .tc-posted-on {
+    color: gray;
+    ;
+}
+
+.tc-email {
+    font-size: 0.7rem;;
+}
+
+.tc-comment {
+    font-size: 0.8rem;
+}
+
+.tc-posted-on {
+    font-size: 0.7rem;
+    text-align: right;
+}
+
+.tc-footer {
+    display: flex; 
+    justify-content: space-between;
+}
+
+.tc-view-change {
+    font-size:1rem;
+    cursor: pointer;
+}

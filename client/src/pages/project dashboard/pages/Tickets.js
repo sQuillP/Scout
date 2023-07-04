@@ -29,10 +29,10 @@ import {
     AddTask,
 } from '@mui/icons-material'
 
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import "../styles/Tickets.css";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CreateTicket from '../components/CreateTicket';
 
 export default function Tickets() {
@@ -49,8 +49,12 @@ export default function Tickets() {
     /* when user submits/creates a new ticket, dipslay success message in snackbar */
     const [openSnackbar, setOpenSnackbar] = useState(false);
 
-    const navigation = useNavigate();
+    const [selectedTicket, setSelectedTicket] = useState(null);
 
+    const navigateTo = useNavigate();
+    const params = useParams();
+
+    /* Apply search fileters when searching for the tickets. */
     const [ticketFilters, setTicketFilters] = useState({});
 
     const [loadingContent, setLoadingContent] = useState(false);
@@ -58,20 +62,25 @@ export default function Tickets() {
     const [collapseTable, setCollapseTable] = useState(false);
 
 
-    function onShowTableMenu(e) {
+    useEffect(()=> {
+        //call api to get all the tickets.
+    },[]);
+
+    //set the current selected user 
+    function onShowTableMenu(e, entity) {
         setMenuRef(e.currentTarget);
+        setSelectedTicket(entity);
     }
 
-    function handleMenuAction(action) {
-        if(action ==='resolve'){
-            navigation('/projects/asdf');
-        }
+    function handleMenuAction(path) {
+        navigateTo(path);
         onCloseMenu();
         return;
     }
 
     function onCloseMenu() {
         setMenuRef(null);
+        setSelectedTicket(null);
     }
 
 
@@ -142,10 +151,10 @@ export default function Tickets() {
                 anchorEl={menuRef}
                 onClose={onCloseMenu}
             >
-                <MenuItem onClick={()=> handleMenuAction('resolve')}>
+                <MenuItem onClick={()=>onCloseMenu()}>
                     Re-open ticket
                 </MenuItem>
-                <MenuItem onClick={()=> handleMenuAction('view')}>
+                <MenuItem onClick={()=> handleMenuAction(`/projects/${params.projectId}/tickets/${selectedTicket.id}`)}>
                     View Ticket
                 </MenuItem>
             </Menu>
@@ -207,7 +216,7 @@ export default function Tickets() {
                                 <TableCell>
                                     <Stack direction='row' alignItems={'center'}>
                                         <Tooltip title='options'>
-                                            <IconButton onClick={onShowTableMenu}>
+                                            <IconButton onClick={(e)=>onShowTableMenu(e,'some id')}>
                                                 <MoreVert/>
                                             </IconButton>
                                         </Tooltip>
