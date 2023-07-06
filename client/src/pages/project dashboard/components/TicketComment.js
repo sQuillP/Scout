@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "../styles/TicketComment.css";
 import {
-    Avatar,
+    Avatar, Tooltip,
 
 } from '@mui/material';
 
@@ -54,7 +54,18 @@ export default function TicketComment({comment}) {
             <div className="tc-body">
                 <p className="text tc-comment">
                     {!viewMore ? dummyComment.content.substring(0,initial_view_length) : dummyComment.content}
-                    {!viewMore && dummyComment.length >= initial_view_length&& <span className="tc-view-change" onClick={()=> setViewMore(true)} style={{color:'blue'}}> (...)</span>}
+                    {
+                        !viewMore && dummyComment.content.length >= initial_view_length&& (
+                            <Tooltip title='View More'>
+                                <span 
+                                    className="tc-view-change" 
+                                    onClick={()=> setViewMore(true)} 
+                                    style={{color:'blue'}}> (...)
+                                </span>
+                            </Tooltip>
+                        )
+
+                    }
                 </p>
             </div>
             <div className="tc-footer">

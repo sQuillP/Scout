@@ -3,7 +3,7 @@
     padding: 10px;
     box-sizing: border-box;
     border-bottom: 1px solid #eee;
-    width: 450px;
+    width: 500px;
 }
 
 .tc-header {
@@ -41,4 +41,11 @@
 .tc-view-change {
     font-size:1rem;
     cursor: pointer;
+}
+
+
+@media screen and (max-width: 970px) {
+    .tc-main {
+        width: 100%;
+    }
 }

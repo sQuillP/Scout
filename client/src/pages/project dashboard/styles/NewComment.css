@@ -1,0 +1,30 @@
+
+.nc-container {
+    position: relative;
+}
+
+.nc-header {
+    border-bottom: 1px solid lightgray;
+    padding: 10px 0px;
+}
+
+.nc-header-text {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.nc-comment-textarea {
+    min-height: 150px;
+    font-family: inherit;
+    resize: none;
+    width: 100%;
+    box-sizing: border-box;
+    transition: 100ms linear box-shadow;
+    outline: none;
+    border: 1px solid lightgray;
+    margin-top: 10px;
+}
+
+.nc-comment-textarea:focus {
+    box-shadow: 0 0 0 3px rgba(37, 110, 255,0.5);
+}
