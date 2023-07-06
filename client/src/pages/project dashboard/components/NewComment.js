@@ -8,6 +8,8 @@ import {
 
 import {
     Clear,
+    SendSharp,
+
 
 } from '@mui/icons-material'
 
@@ -57,6 +59,28 @@ export default function NewComment({onCreateNewComment, onDiscard}) {
                 className="nc-comment-textarea"
             >
             </textarea>
+            <Tooltip
+                title="Add comment"
+            >
+                <IconButton
+                    onClick={onSubmitComment}
+                    size="small"
+                    sx={{
+                        position:'absolute',
+                        right:'10px',
+                        bottom:'10px',
+                        transition:'100ms linear transform',
+                        "&:hover": {
+                            transform:'rotate(-10deg)',
+                        }
+
+                    }}
+                >
+                    <SendSharp
+                        color="lightgray"
+                    />
+                </IconButton>
+            </Tooltip>
         </div>
     )
 }

@@ -3,7 +3,19 @@ import { useState, useEffect } from "react";
 import useDebounce from "../../../hooks/useDebounce";
 import NoComments from "../components/NoComments";
 import {
-    Chip, IconButton, Stack, Tooltip,
+    Chip, 
+    IconButton, 
+    Stack, 
+    Tooltip,
+    Snackbar,
+    Typography,
+    Alert,
+    Menu,
+    MenuItem,
+    Checkbox,
+    FormControlLabel,
+    Box,
+
 } from '@mui/material';
 
 import {
@@ -19,6 +31,7 @@ import {
 import "../styles/ViewTicket.css";
 import TicketComment from "../components/TicketComment";
 import NewComment from "../components/NewComment";
+import TicketHistoryTable from "../components/TicketHistoryTable";
 
 
 
@@ -61,14 +74,51 @@ export default function ViewTicket() {
     });
 
     //set state for ticket comments
-    const [ticketComments, setTicketComments] = useState([]);
+    const [ticketComments, setTicketComments] = useState([1,2,3,4,5]);
 
 
     /* State for handling comments */
     const [searchComment, setSearchComment] = useState('');
     const debouncedCommentSearch = useDebounce(searchComment,1000);
 
+    const [commentFilters, setCommentFilters] = useState({});
+
+    function handleCommentFilterChange(e) {
+        // setCommentFilters(e.target.value);
+    }
+
+    const [commentMenuRef, setCommentMenuRef] = useState(null);
+    const showCommentMenu = Boolean(commentMenuRef);
+
     const [createCommentMode, setCreateCommentMode] = useState(false);
+
+    function onOpenCommentMenu(e) {
+        setCommentMenuRef(e.currentTarget);
+    }
+
+    function onCloseMenu(){
+        setCommentMenuRef(null);
+    }
+
+
+    /* For handling snackbar state */
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+
+
+    function onCloseSnackbar() {
+        setOpenSnackbar(false);
+    }
+
+    /**
+     * @param {string} message - opens snackbar with specified message as the body
+     * @param {string} severity - should only be success or error. 
+     * This will determine whether snackbar will show an error or success.
+     */
+    function onOpenSnackbar(message, severity) {
+        setSnackbarMessage(message);
+        setOpenSnackbar(true);
+    }
 
 
     /* Create async request to server adding a new comment to the list.
@@ -76,7 +126,8 @@ export default function ViewTicket() {
     * the most recent changes. 
     */
     function onCreateNewComment(newComment) {
-        console.log('Creating comment',newComment)
+        console.log('Creating comment',newComment);
+        onOpenSnackbar("Comment successfully created!");
     }
 
     /* **** */
@@ -108,6 +159,59 @@ export default function ViewTicket() {
 
     return (
         <div className="vt-container">
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={3500}
+                onClose={onCloseSnackbar}
+                anchorOrigin={{horizontal:'center', vertical:'bottom'}}
+            >
+                <Alert severity="success">
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
+            <Menu
+                anchorEl={commentMenuRef}
+                open={showCommentMenu}
+                onClose={onCloseMenu}
+            >
+                <Box sx={{padding:'0 10px 10px 10px'}}>
+                    <Typography fontSize={'0.9rem'}>Apply Search Filters</Typography>
+                </Box>
+                <MenuItem>
+                    <FormControlLabel
+                        label="label 1"
+                        control={
+                            <Checkbox
+                                label='filter 1'
+                                value="Filter 1"
+                                onChange={()=>null}
+                            />
+                        }
+                    />
+                </MenuItem>
+                <MenuItem>
+                    <FormControlLabel
+                        label="label 2"
+                        control={
+                            <Checkbox
+                                value="Filter 2"
+                                onChange={()=>null}
+                            />
+                        }
+                    />
+                </MenuItem>
+                <MenuItem>
+                <FormControlLabel
+                    label='filter 3'
+                    control={
+                        <Checkbox
+                            value="Filter 2"
+                            onChange={()=>null}
+                        />
+                    }
+                />
+                </MenuItem>
+            </Menu>
             <div className="vt-header">
                 <p className="text">
                     {ticketInfo.summary}
@@ -186,6 +290,9 @@ export default function ViewTicket() {
                     <div className="vt-section">
                         <p className="text vt-section-label">Ticket History</p>
                         <div className="vt-activity-wrapper">
+                            <TicketHistoryTable
+                                ticketId={ticketId}
+                            />
                         </div>
                     </div>
                 </div>
@@ -233,7 +340,7 @@ export default function ViewTicket() {
                                         title='Filter Comments'
                                     >
                                         <IconButton 
-                                            onClick={()=> null} 
+                                            onClick={onOpenCommentMenu} 
                                             size="medium"
                                             disabled={createCommentMode}
                                         >
