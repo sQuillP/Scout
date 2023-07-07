@@ -15,6 +15,7 @@ import {
     Checkbox,
     FormControlLabel,
     Box,
+    Switch,
 
 } from '@mui/material';
 
@@ -26,6 +27,7 @@ import {
     Search,
     AddComment,
     FilterAltSharp,
+    Publish
 } from '@mui/icons-material';
 
 import "../styles/ViewTicket.css";
@@ -52,6 +54,23 @@ function IconSwitch({ticketType,}) {
 }
 
 
+
+const dummy_group_members = [
+    {email:'will.m.pattison@gmail.com'},
+    {email:'dan@gmail.com'},
+    {email:'kristine@yahoo.com'},
+    {email:'danielle@hotmail.com'}
+];
+
+
+/**
+ * 
+ * TODO: add editable fields , make a submit button that glitters/glows,
+ *  and have that be the submit button. If the form has not changed, do not allow changes
+ * to be made.
+ */
+
+
 export default function ViewTicket() {
 
     //number of comments to be paginated.
@@ -61,7 +80,7 @@ export default function ViewTicket() {
 
     const [ticketInfo, setTicketInfo] = useState({
         ticketType:'bug',
-        briefDescription:'This is the description Aliquip fugiat eu cupidatat pariatur. Do ullamco anim dolore id ut excepteur proident magna occaecat sint. Ea minim veniam nisi aliquip laboris ea exercitation nostrud aliqua sint nisi officia exercitation. Ad pariatur deserunt veniam ad id et ex amet incididunt aliquip laboris laborum qui adipisicing. Ipsum commodo sunt ut tempor est eiusmod aute irure eu proident quis ullamco aute.',
+        briefDescription:'Sit fugiat aliquip est quis consectetur laboris sint excepteur do laboris aute enim. Laborum ullamco reprehenderit occaecat laborum reprehenderit eu irure est velit culpa. Laborum in dolor nostrud fugiat anim cupidatat consectetur laboris ex cillum anim minim. Ex elit officia est culpa excepteur irure. Elit est nostrud nostrud adipisicing Lorem officia nisi aliquip ipsum velit.',
         summary:'React application keeps crashing for no reason at all',
         priority:'high',
         assignTo: {
@@ -109,6 +128,42 @@ export default function ViewTicket() {
     function onCloseSnackbar() {
         setOpenSnackbar(false);
     }
+
+
+    /* For edit mode in ticket */
+    const [canEdit, setCanEdit] = useState(false);
+    const [loadingPublishChanges, setLoadingPublishChanges] = useState(false);
+
+
+    //store deep copy of original ticket.
+    const [ticketInfoCopy, setTicketInfoCopy] = useState(
+        JSON.parse(
+            JSON.stringify(ticketInfo)
+        )
+    );
+
+    function updateTicketCopy(newValue, field) {
+        setTicketInfoCopy((oldTicketValue)=> {
+            return {
+                ...oldTicketValue,
+                [field]:newValue
+            };
+        });
+    }
+
+    function onSubmitEditChanges() {
+        setLoadingPublishChanges(true);
+        const timeout = setTimeout(()=> {
+            setLoadingPublishChanges(false);
+        },2000);
+
+        //submit the new ticket,
+        //fetch the newly updated ticket and store it in the original ticket.
+        //append the change to the ticket history (this can be handled by the backend.)
+    }
+
+    /******* */
+
 
     /**
      * @param {string} message - opens snackbar with specified message as the body
@@ -159,6 +214,21 @@ export default function ViewTicket() {
 
     return (
         <div className="vt-container">
+            {
+                canEdit && (
+                <div className="vt-submit-changes-container">
+                    <button
+                        className="vt-submit-changes"
+                        onClick={onSubmitEditChanges}
+                    >
+                        Publish Changes
+                        <Publish
+                            style={{marginLeft:'10px'}}
+                        />
+                    </button>
+                </div>
+                )
+            }
             <Snackbar
                 open={openSnackbar}
                 autoHideDuration={3500}
@@ -216,6 +286,16 @@ export default function ViewTicket() {
                 <p className="text">
                     {ticketInfo.summary}
                 </p>
+                <FormControlLabel
+                    label={`Allow editing: ${canEdit?"on":'off'}`}
+                    control={
+                        <Switch
+                            onChange={()=> setCanEdit(!canEdit)}
+                            value={canEdit}
+                            disabled={false}//if user does not have permission, do not edit.
+                        />
+                    }
+                />
             </div>
             <div className="vt-flex-container">
                 <div className="vt-flex-col">
@@ -237,26 +317,87 @@ export default function ViewTicket() {
                                 <tbody>
                                     <tr className="vt-tr">
                                         <th className="vt-th-label">Assigned to</th>
-                                        <td className="vt-td-value">{ticketInfo.assignTo.email}</td>
+                                        {
+                                            canEdit?(
+                                                <td className="vt-td-value">
+                                                    <select 
+                                                        onChange={(e)=> updateTicketCopy(e.target.value,"assignedTo")}
+                                                        value={ticketInfoCopy.assignTo}
+                                                        className="vt-edit-select"
+                                                    >
+                                                        {
+                                                            dummy_group_members.map((member)=> {
+                                                                return (
+                                                                    <option 
+                                                                        value={member.email} 
+                                                                        key={member.email}
+                                                                    >
+                                                                        {member.email}
+                                                                    </option>
+                                                                )
+                                                            })
+                                                        }
+                                                    </select>
+                                                </td>
+
+                                            ):(
+                                                <td className="vt-td-value">{ticketInfo.assignTo.email}</td>
+                                            )
+                                        }
                                     </tr>
                                     <tr className="vt-tr">
                                         <th className="vt-th-label">Priority</th>
                                         <td className="vt-td-value">
-                                            <Chip 
-                                                variant="outlined" 
-                                                color={getPriorityColor(ticketInfo.priority)}
-                                                label={ticketInfo.priority}
-                                                size="small"
-                                            />
+                                            {
+                                                canEdit?(
+                                                    <select 
+                                                        name="priority" 
+                                                        id="_vt-priority"
+                                                        onChange={(e)=> updateTicketCopy(e.target.value,"priority")}
+                                                        value={ticketInfoCopy.priority}
+                                                        className="vt-edit-select"
+                                                    >
+                                                        <option value="high">High</option>
+                                                        <option value="medium">Medium</option>
+                                                        <option value="low">Low</option>
+                                                    </select>
+                                                ):(
+                                                    <Chip 
+                                                        variant="outlined" 
+                                                        color={getPriorityColor(ticketInfo.priority)}
+                                                        label={ticketInfo.priority}
+                                                        size="small"
+                                                    />
+                                                )
+                                            }
                                         </td>
                                     </tr>
                                     <tr className="vt-tr">
                                         <th className="vt-th-label">Ticket type</th>
                                         <td style={{display:'flex', alignItems:'center'}}  className="vt-td-value">
-                                            <IconSwitch
-                                                ticketType={ticketInfo.ticketType}
-                                            />
-                                            {ticketInfo.ticketType}
+                                            {
+                                                canEdit ?(
+                                                    <select 
+                                                        name="ticketType" 
+                                                        id="_vt-ticket-type"
+                                                        onChange={(e)=> updateTicketCopy(e.target.value,"ticketType")}
+                                                        value={ticketInfoCopy.ticketType}
+                                                        className="vt-edit-select"
+                                                    >
+                                                        <option value="bug">Bug</option>
+                                                        <option value="crash">Crash</option>
+                                                        <option value="task">Task</option>
+                                                        <option value="change">Change</option>
+                                                    </select>
+                                                ):(
+                                                    <>
+                                                        <IconSwitch
+                                                            ticketType={ticketInfo.ticketType}
+                                                        />
+                                                        {ticketInfo.ticketType}
+                                                    </>
+                                                )
+                                            }
                                         </td>
                                     </tr>
                                     <tr className="vt-tr">
@@ -282,9 +423,20 @@ export default function ViewTicket() {
                     <div className="vt-section">
                         <p className="text vt-section-label">Description</p>
                         <div className="vt-description-wrapper">
-                            <p className="text vt-description">
-                                {ticketInfo.briefDescription}
-                            </p>
+                            {
+                                canEdit?(
+                                    <textarea 
+                                        className="vt-edit-description"
+                                        onChange={(e)=> updateTicketCopy(e.target.value,"briefDescription")}
+                                        value={ticketInfoCopy.briefDescription}
+                                    >
+                                    </textarea>
+                                ):(
+                                    <p className="text vt-description">
+                                        {ticketInfo.briefDescription}
+                                    </p>   
+                                )
+                            }                 
                         </div>
                     </div>
                     <div className="vt-section">

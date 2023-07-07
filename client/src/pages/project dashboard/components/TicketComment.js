@@ -69,7 +69,15 @@ export default function TicketComment({comment}) {
                 </p>
             </div>
             <div className="tc-footer">
-                {viewMore && <span style={{color:'blue', cursor:'pointer', fontSize:'0.7rem' }} onClick={()=> setViewMore(false)}>View less</span>}
+                {
+                    viewMore && (
+                        <span 
+                            style={{color:'blue', cursor:'pointer', fontSize:'0.7rem' }} 
+                            onClick={()=> setViewMore(false)}
+                        >
+                        View less
+                        </span>)
+                }
                 <p className="text tc-posted-on">Posted on: {dummyComment.postedOn}</p>
             </div>
         </div>

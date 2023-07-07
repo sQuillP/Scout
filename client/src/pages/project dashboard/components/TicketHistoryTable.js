@@ -14,6 +14,8 @@ import {
     CircularProgress,
     Typography,
     Button,
+    Snackbar,
+    Alert,
  } from '@mui/material';
 
 import {
@@ -82,6 +84,8 @@ const dummy_data = [
 
 /**
  * @description - Will fetch the latest ticket history for a given ticket.
+ * 
+ * NOTE: Fix state when there is data to display, as in, if there is data, display it?
  */
 export default function TicketHistoryTable({ticketId, }) {
 
@@ -92,6 +96,7 @@ export default function TicketHistoryTable({ticketId, }) {
         const debugTimeout = setTimeout(()=> {
             //clear loading
             setLoadingTicketHistory(false);
+            setShowSnackbar(true);
         
         },3000);
 
@@ -103,22 +108,46 @@ export default function TicketHistoryTable({ticketId, }) {
 
     const [loadingTicketHistory, setLoadingTicketHistory] = useState(true);
     const [loadingTicketError, setLoadingTicketError] = useState(true);
-
     const [rowsPerPage, setRowsPerPage] = useState(5);
+
+    const [showSnackbar, setShowSnackbar] = useState(false);
+
+    function onDismissSnackbar() {
+        setShowSnackbar(false);
+    }
 
     function handlePageChange() {
 
     }
 
-    function onRefresh() {
+    function onFetchTicketHistory() {
         //make axios request
+        setLoadingTicketHistory(true);
+        const timeout = setTimeout(()=> {
+            setLoadingTicketHistory(false);
+            setLoadingTicketError(false);
+        },3000);
+
     }
 
     return (
         <Paper 
             elevation={3} 
-            // sx={{width:'100%'}}
+            sx={{width:'100%'}}
         >
+            <Snackbar
+                anchorOrigin={{horizontal:'center', vertical:'bottom'}}
+                open={showSnackbar}
+                onClose={onDismissSnackbar}
+                autoHideDuration={5000}
+            >
+                <Alert
+                    severity="error"
+                    sx={{width:'100%'}}
+                >
+                    Error retrieving ticket history
+                </Alert>
+            </Snackbar>
             {
                 loadingTicketHistory && (
                     <Stack 
@@ -193,24 +222,43 @@ export default function TicketHistoryTable({ticketId, }) {
             }
             {
                 loadingTicketError && !loadingTicketHistory && (
-                    <>
-                        <SignalWifiStatusbarConnectedNoInternet4/>
+                    <Stack
+                        direction={'column'}
+                        spacing={2}
+                        alignItems={'center'}
+                        justifyContent={'center'}
+                        padding={'30px 0px'}
+                    >
+                        <SignalWifiStatusbarConnectedNoInternet4
+                            sx={{
+                                color:'gray',
+                                fontSize:'3rem'
+                            }}
+                        />
                         <Typography>Unable to Get Ticket History</Typography>
                         <Button
-                            onClick={onRefresh}
+                            sx={{
+                                textTransform:'none'
+                            }}
+                            //variant
+                            onClick={onFetchTicketHistory}
                         >Click to Refresh</Button>
-                    </>
+                    </Stack>
                     
                 )
             }
-            <TablePagination
-                rowsPerPageOptions={[5]}
-                component="div"
-                rowsPerPage={rowsPerPage}
-                page={currentPage}
-                onPageChange={handlePageChange}
-                count={dummy_data.length}
-            />
+
+            { !loadingTicketError && !loadingTicketHistory && (
+                <TablePagination
+                    rowsPerPageOptions={[5]}
+                    component="div"
+                    rowsPerPage={rowsPerPage}
+                    page={currentPage}
+                    onPageChange={handlePageChange}
+                    count={dummy_data.length}
+                />
+                )
+            }
         </Paper>
     )
 }
