@@ -1,6 +1,7 @@
 
 :root {
   --darkest-blue: #4188ff;
+  --dark-gold: #b59410;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
   'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
   sans-serif;
@@ -49,6 +50,10 @@ body, html {
 .required {
   color: red;
 }
+
+
+
+
 
 ::-webkit-scrollbar {
   width: 5px;

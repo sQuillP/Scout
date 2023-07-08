@@ -93,8 +93,9 @@
     height: 150px;
     outline: none;
     border: none;
-    background: #eee;;
-    border-radius: 10px;;
+    background: #eee;
+    border-radius: 10px;
+    overflow: hidden;;
 }
 
 .vt-edit-description:focus {
@@ -104,9 +105,9 @@
 
 .vt-submit-changes-container {
     position: fixed;
-    bottom: 50px;
+    bottom: 75px;
     right: 50px;
-    z-index: 1;
+    z-index: 500;
     ;
 }
 

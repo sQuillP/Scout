@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import { useState, useEffect } from "react";
 import useDebounce from "../../../hooks/useDebounce";
 import NoComments from "../components/NoComments";
+import _ from 'lodash';
 import {
     Chip, 
     IconButton, 
@@ -16,6 +17,8 @@ import {
     FormControlLabel,
     Box,
     Switch,
+    Modal,
+    CircularProgress,
 
 } from '@mui/material';
 
@@ -88,6 +91,7 @@ export default function ViewTicket() {
             username: 'william',
             id:1,
         },
+        status:'in progress',
         createdOn:'02/26/1999',
         lastUpdated: '03/14/1999'
     });
@@ -134,28 +138,46 @@ export default function ViewTicket() {
     const [canEdit, setCanEdit] = useState(false);
     const [loadingPublishChanges, setLoadingPublishChanges] = useState(false);
 
+    const [displayPublishChangesButton, setDisplayPublishChangesButton] = useState(false);
 
     //store deep copy of original ticket.
-    const [ticketInfoCopy, setTicketInfoCopy] = useState(
-        JSON.parse(
-            JSON.stringify(ticketInfo)
-        )
-    );
+    const [ticketInfoCopy, setTicketInfoCopy] = useState(_.cloneDeep(ticketInfo));
 
+
+   
+
+    /* Whenever makes modification to a field,
+    display a button on screen to allow modifications. */
     function updateTicketCopy(newValue, field) {
-        setTicketInfoCopy((oldTicketValue)=> {
-            return {
-                ...oldTicketValue,
-                [field]:newValue
-            };
-        });
+
+        const modifiedTicketInfoCopy = {
+            ...ticketInfoCopy,
+            [field]:newValue
+        };
+
+        /* Deep comparison of objects */
+        const madeTicketModifications = !_.isEqual(ticketInfo, modifiedTicketInfoCopy);
+
+        /* if modifications have been made, allow users to publish changes. */
+        if(madeTicketModifications)
+            setDisplayPublishChangesButton(true);
+        else
+            setDisplayPublishChangesButton(false);
+
+        setTicketInfoCopy(modifiedTicketInfoCopy);
     }
 
     function onSubmitEditChanges() {
         setLoadingPublishChanges(true);
         const timeout = setTimeout(()=> {
             setLoadingPublishChanges(false);
+            setTicketInfo(_.cloneDeep(ticketInfoCopy));
+            setDisplayPublishChangesButton(false);
         },2000);
+
+
+        //just update the ticket manually, make the change later from the db.
+
 
         //submit the new ticket,
         //fetch the newly updated ticket and store it in the original ticket.
@@ -215,17 +237,33 @@ export default function ViewTicket() {
     return (
         <div className="vt-container">
             {
-                canEdit && (
+                canEdit && displayPublishChangesButton && (
                 <div className="vt-submit-changes-container">
                     <button
                         className="vt-submit-changes"
                         onClick={onSubmitEditChanges}
+                        disabled={loadingPublishChanges}
                     >
                         Publish Changes
                         <Publish
                             style={{marginLeft:'10px'}}
                         />
                     </button>
+                    {
+                        loadingPublishChanges && (
+                            <CircularProgress
+                                variant="determinant"
+                                color="success"
+                                size={'small'}
+                                sx={{
+                                    position:'absolute',
+                                    top:'50%',
+                                    left:'50%',
+                                    margin:'10px 0 0 10px'
+                                }}
+                            />
+                        )
+                    }
                 </div>
                 )
             }
@@ -396,6 +434,31 @@ export default function ViewTicket() {
                                                         />
                                                         {ticketInfo.ticketType}
                                                     </>
+                                                )
+                                            }
+                                        </td>
+                                    </tr>
+                                    <tr className="vt-tr">
+                                        <th className="vt-th-label">Ticket status:</th>
+                                        <td className="vt-td-value">
+                                            {
+                                                canEdit? (
+                                                    <select 
+                                                        value={ticketInfoCopy.ticketType}
+                                                        onChange={(e)=> updateTicketCopy(e.target.value,"ticketType")}
+                                                        className="vt-edit-select"
+                                                    >
+                                                        <option value="open">Open</option>
+                                                        <option value="in progress">In progress</option>
+                                                        <option value="closed">Closed</option>
+                                                    </select>
+                                                ):(
+                                                    <Chip
+                                                        variant="outlined"
+                                                        size="small"
+                                                        sx={{color:'var(--dark-gold)', borderColor:'var(--dark-gold)'}}
+                                                        label={ticketInfo.status}
+                                                    />
                                                 )
                                             }
                                         </td>
