@@ -81,21 +81,30 @@
 }
 
 
-/* ********* For edit mode****** */
+/* ******* For edit mode ****** */
 
-.vt-edit-description {
-    width: 100%;
+.vt-edit-description, .vt-ticket-change-textarea{
     box-sizing: border-box;
     padding: 20px;
     font-family: inherit;
     transition: 100ms box-shadow ease;
     resize: none;
-    height: 150px;
     outline: none;
     border: none;
     background: #eee;
     border-radius: 10px;
     overflow: hidden;;
+}
+
+.vt-edit-description {
+    width: 100%;
+    height: 150px;
+}
+
+.vt-ticket-change-textarea {
+    width: 100%;
+    height: 100px;
+    margin: 10px 0px;
 }
 
 .vt-edit-description:focus {
@@ -122,6 +131,15 @@
     border: none;
     animation: glow 2000ms linear infinite;
     ;
+}
+
+.vt-submit-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.vt-ticket-change-textarea:focus{
+    box-shadow: 0px 0px 0 3px rgba(37, 110, 255,0.5);
 }
 
 @keyframes glow {
