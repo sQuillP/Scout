@@ -1,0 +1,32 @@
+.ps-container{
+    box-sizing: border-box;
+    margin: 75px 25px 0 100px;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    padding: 20px;
+}
+
+.ps-header {
+    font-size: 2rem;
+}
+
+.ps-input {
+    box-sizing: border-box;
+    padding: 5px;;
+}
+
+.ps-intro {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+}
+
+.ps-description {
+    resize: none;
+    border: none;
+    background: #eee;
+    padding: 20px;
+    font-family: inherit;
+    outline: none;
+    height: 150px;
+    width: 100%;
+    box-sizing: border-box;
+}

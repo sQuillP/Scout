@@ -377,7 +377,7 @@ export default function ViewTicket() {
                 open={showConfirmTicketChangesModal}
                 onClose={()=> null}
             >
-                <DialogTitle>{'Please briefly describe your changes.'}</DialogTitle>
+               { !pendingPublishChanges &&(<DialogTitle>{'Please briefly describe your changes.'}</DialogTitle>)}
                 <DialogContent>
                     {
                         (()=> {
