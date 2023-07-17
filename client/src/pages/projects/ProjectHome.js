@@ -54,17 +54,6 @@ const dummy_data = [
 ]
 
 
-function getSalutations() {
-    const currentDate = new Date();
-    const time = currentDate.getHours();
-    if(time <  12 && time >= 4)
-        return "Good Morning";
-    else if(time <= 17 && time >= 12)
-        return "Good Afternoon";
-    else
-        return "Good Evening";
-}
-
 export default function ProjectHome() {
 
 

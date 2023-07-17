@@ -29,4 +29,36 @@
     height: 150px;
     width: 100%;
     box-sizing: border-box;
+    margin-top: 10px;
+}
+
+.ps-description-wrapper {
+    margin: 20px 0;
+}
+
+
+.settings-key-wrapper {
+    
+}
+
+.settings-dialog-title {
+    font-weight: bold;
+}
+
+.settings-api-label {
+    display: inline-block;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+
+.blur {
+    color: transparent;
+    text-shadow: 0 0 10px black;
+}
+
+@media screen and (max-width: 970px) {
+    .ps-container {
+        margin: 65px 0 0 0;
+    }
 }

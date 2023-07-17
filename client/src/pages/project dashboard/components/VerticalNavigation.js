@@ -18,7 +18,7 @@ export default function VerticalNavigation() {
             <ul className="vertical-nav">
                 <li className="vert-nav-item">
                     <Tooltip placement="top" title='Project Settings'>
-                        <Link className="vert-nav-link" to="">
+                        <Link className="vert-nav-link" to={'/projects/'+params.projectId+'/settings'}>
                             <i className="menu-icon fa-solid fa-gear"></i>
                         </Link>
                     </Tooltip>
