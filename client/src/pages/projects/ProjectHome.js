@@ -11,7 +11,7 @@ import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import Modal from "@mui/material/Modal";
 import ProjectModalContent from "./components/ProjectModalContent";
-
+import { useNavigate } from "react-router-dom";
 //make a request to get a list of projects for a user.
 const dummy_data = [
     {
@@ -60,11 +60,16 @@ export default function ProjectHome() {
     const [currentPage, setCurrentPage] = useState(1);
     const [resultsPerPage, setResultsPerPage] = useState(5);
     const [openProjectModal, setOpenProjectModal] = useState(false);
-
+    const navigate = useNavigate();
 
     function onCloseModal() {
         
         setOpenProjectModal(false);
+    }
+
+
+    function onViewProject(){
+        navigate('/projects/asdf');
     }
 
 
@@ -138,7 +143,9 @@ export default function ProjectHome() {
                                                     </IconButton>
                                                 </Tooltip>
                                                 <Tooltip title='View Project'>
-                                                    <IconButton>
+                                                    <IconButton
+                                                        onClick={()=> onViewProject(row._id)}
+                                                    >
                                                         <DoubleArrowIcon/>
                                                     </IconButton>
                                                 </Tooltip>
@@ -176,11 +183,3 @@ export default function ProjectHome() {
         </div>
     )
 }
-
-/**
- * 
- * 
- * <IconButton size="small">
-                                                <ArrowForwardIosIcon fontSize="0.7em"/>
-                                            </IconButton>
- */

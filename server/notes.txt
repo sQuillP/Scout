@@ -1,0 +1,42 @@
+
+
+REQUIRED:
+
+- paginated results
+- return total results for any query
+
+
+ROUTES:
+
+    root = http://localhost:3030/api/v1/
+
+-GET /projects
+    - return a list of proejcts that belong to a user
+
+@auth
+-POST /projects
+    - Create a new project with the specified body
+    - body: {
+        name: string,
+        members: {
+            username: string,
+            profileImage: string,
+            email: string,
+            role: enum(developer | admin | project manager)
+        },
+        description: string
+    }
+
+    -NOTE - create a new API key that is associated to
+    a project.
+
+@restricted
+@permission(admin)
+-PUT /projects 
+    body: {
+        description?:string,
+        name?: string,
+        newAPIKey?: boolean
+    }
+
+

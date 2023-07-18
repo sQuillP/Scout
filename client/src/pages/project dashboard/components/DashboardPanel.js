@@ -1,22 +1,72 @@
-import { Typography } from "@mui/material"
+import { 
+    Typography,
+    Paper,
+    IconButton,
+    Tooltip,
+    Stack,
+    useMediaQuery
+ } from "@mui/material"
+
+import {
+    East,
+    MoreHoriz,
+    Reply,
+} from '@mui/icons-material';
+
+import { useNavigate } from "react-router-dom";
 
 import "../styles/DashboardPanel.css";
 
-export default function DashboardPanel({title,content,overlayContent, color}) {
+
+
+/**
+ * 
+ * @param {{
+ *  title: string,
+ *  content: string,
+ *  PanelIcon: React.Node
+ * }} 
+ * 
+ */
+export default function DashboardPanel({title,content,PanelIcon, navigationFilters=""}) {
+
+    const navigate = useNavigate();
+
+    const minifiedScreen = useMediaQuery('(max-width:614px');
+
+    //navigate to tickets with predefined filters. based on dashboard panel
+    function onNavigateTickets() {
+
+    }
 
     return (
-        <div style={{background:color}} className="pd-panel">
-            <div className="pd-panel-title">
-                <Typography variant="h4" textAlign='center'>{title}</Typography>
-            </div>
-            <div className="pd-panel-content">
-                <div className="pd-circle">
-                    <Typography align="center" variant="h4" textAlign='center'>{content}</Typography>
-                </div>
-            </div>
-            <div className="pd-panel-overlay">
-                    <Typography variant='h5' textAlign={'center'}>{overlayContent}</Typography>
-            </div>
-        </div>
+        <Paper sx={{
+                position:'relative', 
+                padding: '20px 20px 20px 20px',
+                width: minifiedScreen ? '90%' : '225px',
+                borderRadius: '10px'
+            }}  
+            elevation={3}
+        >
+            <Stack
+                direction={'row'}
+                justifyContent={'space-between'}
+            >
+                <PanelIcon/>
+                <Tooltip
+                    title='View Issues'
+                >
+                    <IconButton 
+                        onClick={onNavigateTickets}
+                        sx={{width: '40px', height:'40px'}}
+                    >
+                        <East
+                        />
+                    </IconButton>
+                </Tooltip>
+            </Stack>
+            <p className="text dp-value">{content}</p>
+            <p className="text dp-title">{title}</p>
+        </Paper>
     )
 }

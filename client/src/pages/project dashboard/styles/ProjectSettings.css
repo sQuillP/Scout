@@ -11,7 +11,10 @@
 
 .ps-input {
     box-sizing: border-box;
-    padding: 5px;;
+    padding: 10px;
+    outline: none;
+    border: none;
+    background:#eee;
 }
 
 .ps-intro {

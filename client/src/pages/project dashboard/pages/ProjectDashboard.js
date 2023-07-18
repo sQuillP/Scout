@@ -1,25 +1,19 @@
-import HorizontalNavigation from "../../../components/HorizontalNavigation"
-import VerticalNavigation from '../components/VerticalNavigation';
 import { 
     Typography,
-    TableContainer, 
-    Table,
-    TableHead,
-    TableBody,
-    TableRow,
-    TablePagination,
-    TableCell,
-    Paper,
     Avatar,
+    Stack
 } from "@mui/material";
 
-import { memberRows, activityRows } from "../dev/dummy_data";
 
 import DashboardPanel from "../components/DashboardPanel";
 
 import "../styles/ProjectDashboard.css";
 import ProjectMembersTable from "../components/ProjectMembersTable";
 import RecentTicketsTable from "../components/RecentTicketsTable";
+
+import {
+    NewReleases,
+} from '@mui/icons-material';
 
 export default function ProjectDashboard() {
 
@@ -34,26 +28,25 @@ export default function ProjectDashboard() {
                 <Typography textAlign='Center' variant="h3" padding={'20px'}>Project Dashboard (Search Engine)</Typography>
             </div>
             <div className="pd-section">
-                <div className="pd-panels">
+                <Stack 
+                    direction={'row'} 
+                    justifyContent={'center'}
+                    flexWrap={'wrap'}
+                    columnGap={10}
+                    rowGap={3}
+                >
                     <DashboardPanel
-                        title={'My Tickets'}
+                        title={'Tickets currently assigned to me'}
                         content={'23'}
-                        overlayContent={'View assigned tickets'}
-                        color='rbg(0,128,255)'
+                        PanelIcon={()=> <Avatar sx={{height: '50px', width:'50px'}}>A</Avatar>}
                     />
                     <DashboardPanel
-                        title={'Open Tickets'}
+                        title={'Open Tickets (currently not assigned)'}
                         content={'14'}
-                        overlayContent={'View open tickets'}
-                        color={'#e7cb01'}
+                        PanelIcon={()=> <NewReleases sx={{fontSize: '3rem', color:'goldenrod'}}/>}
                     />
-                    <DashboardPanel
-                        title={'Production Errors'}
-                        content={12}
-                        overlayContent={'View production errors'}
-                        color={'View production errors'}
-                    />
-                </div>
+                    
+                </Stack>
             </div>
             <div className="pd-section">
                 <div className="pd-flex-layout">
@@ -64,6 +57,7 @@ export default function ProjectDashboard() {
                         </div>
                         <ProjectMembersTable
                             showActions={false}
+                            containerSX={{width:'100%'}}
                         />
                     </div>
                     <div className="pd-table-container">

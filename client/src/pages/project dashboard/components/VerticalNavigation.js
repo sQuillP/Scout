@@ -24,14 +24,14 @@ export default function VerticalNavigation() {
                     </Tooltip>
                     {/* <span className="vert-nav-text">Project Settings</span> */}
                 </li>
-                <li className="vert-nav-item">
+                {/* <li className="vert-nav-item">
                     <Tooltip placement="top" title='Analytics'>
                         <Link className="vert-nav-link">
                             <i className="menu-icon fa-solid fa-chart-simple"></i>
                         </Link>
                     </Tooltip>
-                    {/* <span className="vert-nav-text">Analytics</span> */}
-                </li>
+                    <span className="vert-nav-text">Analytics</span>
+                </li> */}
                 <li className="vert-nav-item">
                     <Tooltip placement="top" title='Members'>
                         <Link className="vert-nav-link" to={'/projects/'+params.projectId+'/members'}>
@@ -51,7 +51,7 @@ export default function VerticalNavigation() {
                 <li className="vert-nav-item">
                     <Tooltip placement="top" title="Dashboard">
                         <Link className="vert-nav-link" to={"/projects/"+params.projectId}>
-                            <i className="menu-icon fa-solid fa-chart-line"></i>
+                            <i className="menu-icon fa-solid fa-table-columns"></i>
                         </Link>
                     </Tooltip>
                 </li>

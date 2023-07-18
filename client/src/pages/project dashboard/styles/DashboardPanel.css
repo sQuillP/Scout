@@ -1,90 +1,10 @@
-.pd-panel {color: white;}
-
-
-
-
-.pd-panel:nth-child(2){background: #e7cb01; }
-.pd-panel:first-child{background:rgb(0, 128, 255); ;}
-.pd-panel:last-child{background: #c63100}
-
-
-.pd-panel {
-    box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
-    transition: box-shadow 100ms linear;
-    margin: 15px 2rem;
-    cursor: pointer;
-    border-radius: 5px;
-    height: 175px;
-    display: flex;
-    flex-direction: column;
-    width: 300px;
-    position: relative;
-    ;
-    overflow: hidden;
+.dp-title {
+    font-weight: bold;
+    font-size: 1.25rem;
 }
 
-.pd-panel-title {
-    padding: 10px;
-}
-
-.pd-panel-content{
-    padding: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-}
-
-.pd-panel:hover .pd-panel-overlay {
-    opacity: 1;
-}
-
-.pd-panel-overlay {
-    opacity: 0;
-    transition: opacity 100ms linear;
-    background: rgba(0,0,0,0.2);
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white
-    ;
-}
-
-.pd-circle {
-    border-radius: 50%;
-    border: 5px solid white;
-    padding: 10px;
-    text-align: center;
-}
-
-.pd-panel:hover {
-    box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px, rgba(0, 0, 0, 0.07) 0px 2px 4px, rgba(0, 0, 0, 0.07) 0px 4px 8px, rgba(0, 0, 0, 0.07) 0px 8px 16px, rgba(0, 0, 0, 0.07) 0px 16px 32px, rgba(0, 0, 0, 0.07) 0px 32px 64px;
-
-}
-
-@media screen and (max-width: 970px) {
-    .pd-panel {
-        width: 100%;
-        margin:  0;
-        box-shadow: none;
-        height: initial;
-        border-radius: 0;;
-        padding-bottom: 10px;
-    }
-
-
-
-    .pd-panel-content {
-        margin: 0;
-        padding: 0;
-    }
-
-    .pd-panel-title {
-        border: none;
-        margin: 0;;
-        padding: 0;
-    }
+.dp-value {
+    font-weight: bold;
+    font-size: 2.5rem;
+    margin: 10px;
 }

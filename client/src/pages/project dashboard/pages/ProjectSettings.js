@@ -159,7 +159,7 @@ export default function ProjectSettings() {
                         <AccordionSummary
                             expandIcon={<ExpandMore/>}
                         >
-                            <Typography>Credentials</Typography>
+                            <Typography fontWeight={'bold'}>Credentials</Typography>
                             <Key style={{color:'gray', marginLeft: '10px'}}/>
                         </AccordionSummary>
                         <AccordionDetails>
@@ -169,6 +169,7 @@ export default function ProjectSettings() {
                                     direction={'row'}
                                     alignItems={'center'}
                                     gap={1}
+                                    flexWrap={'wrap'}
                                 >
                                     <Typography className={`${viewApiKey===false?'blur':''}`}>
                                         {APIKey}

@@ -12,8 +12,15 @@ import {
     IconButton,
     Menu,
     MenuItem,
-    Button
+    Stack,
+    Button,
+    Tooltip
 } from "@mui/material";
+
+import {
+    Publish,
+} from '@mui/icons-material'
+
 import MenuList from "./MenuList";
 import { memberRows } from "../dev/dummy_data";
 import { useEffect, useState } from "react";
@@ -22,7 +29,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 export default function ProjectMembersTable({showActions = false, containerSX = {}}) {
 
-    const memberHeaders = ['Name', 'Email', 'Role', 'Actions'];
+    const memberHeaders = ['Name', 'Email', 'Role'];
     const menuOptions = ['Remove'];
     const avatarSX = {height:'30px', width:'30px', fontSize:'1em', marginRight:'10px'};
 
@@ -69,18 +76,24 @@ export default function ProjectMembersTable({showActions = false, containerSX = 
         <>
             {showActions && <MenuList onClose={handleCloseMenu} anchorEl={anchorEl} menuItems={['Remove']}/>}
             <TableContainer sx={{borderRadius:'0 0 5px 5px'}} component={Paper}>
-                <Table sx={{ margin:'0 auto'}}>
+                <Table sx={{ margin:'0 auto', ...containerSX}}>
                     <TableHead>
                         <TableRow>
                             {
                                 memberHeaders.map((header)=>{
-                                    if(header === 'Actions' && showActions === false) return;
                                     return (
-                                        <TableCell key={header}>
+                                        <TableCell align={header === 'Role' && !showActions?'right':'left'} key={header}>
                                             {header}
                                         </TableCell>
                                     );
                                 })
+                            }
+                            {
+                                showActions === true && (
+                                    <TableCell align="right">
+                                        Actions
+                                    </TableCell>
+                                )
                             }
                         </TableRow>
                     </TableHead>
@@ -102,7 +115,7 @@ export default function ProjectMembersTable({showActions = false, containerSX = 
                                     <TableCell>
                                         {member.email}
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell align="right">
                                         { true ?(
                                             <select 
                                                 defaultValue={'developer'} 
@@ -114,26 +127,46 @@ export default function ProjectMembersTable({showActions = false, containerSX = 
                                             </select>
                                         ): member.role}
                                     </TableCell>
-                                    {showActions && (<TableCell>
-                                        <IconButton onClick={(e)=>onHandleOpenMenu(e,index)}>
-                                            <MoreVertIcon/>
-                                        </IconButton>
-                                    </TableCell>)}
+                                    {showActions === true && (
+                                        <TableCell align="right">
+                                            <IconButton onClick={(e)=>onHandleOpenMenu(e,index)}>
+                                                <MoreVertIcon/>
+                                            </IconButton>
+                                        </TableCell>)}
                                 </TableRow>
                             );
                         })}
                     </TableBody>
                 </Table>
             </TableContainer>
-            <TablePagination
-                rowsPerPageOptions={[5, 10, 25]}
-                component="div"
-                count={100}
-                rowsPerPage={rowsPerPage}
-                page={currentPage}
-                onPageChange={handlePageChange}
-                onRowsPerPageChange={handleRowsChange}
-            />
+            <Stack
+                direction={'row'}
+                gap={2}
+                justifyContent={'flex-end'}
+                alignItems={'center'}
+            >
+                <TablePagination
+                    rowsPerPageOptions={[5, 10, 25]}
+                    component="div"
+                    count={100}
+                    rowsPerPage={rowsPerPage}
+                    page={currentPage}
+                    onPageChange={handlePageChange}
+                    onRowsPerPageChange={handleRowsChange}
+                />
+                <Tooltip title="Save changes">
+                    <IconButton
+                        disabled
+                        sx={{
+                            height:'35px',
+                            width:'35px'
+                        }}
+                    >
+                        <Publish/>
+                    </IconButton>
+                </Tooltip>
+
+            </Stack>
         </>
     )
 }

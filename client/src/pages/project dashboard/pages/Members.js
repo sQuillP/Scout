@@ -159,7 +159,7 @@ export default function Members() {
                     </div>
                     <div style={{width: '100%'}} className="member-col">
                         <ProjectMembersTable
-                            showActions
+                            showActions={true}
                             sx={{width:'100%'}}
                         />
                     </div>

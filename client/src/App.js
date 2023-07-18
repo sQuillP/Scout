@@ -1,4 +1,8 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { 
+  Routes, 
+  Route, 
+  Navigate,
+} from 'react-router-dom';
 
 import Login from './pages/auth/Login';
 import Auth from './pages/auth/Auth';
@@ -12,6 +16,8 @@ import ViewTicket from './pages/project dashboard/pages/ViewTicket';
 import ProjectSettings from './pages/project dashboard/pages/ProjectSettings';
 
 function App() {
+
+
   return (
     <Routes>
 
