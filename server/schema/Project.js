@@ -13,11 +13,10 @@ const ProjectSchema = new mongoose.Schema({
         max: 500
     },
     members: [{
-        type: mongoose.Schema.ObjectId,
+        type: mongoose.Schema.ObjectId, 
         ref:'User',
     }],
     APIKey: {
-        select: false,
         type: String,
         required: true
     }
