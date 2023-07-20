@@ -8,12 +8,13 @@ import cors from 'cors';
 import AuthRouter from './routes/Auth.js'
 import ProjectRouter from './routes/Project.js';
 import errorRoute from './middleware/Error.js';
-
+import UserRouter from './routes/User.js';
 
 //get environment variables
 const app = express();
 dotenv.config({path:'./environments/environments.env'});
 connectDB();
+
 app.use(express.json());
 app.use(cors({
     origin:'*',
@@ -23,8 +24,7 @@ app.use(cors({
 /* Mount the routers and their controllers */
 app.use('/api/v1/auth', AuthRouter);
 app.use('/api/v1/projects', ProjectRouter);
-
-
+app.use('/api/v1/users',UserRouter);
 app.use(errorRoute);
 
 

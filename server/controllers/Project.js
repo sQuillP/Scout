@@ -7,6 +7,10 @@ import crypto from 'crypto';
 import Permission from "../schema/Permission.js";
 import mongoose from 'mongoose';
 
+import {
+    validateCreateProjectBody
+} from './validators/ProjectValidators.js'
+
 /**
  * @description - get all projects
  * @method GET /projects
@@ -57,48 +61,14 @@ export const getProjectById = asyncHandler((req,res,next)=> {
  * @access authentication required
  */
 export const createProject = asyncHandler( async (req,res,next)=> {
-
-    const projectFormat = ['title','description'];
-    const memberBodyFormat = ['profileImage','firstName','lastName','email','role', '_id'];
-    const roles = ['administrator','project_manager','developer']
-    let validBody = true;
-
-    //validate the project object.
-    projectFormat.forEach((key)=> {
-        if(typeof req.body[key] !== 'string'){
-            validBody = false;
-            return;
-        } 
-    });
-
-    //validate the members object
-    req.body.members.forEach((member)=> {
-        //ensure each member has 4 fields
-        if(Object.keys(member).length !== memberBodyFormat.length){
-            validBody = false;
-            return;
-        }
-        //ensure that each member field is a string
-        memberBodyFormat.forEach((memberKey)=> {
-            if(typeof member[memberKey] !== 'string')
-                validBody = false;
-            //must include one of the roles
-            if(memberKey === 'role' && roles.includes(member[memberKey]) === false)
-                validBody = false;
-        });
-    });
-
-    if(validBody === false){
+    if(validateCreateProjectBody(req) === false) {
         return next(
             new ErrorResponse(
                 status.BAD_REQUEST,
-                "Invalid body format"
+                "Invalid request format"
             )
         );
     }
-
-    //initializing the project
-
     //new project id
     const projectId = new mongoose.Types.ObjectId();
 
@@ -139,6 +109,8 @@ export const createProject = asyncHandler( async (req,res,next)=> {
         data: createdProject.toJSON()
     });
 });
+
+
 
 
 /**
