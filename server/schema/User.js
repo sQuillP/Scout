@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-
+import bcrypt from 'bcrypt';
 
 
 const UserSchema = new mongoose.Schema({
@@ -26,6 +26,22 @@ const UserSchema = new mongoose.Schema({
     profileImage: String,
 });
 
+
+/* Used for development purposes */
+UserSchema.pre('insertMany', async function(next,docs) {
+    if(!Array.isArray(docs) && docs.length === 0) return;
+    try {
+        for(let i = 0; i<docs.length; i++){
+            const salt = await bcrypt.genSalt(10);
+            const passwordHash = await bcrypt.hash(docs[i].password, salt);
+            docs[i].password = passwordHash;
+        }
+    } catch(error) {
+        console.log(error.message);
+    } finally {
+        next();
+    }
+});
 
 const User = mongoose.model('User',UserSchema);
 

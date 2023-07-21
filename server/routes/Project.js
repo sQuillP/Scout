@@ -2,20 +2,28 @@ import express from 'express';
 import {
     getProjects,
     getMyProjects,
-    createProject
+    createProject,
+    getProjectById
 } from '../controllers/Project.js';
 import authenticate from '../middleware/authenticate.js';
 
 
 const ProjectRouter = express.Router();
 
+//Enforce authentication for all project routes.
+ProjectRouter.use(authenticate);
 
 ProjectRouter.route('/')
-.get(authenticate, getProjects)
-.post(authenticate, createProject);
+.get(getProjects)
+.post(createProject);
+
 
 ProjectRouter.route('/myProjects')
-.get(authenticate, getMyProjects);
+.get(getMyProjects);
+
+
+ProjectRouter.route('/myProjects/:projectId')
+.get(getProjectById);
 
 
 export default ProjectRouter;

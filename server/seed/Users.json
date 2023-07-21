@@ -1,0 +1,37 @@
+[
+    {
+        "firstName":"william",
+        "lastName":"pattison",
+        "email":"will.m.pattison@gmail.com",
+        "password":"abc123",
+        "profileImage":null
+    },
+    {
+        "firstName":"Daniel",
+        "lastName":"Slinkman",
+        "email":"daniel@gmail.com",
+        "password":"abc123",
+        "profileImage":null
+    },
+    {
+        "firstName":"Peter",
+        "lastName":"Griffin",
+        "email":"peter@gmail.com",
+        "password":"abc123",
+        "profileImage":null
+    },
+    {
+        "firstName":"Lois",
+        "lastName":"Griffin",
+        "email":"Lois@gmail.com",
+        "password":"abc123",
+        "profileImage":null
+    },
+    {
+        "firstName":"Adam",
+        "lastName":"Smith",
+        "email":"adam@gmail.com",
+        "password":"abc123",
+        "profileImage":null
+    }
+]

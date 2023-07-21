@@ -12,14 +12,13 @@ import {
 } from './validators/ProjectValidators.js'
 
 /**
- * @description - get all projects
+ * @description - get all projects, used for development purposes
  * @method GET /projects
  * @access authentication required
  */
 export const getProjects = asyncHandler( async (req,res,next)=> {
 
     const projects = await Project.find();
-
     res.status(status.OK).json({
         data: projects
     })
@@ -34,10 +33,19 @@ export const getProjects = asyncHandler( async (req,res,next)=> {
  */
 export const getMyProjects = asyncHandler( async (req,res,next)=> {
 
-    const myProjects = await Project.find({members: req.user._id});
+    const page = +req.query.page || 1;
+    const limit = +req.query.limit || 10;
+
+    const myProjects = await Project.find({members: req.user._id})
+    .populate('members')
+    .skip((page-1)*limit)
+    .limit(limit);
 
     res.status(status.OK).json({
-        data: myProjects
+        data: myProjects,
+        itemCount: myProjects.length,
+        page:page,
+        limit: limit,
     });
 });
 
@@ -45,46 +53,53 @@ export const getMyProjects = asyncHandler( async (req,res,next)=> {
 
 
 /**
- * @method GET /projects/:projectId
+ * @description Get a specific project for a user.
+ * @method GET /projects/myProjects/:projectId
  * @access authenticated, developer+
  */
-export const getProjectById = asyncHandler((req,res,next)=> {
+export const getProjectById = asyncHandler(async (req,res,next)=> {
 
+    const retrievedProject = await Project.find({
+        members: req.user._id, 
+        _id: req.params.projectId
+    });
+
+    res.status(status.OK).json({
+        data: retrievedProject
+    });
 })
 
 
 
 /**
- * @description - Create a new project instance. Note that the user is implicitly stored
- * in the members request.
+ * @description - Create a new project instance.
  * @method POST
  * @access authentication required
  */
 export const createProject = asyncHandler( async (req,res,next)=> {
-    if(validateCreateProjectBody(req) === false) {
+
+    const [validBody, errorMessage] = await validateCreateProjectBody(req);
+
+    if(validBody === false) {
         return next(
             new ErrorResponse(
                 status.BAD_REQUEST,
-                "Invalid request format"
+                errorMessage
             )
         );
     }
     //new project id
     const projectId = new mongoose.Types.ObjectId();
 
-    //create and populate members array
-    const membersArr = [];
-    
     //create new permissions for each member
     for(const member of req.body.members) {
-        membersArr.push(member._id);
         await Permission.create({
             project: projectId,
             user: member._id,
-            role: member.role
+            role:member.role
         });
     }
-    membersArr.push(req.user._id); //user is created
+
     //create admin permission for creator
     await Permission.create({
         project: projectId,
@@ -92,8 +107,14 @@ export const createProject = asyncHandler( async (req,res,next)=> {
         role: 'administrator'
     });
 
+
+
     //generate an api key
     const generatedAPIKey = crypto.randomUUID();
+
+    //get the members
+    const membersArr = req.body.members.map((member)=> member._id);
+    membersArr.push(req.user._id);
 
     //create the project
     const createdProject = await Project.create({
@@ -105,7 +126,7 @@ export const createProject = asyncHandler( async (req,res,next)=> {
 
 
     //return teh created project.
-    res.status(status.OK).json({
+    res.status(status.CREATED).json({
         data: createdProject.toJSON()
     });
 });
@@ -114,11 +135,10 @@ export const createProject = asyncHandler( async (req,res,next)=> {
 
 
 /**
- * @method PUT
+ * @method PUT /api/v1/projects
  * @access authentication required
  */
 export const updateProject = asyncHandler( async (req,res,next)=> {
-
-
+    //make sure that user is valid
 });
 

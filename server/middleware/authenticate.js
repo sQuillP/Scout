@@ -42,7 +42,6 @@ export default function authenticate(req,res,next) {
 
     try{
         const validToken = jsonwebtoken.verify(tokenDetails[1],process.env.JWT_SECRET);
-        console.log(validToken);
         req.user = validToken;
         next();
     } catch(error) {

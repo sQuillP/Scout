@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 
 
-
 const PermissionSchema = new mongoose.Schema({
     project: {
         type: mongoose.Schema.ObjectId,
@@ -11,7 +10,7 @@ const PermissionSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.ObjectId,
         ref: "User",
-        required: [true, 'please provide user for permission']
+        required: [true, 'please provide user for permission'],
     },
     role: {
         type: String,
