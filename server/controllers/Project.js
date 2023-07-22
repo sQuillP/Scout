@@ -87,16 +87,28 @@ export const getMyProjects = asyncHandler( async (req,res,next)=> {
 
 
 /**
- * @description Get a specific project for a user.
+ * @description Get a specific project for a user. Attach a permission associated with the project
+ * and get the user as well
  * @method GET /projects/myProjects/:projectId
  * @access authenticated, developer+
  */
 export const getProjectById = asyncHandler(async (req,res,next)=> {
 
-    const retrievedProject = await Project.find({
+    const retrievedProject = await Project.findOne({
         members: req.user._id, 
         _id: req.params.projectId
-    });
+    }).lean();
+
+    let fetchedPermission = null;
+
+    //get the users permission on that project if it exists
+    if(retrievedProject !== null){
+        fetchedPermission = await Permission.findOne({
+            project: retrievedProject._id, 
+            user: req.user._id
+        });
+        retrievedProject['userPermission'] = fetchedPermission;
+    }
 
     res.status(status.OK).json({
         data: retrievedProject

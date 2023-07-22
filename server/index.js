@@ -1,7 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import connectDB from './db/connectDB.js';
-import bodyparser from 'body-parser';
 import cors from 'cors';
 
 /* Import routers here */
@@ -9,6 +8,7 @@ import AuthRouter from './routes/Auth.js'
 import ProjectRouter from './routes/Project.js';
 import errorRoute from './middleware/Error.js';
 import UserRouter from './routes/User.js';
+import TicketRouter from './routes/Ticket.js';
 
 //get environment variables
 const app = express();

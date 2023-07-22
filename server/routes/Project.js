@@ -6,13 +6,18 @@ import {
     getProjectById,
     updateProject
 } from '../controllers/Project.js';
+import { validateProjectPermission } from '../middleware/authorization.js'
 import authenticate from '../middleware/authenticate.js';
+import TicketRouter from './Ticket.js';
 
 
 const ProjectRouter = express.Router();
 
+
 //Enforce authentication for all project routes.
 ProjectRouter.use(authenticate);
+
+
 
 ProjectRouter.route('/')
 .get(getProjects)
@@ -24,8 +29,16 @@ ProjectRouter.route('/myProjects')
 
 
 ProjectRouter.route('/myProjects/:projectId')
-.get(getProjectById)
-.put(updateProject);
+.get(//ensure all members have access to getting project information
+    validateProjectPermission(['developer','project_manager','administrator']),
+    getProjectById
+)
+.put(
+    validateProjectPermission(['project_manager','administrator']),
+    updateProject
+);
 
+
+ProjectRouter.use('/myProjects/:projectId/tickets',TicketRouter);
 
 export default ProjectRouter;

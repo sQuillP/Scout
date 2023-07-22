@@ -35,6 +35,8 @@ const TicketSchema = new mongoose.Schema({
         type: String,
         required: [true, 'summary is a required field']
      }
+},{
+    timestamps: true,
 });
 
 
