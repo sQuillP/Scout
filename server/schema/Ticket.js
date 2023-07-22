@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-
+import TicketHistory from './TicketHistory.js';
 
 const TicketSchema = new mongoose.Schema({
     assignedTo: {
@@ -17,6 +17,11 @@ const TicketSchema = new mongoose.Schema({
         required: [true, 'priority is a required field'],
         enum: ['low', 'medium', 'high']
     },
+    progress: {
+        type:String,
+        enum: ['open','in_progress','closed'],
+        required:[true,'ticket type is required']
+    },
     ticketType: {
         type:String,
         required: [true, 'ticketType is a required field'],
@@ -32,6 +37,13 @@ const TicketSchema = new mongoose.Schema({
      }
 });
 
+
+TicketSchema.pre('remove', async function(next) {
+    //Delete any ticket history associated with the ticket to be removed.
+    await TicketHistory.deleteMany({
+        ticket: this._id
+    });
+});
 
 
 const Ticket = mongoose.model('Ticket',TicketSchema);

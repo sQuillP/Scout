@@ -3,7 +3,8 @@ import {
     getProjects,
     getMyProjects,
     createProject,
-    getProjectById
+    getProjectById,
+    updateProject
 } from '../controllers/Project.js';
 import authenticate from '../middleware/authenticate.js';
 
@@ -23,7 +24,8 @@ ProjectRouter.route('/myProjects')
 
 
 ProjectRouter.route('/myProjects/:projectId')
-.get(getProjectById);
+.get(getProjectById)
+.put(updateProject);
 
 
 export default ProjectRouter;

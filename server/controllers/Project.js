@@ -6,6 +6,8 @@ import User from '../schema/User.js';
 import crypto from 'crypto';
 import Permission from "../schema/Permission.js";
 import mongoose from 'mongoose';
+import Ticket from "../schema/Ticket.js";
+
 
 import {
     validateCreateProjectBody
@@ -28,6 +30,13 @@ export const getProjects = asyncHandler( async (req,res,next)=> {
 
 /**
  * @description - get all projects associated with a user.
+ * @returns {{
+ *  data: {
+ *  ...ProjectSchema,
+ *  openTickets: number,
+ *  closedTickets: number,
+ * }
+ * }}
  * @method GET /projects/myProjects
  * @access authentication
  */
@@ -36,10 +45,35 @@ export const getMyProjects = asyncHandler( async (req,res,next)=> {
     const page = +req.query.page || 1;
     const limit = +req.query.limit || 10;
 
+
+    //query the project objects
     const myProjects = await Project.find({members: req.user._id})
     .populate('members')
     .skip((page-1)*limit)
-    .limit(limit);
+    .limit(limit)
+    .lean();
+
+   
+    //find the count for the open and closed tickets
+    let openTickets = null;
+    let bugReports = null;
+    for(const project of myProjects) {
+        openTickets = await Ticket.find({
+            project: project._id, 
+            progress:'open'
+        }).countDocuments();
+
+        bugReports = await Ticket.find({
+            project: project._id,
+            ticketType: 'bug',
+        }).countDocuments();
+
+        //apply those queries to each project.
+        project['openTickets'] = openTickets;
+        project['bugReports'] = bugReports;
+
+    }
+
 
     res.status(status.OK).json({
         data: myProjects,

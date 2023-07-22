@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import Ticket from './Ticket.js'
-
 const ProjectSchema = new mongoose.Schema({
     title: {
         type: String,
@@ -18,19 +17,17 @@ const ProjectSchema = new mongoose.Schema({
             //prevent any duplicate ids from getting into the db.
             validator: function(arr){
                 let uniqueIds = new Set();
-                console.log(arr);
                 for(let objectId of arr){
                     if(uniqueIds.has(objectId.toString()) === false)
                         uniqueIds.add(objectId.toString());
                     else
                         return false;
                 }
-                uniqueIds.clear();
                 return true;
             },
             message:"Each user must be unique in the project"
         }
-    },
+    }, 
     APIKey: {
         type: String,
         required: true
@@ -38,11 +35,21 @@ const ProjectSchema = new mongoose.Schema({
 });
 
 
+//Generate a new api key for every project created.
+// ProjectSchema.pre('save', function(next) {
+    
+//     this.APIKey = crypto.randomUUID();
+//     next();
+// });
+
+
 /* Cascade delete all tickets associated with the project. */
 ProjectSchema.pre('remove',async function(next) {
     await Ticket.deleteMany({
         project: this._id
     });
+
+    await 
     next();
 })
 

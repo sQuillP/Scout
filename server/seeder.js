@@ -3,6 +3,14 @@ import connectDB from './db/connectDB.js'
 import fs from 'fs';
 import Project from "./schema/Project.js";
 import Permission from "./schema/Permission.js";
+import mongoose from 'mongoose';
+import crypto from 'crypto';
+import Ticket from "./schema/Ticket.js";
+import TicketComment from './schema/TicketComment.js';
+
+/**
+ * Populate the database with dummy data for development purposes
+ */
 
 
 function readFile(path) {
@@ -11,33 +19,174 @@ function readFile(path) {
 }
 
 
-
+/**
+ * @description - Reads user data from json file and inserts them into database.
+ * It also creates their objectIds before insertion so they can be added throughout the app
+ * 
+ * @returns {Promise<ObjectId[]>}
+ */
 async function seedUsers() {
+    const objectIds = [];
     try {
         const userData = readFile('./seed/Users.json');
+        //populate array of object ids
+        for(let i = 0; i<userData.length; i++) {
+            objectIds.push(new mongoose.Types.ObjectId());
+            userData[i]['_id'] = objectIds[i];
+        }
         await User.insertMany(userData);
+
     } catch(error) {
         console.log('unable to seed users in db:', error.message);
+        process.exit(1);
+    } finally {
+        return objectIds;
+    }
+}
+
+
+/**
+ * @description - takes in array of ObjectIds, creates permissions for each user in the 
+ * project, creates the projects for the users. Permissions are implicitly created when calling
+ * seedProjects.
+ * @param {ObjectId[]} uids 
+ * @returns {Promise<ObjectId[]>} - Array of all projects that were created
+ */
+async function seedProjects(uids) {
+    const NUM_PROJECTS = 12;
+    const NUM_USERS = 3;
+    const projectIds = [];
+    try {
+        //create 12 projects with three members each
+        for(let i = 0; i<NUM_PROJECTS; i++){
+            const projectId = new mongoose.Types.ObjectId();
+            projectIds.push(projectId);
+            const projectUsers = [];
+            for(let j = 0; j<NUM_USERS; j++){//populate
+                projectUsers.push(
+                    uids[j]
+                );
+            }
+
+            //make rest of people devs
+            for(let j = 0; j<NUM_USERS-1; j++) {
+                await Permission.create({
+                    user: projectUsers[j],
+                    project:projectId,
+                    role: "developer"
+                })
+            }
+            //make last guy admin
+            await Permission.create({
+                user: projectUsers[NUM_USERS-1],
+                role:'administrator',
+                project:projectId
+            });
+
+            await Project.create({
+                title:'Project title '+(i+1),
+                description:'project description this should be long '+(i+1),
+                members:projectUsers,
+                _id: projectId,
+                APIKey: crypto.randomUUID()
+            });
+
+        }
+    } catch(error) {
+        console.log(error);
+        process.exit(1);
+    }finally {
+        return projectIds;
+    }
+}
+
+
+
+
+/**
+ * @description - seed tickets for all project. Each project will have 20 tickets.
+ * @param {ObjectId[]} projectIds - Array of existing projectids
+ * @returns {Promise<void>}
+ */
+async function seedTickets(projectIds) {
+    const TICKETS_PER_PROJECT = 12;
+    const priorities = ['low', 'medium', 'high'];
+    const progress = ['open','in_progress','closed'];
+    const ticketTypes = ['bug','crash','task','change'];
+
+    try {
+        //for each project
+            //create 12 tickets
+            //assign them to a user in the group
+            //add random populated fields
+        for(const projectId of projectIds) {
+            const fetchedProject = await Project.findById(projectId);
+            let userIdx = 0;
+            for(let i = 0; i<TICKETS_PER_PROJECT; i++) {
+                await Ticket.create({
+                    assignedTo: fetchedProject.members[userIdx],
+                    project:projectId,
+                    priority: priorities[Math.floor(Math.random()*priorities.length)],
+                    progress: progress[Math.floor(Math.random()*progress.length)],
+                    ticketType: ticketTypes[Math.floor(Math.random()*ticketTypes.length)],
+                    description:'Just a quick description',
+                    summary: 'This should be a long summar '+(i+1)
+                });
+                userIdx= (userIdx+1)%fetchedProject.members.length;
+            }
+        }
+    } catch(error) {
+        console.log(error.message);
         process.exit(1);
     }
 }
 
 
-//add more async functions
+/**
+ * @description - populates the comment documents
+ * @param {ObjectId[]} projectIds - Array of existing project ids
+ * @returns {Promise<void>}
+ */
+async function seedComments(projectIds) {
+    try {
+        for(const projectId of projectIds) {
+            const project = await Project.findById(projectId).populate("members");
+            for(const user of project.members){
+                const comment = {
+                    author: user._id,
+                    ticket: project._id,
+                    content: 'comment from user ' + user.email
+                }
+                await TicketComment.create(comment);
+                await TicketComment.create(comment)
+            }
+        }
+    } catch(error) {
+        console.log('unable to create comment');
+        process.exit(1);
+    }
+}
 
+
+/**
+ * @description - execute the database population process with dummy values.
+ */
 async function run() {
     const flag = process.argv[2].toLowerCase();
     try {
         await connectDB();
         if(flag ==='-s'){
-            await seedUsers();
-
+            const userIds = await seedUsers();
+            const projectIds = await seedProjects(userIds);
+            await seedTickets(projectIds);
+            await seedComments(projectIds);
             console.log('seed successful');
         }
         else if(flag === '-d') {
             await User.deleteMany();
             await Project.deleteMany();
             await Permission.deleteMany();
+            await Ticket.deleteMany();
             console.log('dabatase cleared');
         }
     }
