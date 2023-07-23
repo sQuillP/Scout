@@ -1,5 +1,5 @@
 
-import { Chip } from "@mui/material";
+import { Alert, Chip, Paper, Snackbar } from "@mui/material";
 import HorizontalNavigation from "../../components/HorizontalNavigation";
 import "./styles/ProjectHome.css";
 import Tooltip from "@mui/material/Tooltip";
@@ -61,6 +61,10 @@ export default function ProjectHome() {
     const [currentPage, setCurrentPage] = useState(1);
     const [resultsPerPage, setResultsPerPage] = useState(5);
     const [openProjectModal, setOpenProjectModal] = useState(false);
+
+    /* for error display */
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+
     const [projectList, setProjectList] = useState([]);
     const navigate = useNavigate();
 
@@ -79,6 +83,7 @@ export default function ProjectHome() {
                     setProjectList(response.data.data);
             } catch(error) {
                 console.log('error');
+                setOpenSnackbar(true);//display error to user
             }
         })();
 
@@ -104,7 +109,15 @@ export default function ProjectHome() {
                         onCloseModal={onCloseModal}
                     />
                 </>
-            </Modal>
+            </Modal> 
+            <Snackbar
+                open={openSnackbar}
+                onClose={()=> setOpenSnackbar(false)}
+                autoHideDuration={2000}
+                anchorOrigin={{horizontal:'center', vertical:'bottom'}}
+            >
+                <Alert severity="error">Unable to get projects. Check your connection.</Alert>
+            </Snackbar>
 
             {/* section */}
             <div className="section">
@@ -127,52 +140,63 @@ export default function ProjectHome() {
 
                 <div className="project-content-wrapper">
                     <div className="projects-container">
-                        <table cellSpacing={0} className="project-table">
-                            <thead className="project-table-header">
-                                <tr className="pt-row-header">
-                                    <th className="pt-item">Project Name</th>
-                                    <th className="pt-item">Member Count</th>
-                                    <th className="pt-item">Open Tickets</th>
-                                    <th className="pt-item">Bug Reports</th>
-                                    <th className="pt-item">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="project-table-body">
-                                {dummy_data.map(row => {
-                                    return (
-                                        <tr
-                                            key={row._id}
-                                            className="pt-row"
-                                        >
-                                            <td className="pt-item">{row.name}</td>
-                                            <td className="pt-item">
-                                                <Chip color="info" label={row.members}/>
-                                            </td>
-                                            <td className="pt-item">
-                                                <Chip color='warning' label={row.openTickets}/>
-                                            </td>
-                                            <td className="pt-item">
-                                                <Chip color='error' label={row.unresolvedBugs}/>
-                                            </td>
-                                            <td className="pt-item">
-                                                <Tooltip title='Options'>
-                                                    <IconButton>
-                                                        <MoreVertIcon/>
-                                                    </IconButton>
-                                                </Tooltip>
-                                                <Tooltip title='View Project'>
-                                                    <IconButton
-                                                        onClick={()=> onViewProject(row._id)}
-                                                    >
-                                                        <DoubleArrowIcon/>
-                                                    </IconButton>
-                                                </Tooltip>
-                                            </td>
+                        {
+                            projectList.length !== 0 && (
+                                <table cellSpacing={0} className="project-table">
+                                    <thead className="project-table-header">
+                                        <tr className="pt-row-header">
+                                            <th className="pt-item">Project Name</th>
+                                            <th className="pt-item">Member Count</th>
+                                            <th className="pt-item">Open Tickets</th>
+                                            <th className="pt-item">Bug Reports</th>
+                                            <th className="pt-item">Actions</th>
                                         </tr>
-                                    )
-                                })}
-                            </tbody>
-                        </table>
+                                    </thead>
+                                    <tbody className="project-table-body">
+                                        {
+                                            projectList.map(row => {
+                                                return (
+                                                    <tr
+                                                        key={row._id}
+                                                        className="pt-row"
+                                                    >
+                                                        <td className="pt-item">{row.name}</td>
+                                                        <td className="pt-item">
+                                                            <Chip color="info" label={row.members}/>
+                                                        </td>
+                                                        <td className="pt-item">
+                                                            <Chip color='warning' label={row.openTickets}/>
+                                                        </td>
+                                                        <td className="pt-item">
+                                                            <Chip color='error' label={row.unresolvedBugs}/>
+                                                        </td>
+                                                        <td className="pt-item">
+                                                            <Tooltip title='Options'>
+                                                                <IconButton>
+                                                                    <MoreVertIcon/>
+                                                                </IconButton>
+                                                            </Tooltip>
+                                                            <Tooltip title='View Project'>
+                                                                <IconButton
+                                                                    onClick={()=> onViewProject(row._id)}
+                                                                >
+                                                                    <DoubleArrowIcon/>
+                                                                </IconButton>
+                                                            </Tooltip>
+                                                        </td>
+                                                    </tr>
+                                                )
+                                            })}
+                                    </tbody>
+                                </table>
+                            )
+                        }
+                        {
+                            projectList.length === 0 && (
+                                <Paper elevation={0} sx={{height:'50vh'}}>
+                                </Paper>
+                            )
+                        }
                     </div>
                     <div className="pt-pagination">
                         <div className="pagination-item">

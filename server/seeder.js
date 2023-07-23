@@ -207,6 +207,7 @@ async function run() {
     try {
         await connectDB();
         if(flag ==='-s'){
+            await abortDB();
             const userIds = await seedUsers();
             const projectIds = await seedProjects(userIds);
             await seedTickets(projectIds);

@@ -4,7 +4,7 @@ import asyncHandler from '../utility/asyncHandler.js';
 import ErrorResponse from '../utility/ErrorResponse.js';
 import status from '../utility/status.js';
 import bcrypt from 'bcrypt';
-
+import { validateSignupBody, validateLoginBody} from './validators/Auth.js';
 
 /**
  * @access public
@@ -13,14 +13,16 @@ import bcrypt from 'bcrypt';
 export const login = asyncHandler( async (req,res,next)=> {
     const { email, password } = req.body;
 
+    
+
     /* if invalid body exists */
-    if(email === null || password === null) {
+    if(await validateLoginBody.isValid({email, password}) === false) {
         return next(
             new ErrorResponse(
                 status.BAD_REQUEST,
                 "Invalid login form"
             )
-        )
+        );
     }
 
     const fetchedUser = await User.findOne({email}).select('+password');
@@ -68,6 +70,16 @@ export const login = asyncHandler( async (req,res,next)=> {
  * @method POST /api/v1/auth/signup
  */
 export const signUp = asyncHandler( async (req,res,next)=> {
+
+    if((await validateSignupBody.isValid({...req.body})) === false){
+        return next(
+            new ErrorResponse(
+                status.BAD_REQUEST,
+                'invalid request body'
+            )
+        );
+    }
+
     /* Check to see if user already exists */
     const existingUser = await User.findOne({email: req.body.email});
     if(existingUser !== null){
@@ -78,6 +90,8 @@ export const signUp = asyncHandler( async (req,res,next)=> {
             )
         )
     }
+
+
     const newUser = await User.create(req.body);
 
     const salt = await bcrypt.genSalt(10);

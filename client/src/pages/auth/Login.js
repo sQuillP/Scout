@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Formik, Form } from 'formik';
 
 import {useDispatch } from 'react-redux';
-import { login } from '../../redux/thunk/auth';
+import { useNavigate } from 'react-router-dom';
+import Scout from '../../axios/scout';
+import { loginFromStoredToken } from '../../redux/slice/authSlice';
 import * as yup from 'yup';
 
 import "./styles/Login.css";
@@ -24,11 +26,20 @@ export default function Login() {
 
 
     const [viewPassword,updateViewPassword] = useState(false);
+    const navigate = useNavigate();
+
     const dispatch = useDispatch();
 
 
-    function onLogin(values) {
-        dispatch(login(values));
+    async function onLogin(values) {
+        try {
+            const response = await Scout.post('/auth/login',values);
+            localStorage.setItem('token',response.data.token);
+            dispatch(loginFromStoredToken());//store token in redux
+            navigate('/projects');
+        } catch(error) {
+            console.log('error has occurred',error.message);
+        }
     }
 
 

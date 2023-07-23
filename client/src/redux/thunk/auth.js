@@ -3,6 +3,7 @@ import Scout from "../../axios/scout";
 
 
 
+/* might not use this */
 export const login = createAsyncThunk(
     "auth/login",
     async (payload,{rejectWithValue})=> {
@@ -17,7 +18,7 @@ export const login = createAsyncThunk(
 );
 
 
-
+/* Might not use this either */
 export const signup = createAsyncThunk(
     "auth/signup",
     async (signupBody, {rejectWithValue})=> {
