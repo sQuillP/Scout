@@ -2,7 +2,8 @@ import express from 'express';
 
 import {
     getTickets,
-
+    getTicketById,
+    updateTicketById
 } from '../controllers/Ticket.js';
 
 import { validateProjectPermission } from '../middleware/authorization.js';
@@ -19,6 +20,17 @@ TicketRouter.route('/')
     validateProjectPermission(['developer','project_manager','administrator']),
     getTickets
 );
+
+TicketRouter.route("/:ticketId")
+.get(
+    //all members
+    validateProjectPermission(['developer','project_manager','administrator']),
+    getTicketById
+)
+.put(//all members
+    validateProjectPermission(['developer','project_manager','administrator']),
+    updateTicketById
+)
 
 
 

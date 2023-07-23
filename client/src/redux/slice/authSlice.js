@@ -1,11 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit';
-
+import { login, signup } from '../thunk/auth';
+import decode from 'jwt-decode';
 
 const initialState = {
-    token: null,
+    authToken: null,
     loading: false,
     user: null,
-    
 };
 
 
@@ -13,14 +13,41 @@ const authSlice = createSlice({
     name:'auth',
     initialState,
     reducers: {
-        signIn(state,action) {
-            state.token = action.payload;
+        loginFromStoredToken(state,action) {
+            let fetchedToken = localStorage.getItem('token');
+            if(fetchedToken === null)
+                fetchedToken = null;
+            else {
+                const decodedToken = decode(fetchedToken);
+                const expDate = new Date(decodedToken.iat).getTime() * 1000;
+                if(expDate >=  Date.now())
+                    fetchedToken = null;
+            }
+            state.authToken = fetchedToken;
         },
-        signOut(state,action) {
-            state.token = null;
+        logout(state,action) {
+            state.authToken = null;
+            localStorage.removeItem('token');
         }
+    },
+    extraReducers: (builder)=> {
+
+        //for signing in
+        builder.addCase(login.fulfilled,(state,{payload})=> {
+            state.authToken = payload;
+            localStorage.setItem('token',payload);
+        });
+
+
+        //for signing up
+        builder.addCase(signup.fulfilled,(state,{payload})=> {
+            state.authToken = payload;
+            localStorage.setItem('token',payload);
+        });
     }
 });
 
+
+
 export default authSlice.reducer;
-export const {signIn, signOut }  = authSlice.actions;
+export const {loginFromStoredToken, logout }  = authSlice.actions;

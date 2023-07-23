@@ -27,7 +27,7 @@ export function validateProjectPermission(allowedRoles){
             return next(
                 new ErrorResponse(
                     status.FORBIDDEN,
-                    "Insufficient permissions"
+                    "Insufficient permissions: Project does not belong to user"
                 )
             );
         next();

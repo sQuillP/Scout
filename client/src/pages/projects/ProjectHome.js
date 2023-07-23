@@ -6,12 +6,13 @@ import Tooltip from "@mui/material/Tooltip";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DoubleArrowIcon from '@mui/icons-material/DoubleArrow';
 import IconButton from "@mui/material/IconButton";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import Modal from "@mui/material/Modal";
 import ProjectModalContent from "./components/ProjectModalContent";
 import { useNavigate } from "react-router-dom";
+import Scout from "../../axios/scout";
 //make a request to get a list of projects for a user.
 const dummy_data = [
     {
@@ -60,12 +61,29 @@ export default function ProjectHome() {
     const [currentPage, setCurrentPage] = useState(1);
     const [resultsPerPage, setResultsPerPage] = useState(5);
     const [openProjectModal, setOpenProjectModal] = useState(false);
+    const [projectList, setProjectList] = useState([]);
     const navigate = useNavigate();
 
     function onCloseModal() {
         
         setOpenProjectModal(false);
     }
+
+    useEffect(()=> {
+        let mounted = true;
+        ( async()=> {
+            try{
+                const response = await Scout.get('/projects/myProjects');
+                console.log(response.data.data)
+                if(mounted)
+                    setProjectList(response.data.data);
+            } catch(error) {
+                console.log('error');
+            }
+        })();
+
+        return ()=> mounted = false;
+    },[]);
 
 
     function onViewProject(){

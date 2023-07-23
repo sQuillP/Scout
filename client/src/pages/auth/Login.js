@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { Formik, Form } from 'formik';
+
+import {useDispatch } from 'react-redux';
+import { login } from '../../redux/thunk/auth';
 import * as yup from 'yup';
 
 import "./styles/Login.css";
@@ -21,7 +24,12 @@ export default function Login() {
 
 
     const [viewPassword,updateViewPassword] = useState(false);
+    const dispatch = useDispatch();
 
+
+    function onLogin(values) {
+        dispatch(login(values));
+    }
 
 
     return (
@@ -29,9 +37,7 @@ export default function Login() {
             initialValues={initialFields}
             validationSchema={LoginSchema}
             validateOnMount
-            onSubmit={(values)=> {
-                console.log(values);
-            }}
+            onSubmit={onLogin}
         >
             {(formik)=> {
                 const {errors, touched, isValid, dirty, handleChange, values, handleBlur} = formik;

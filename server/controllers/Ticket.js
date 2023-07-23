@@ -32,3 +32,29 @@ export const getTickets = asyncHandler( async (req,res,next)=> {
         totalItems: totalTickets
     });
 });
+
+
+/**
+ * @description fetch a single ticket instance using the ticketId param field
+ * @access authenticated, developer+
+ * @method GET /tickets/:ticketId
+ */
+export const getTicketById = asyncHandler( async (req,res,next)=> {
+
+    const fetchedTicket = await Ticket.findById(req.params.ticketId);
+
+    res.status(status.OK).json({
+        data: fetchedTicket
+    });
+});
+
+
+
+/**
+ * @description - update a ticket 
+ * @access authenticated, developer+
+ * @method PUT /ticket/:ticketId
+ */
+export const updateTicketById = asyncHandler( async (req,res,next)=> {
+
+});

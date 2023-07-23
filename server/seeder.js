@@ -29,20 +29,15 @@ function readFile(path) {
  */
 async function seedUsers() {
     const objectIds = [];
-    try {
-        const userData = readFile('./seed/Users.json');
-        //populate array of object ids
-        for(let i = 0; i<userData.length; i++) {
-            objectIds.push(new mongoose.Types.ObjectId());
-            userData[i]['_id'] = objectIds[i];
-        }
-        await User.insertMany(userData);
-
-    } catch(error) {
-        console.log('unable to seed users in db:', error.message);
-    } finally {
-        return objectIds;
+    const userData = readFile('./seed/Users.json');
+    //populate array of object ids
+    for(let i = 0; i<userData.length; i++) {
+        objectIds.push(new mongoose.Types.ObjectId());
+        userData[i]['_id'] = objectIds[i];
     }
+    await User.insertMany(userData);
+
+    return objectIds;
 }
 
 
