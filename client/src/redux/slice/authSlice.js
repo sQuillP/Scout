@@ -20,7 +20,7 @@ const authSlice = createSlice({
             else {
                 const decodedToken = decode(fetchedToken);
                 const expDate = new Date(decodedToken.iat).getTime() * 1000;
-                if(expDate >=  Date.now())
+                if(expDate <  Date.now())//if expDate had already happened
                     fetchedToken = null;
             }
             state.authToken = fetchedToken;

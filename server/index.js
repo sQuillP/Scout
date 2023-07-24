@@ -9,6 +9,7 @@ import ProjectRouter from './routes/Project.js';
 import errorRoute from './middleware/Error.js';
 import UserRouter from './routes/User.js';
 import TicketRouter from './routes/Ticket.js';
+import status from './utility/status.js';
 
 //get environment variables
 const app = express();
@@ -25,6 +26,15 @@ app.use(cors({
 app.use('/api/v1/auth', AuthRouter);
 app.use('/api/v1/projects', ProjectRouter);
 app.use('/api/v1/users',UserRouter);
+
+//catch all route
+app.use('*',(req,res)=> {
+    res.status(status.NOT_FOUND).json({
+        error: 'Cannot find route'
+    });
+});
+
+//mount custom error route
 app.use(errorRoute);
 
 

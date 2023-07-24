@@ -14,53 +14,20 @@ import ProjectModalContent from "./components/ProjectModalContent";
 import { useNavigate } from "react-router-dom";
 import Scout from "../../axios/scout";
 //make a request to get a list of projects for a user.
-const dummy_data = [
-    {
-        name: 'Enterprise Search Application',
-        members: 34,
-        openTickets:5,
-        unresolvedBugs: 2,
-        _id:'abc123'
-    },
-    {
-        name:'Garage Sale Application',
-        members: 34,
-        openTickets:5,
-        unresolvedBugs: 2,
-        _id:'defghi',
-    },
-    {
-        name:'Sales Application',
-        members: 34,
-        openTickets:5,
-        unresolvedBugs: 2,
-        _id:'jklmnosss'
-    },
-    {
-        name:'Sales Application',
-        members: 34,
-        openTickets:5,
-        unresolvedBugs: 2,
-        _id:'jklmnoss'
-    },
-    {
-        name:'Sales Application',
-        members: 34,
-        openTickets:5,
-        unresolvedBugs: 2,
-        _id:'jklmnos'
-    },
 
-
-]
 
 
 export default function ProjectHome() {
 
 
+    //page
     const [currentPage, setCurrentPage] = useState(1);
+
+    //limit
     const [resultsPerPage, setResultsPerPage] = useState(5);
     const [openProjectModal, setOpenProjectModal] = useState(false);
+    const [totalProjects, setTotalProjects] = useState(0);
+
 
     /* for error display */
     const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -77,10 +44,12 @@ export default function ProjectHome() {
         let mounted = true;
         ( async()=> {
             try{
-                const response = await Scout.get('/projects/myProjects');
-                console.log(response.data.data)
-                if(mounted)
+                const response = await Scout.get('/projects/myProjects',{params:{page: currentPage, limit: resultsPerPage}});
+                console.log(response.data)
+                if(mounted){
                     setProjectList(response.data.data);
+                    setTotalProjects(response.data.totalItems);
+                }
             } catch(error) {
                 console.log('error');
                 setOpenSnackbar(true);//display error to user
@@ -91,8 +60,43 @@ export default function ProjectHome() {
     },[]);
 
 
-    function onViewProject(){
-        navigate('/projects/asdf');
+    /**
+     * @description - update the project list
+     * @param {{page:number, limit:number}} params 
+     */
+    async function onUpdateProjectList(params) {
+        try {
+            console.log('outgoing request: ',params);
+            const response = await Scout.get('/projects/myProjects',{params});
+            setProjectList(response.data.data);
+        } 
+        catch(error) {
+            setOpenSnackbar(true);
+            console.log('error',error.message);
+        }
+    }
+
+
+    /**
+     * @description - Whenever user changes the results per page, just reset the page back to 1 and the 
+     * adjusted limit to what is specified.
+     * @param {string} e - value passed in from select tag
+     */
+    async function handleResultsPerPage(e) {
+        setResultsPerPage(Number(e.target.value));
+        setCurrentPage(1);
+        await onUpdateProjectList({limit: Number(e.target.value), page: 1});
+    }
+
+    //do not allow user to go backward
+    async function handlePaginatedResults(pageChange) {
+        setCurrentPage((currentPage)=> currentPage+pageChange);
+        await onUpdateProjectList({limit: resultsPerPage , page: currentPage+pageChange});
+
+    }
+
+    function onViewProject(projectId){
+        navigate('/projects/'+projectId);
     }
 
 
@@ -160,15 +164,15 @@ export default function ProjectHome() {
                                                         key={row._id}
                                                         className="pt-row"
                                                     >
-                                                        <td className="pt-item">{row.name}</td>
+                                                        <td className="pt-item">{row.title}</td>
                                                         <td className="pt-item">
-                                                            <Chip color="info" label={row.members}/>
+                                                            <Chip color="info" label={row.members.length}/>
                                                         </td>
                                                         <td className="pt-item">
                                                             <Chip color='warning' label={row.openTickets}/>
                                                         </td>
                                                         <td className="pt-item">
-                                                            <Chip color='error' label={row.unresolvedBugs}/>
+                                                            <Chip color='error' label={row.bugReports}/>
                                                         </td>
                                                         <td className="pt-item">
                                                             <Tooltip title='Options'>
@@ -186,7 +190,8 @@ export default function ProjectHome() {
                                                         </td>
                                                     </tr>
                                                 )
-                                            })}
+                                            })
+                                        }
                                     </tbody>
                                 </table>
                             )
@@ -201,22 +206,41 @@ export default function ProjectHome() {
                     <div className="pt-pagination">
                         <div className="pagination-item">
                             <label htmlFor="_page-selector">Number of items</label>
-                            <select name="pt-selector" id="_page-selector">
+                            <select 
+                                onChange={handleResultsPerPage} 
+                                name="pt-selector" 
+                                id="_page-selector"
+                                value={resultsPerPage}
+                            >
+                                <option value="5">5</option>
                                 <option value="10">10</option>
-                                <option value="10">20</option>
-                                <option value="10">30</option>
-                                <option value="10">40</option>
+                                <option value="20">20</option>
+                                <option value="50">50</option>
                             </select>
                         </div>
                         <div className="pagination-item">
-                            <p className="text">1 - 10 of 100 </p>
+                            <p className="text">{(currentPage-1)*resultsPerPage +1} - {Math.min(currentPage*resultsPerPage, totalProjects)} of {totalProjects} </p>
                             <div>
-                                <IconButton size='small'>
-                                    <ArrowBackIosIcon htmlColor="white" fontSize="0.7em"/>
-                                </IconButton>
-                                <IconButton size="small">
-                                    <ArrowForwardIosIcon htmlColor="white" fontSize="0.7em"/>
-                                </IconButton>
+                                <Tooltip title="Previous page">
+                                    <IconButton 
+                                        onClick={()=> handlePaginatedResults(-1)} 
+                                        size='small'
+                                        sx={{ opacity:currentPage === 1 ? 0.5: 1}}
+                                        disabled={currentPage === 1}
+                                    >
+                                        <ArrowBackIosIcon htmlColor="white" fontSize="0.7em"/>
+                                    </IconButton>
+                                </Tooltip>
+                                <Tooltip title='Next Page'>
+                                    <IconButton 
+                                        onClick={()=> handlePaginatedResults(1)} 
+                                        size="small"
+                                        disabled={totalProjects <= currentPage*resultsPerPage}
+                                        sx={{opacity: totalProjects <= currentPage*resultsPerPage? 0.5:1}}
+                                    >
+                                        <ArrowForwardIosIcon htmlColor="white" fontSize="0.7em"/>
+                                    </IconButton>
+                                </Tooltip>
                             </div>
                         </div>
                     </div>

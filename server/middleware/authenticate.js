@@ -45,6 +45,7 @@ export default function authenticate(req,res,next) {
         req.user = validToken;
         next();
     } catch(error) {
+        console.log(error.message);
         return next(
             new ErrorResponse(
                 status.BAD_REQUEST,

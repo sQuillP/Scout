@@ -53,6 +53,7 @@ export const getMyProjects = asyncHandler( async (req,res,next)=> {
     .limit(limit)
     .lean();
 
+    const totalProjects = await Project.find({members: req.user._id}).countDocuments();
    
     //find the count for the open and closed tickets
     let openTickets = null;
@@ -80,6 +81,7 @@ export const getMyProjects = asyncHandler( async (req,res,next)=> {
         itemCount: myProjects.length,
         page:page,
         limit: limit,
+        totalItems: totalProjects
     });
 });
 
@@ -97,18 +99,38 @@ export const getProjectById = asyncHandler(async (req,res,next)=> {
     const retrievedProject = await Project.findOne({
         members: req.user._id, 
         _id: req.params.projectId
-    }).lean();
+    })
+    .populate('members')
+    .lean();
+
+    if(retrievedProject === null){
+        return next(
+            new ErrorResponse(
+                status.NOT_FOUND,
+                "Project does not exist"
+            )
+        );
+    }
+
+    //get the permissions associated with each member.
+    for(const member of retrievedProject.members){
+        const memberPermission = await Permission.findOne({
+            project: req.params.projectId,
+            user: member._id
+        });
+        member['role'] = memberPermission.role;
+    }
 
     let fetchedPermission = null;
 
     //get the users permission on that project if it exists
-    if(retrievedProject !== null){
-        fetchedPermission = await Permission.findOne({
-            project: retrievedProject._id, 
-            user: req.user._id
-        });
-        retrievedProject['userPermission'] = fetchedPermission;
-    }
+    fetchedPermission = await Permission.findOne({
+        project: retrievedProject._id, 
+        user: req.user._id
+    });
+
+    //attach permission for the the user that is making request
+    retrievedProject['userPermission'] = fetchedPermission;
 
     res.status(status.OK).json({
         data: retrievedProject

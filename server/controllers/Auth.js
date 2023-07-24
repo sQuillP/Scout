@@ -3,6 +3,7 @@ import User from '../schema/User.js';
 import asyncHandler from '../utility/asyncHandler.js';
 import ErrorResponse from '../utility/ErrorResponse.js';
 import status from '../utility/status.js';
+import Permission from '../schema/Permission.js';
 import bcrypt from 'bcrypt';
 import { validateSignupBody, validateLoginBody} from './validators/Auth.js';
 
@@ -109,4 +110,3 @@ export const signUp = asyncHandler( async (req,res,next)=> {
         token
     });
 });
-

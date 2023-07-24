@@ -1,10 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getMyProjects, getProjectById } from "../thunk/project";
+import { getProjectById } from "../thunk/project";
 
 
 const initialState = {
     currentProject: null,
     loadingCurrentProject:false,
+    role: null,
 };
 
 
@@ -13,7 +14,7 @@ const projectSlice = createSlice({
     initialState,
 
     reducers: {
-
+        
     },
     extraReducers:(builder)=> {
 
@@ -24,6 +25,12 @@ const projectSlice = createSlice({
         builder.addCase(getProjectById.fulfilled,(state,{payload})=> {
             state.currentProject = payload;
             state.loadingCurrentProject = false;
+            state.role = payload.userPermission.role;
         });
     }
-})
+});
+
+
+export default projectSlice.reducer;
+
+export const { } = projectSlice.actions;

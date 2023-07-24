@@ -8,5 +8,6 @@ AuthRouter.route('/login').post(login);
 AuthRouter.route('/signup').post(signUp);
 
 
+
 export default AuthRouter;
 
