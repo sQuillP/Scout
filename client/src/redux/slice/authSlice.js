@@ -15,11 +15,10 @@ const authSlice = createSlice({
     reducers: {
         loginFromStoredToken(state,action) {
             let fetchedToken = localStorage.getItem('token');
-            if(fetchedToken === null)
-                fetchedToken = null;
-            else {
+            
+            if(fetchedToken !== null) {
                 const decodedToken = decode(fetchedToken);
-                const expDate = new Date(decodedToken.iat).getTime() * 1000;
+                const expDate = new Date(decodedToken.exp).getTime() * 1000;
                 if(expDate <  Date.now())//if expDate had already happened
                     fetchedToken = null;
             }

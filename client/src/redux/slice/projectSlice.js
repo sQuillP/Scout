@@ -14,7 +14,11 @@ const projectSlice = createSlice({
     initialState,
 
     reducers: {
-        
+        updateProjectSync(state, {payload}){
+            console.log(payload)
+            state.currentProject = payload;
+            state.role = payload.userPermission.role;
+        }
     },
     extraReducers:(builder)=> {
 
@@ -33,4 +37,4 @@ const projectSlice = createSlice({
 
 export default projectSlice.reducer;
 
-export const { } = projectSlice.actions;
+export const { updateProjectSync } = projectSlice.actions;
