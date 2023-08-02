@@ -15,7 +15,7 @@ import {
 
 
 
-export default function UserSearchResult({handleInvite}) {
+export default function UserSearchResult({handleInvite, user}) {
 
     const paperSX = { 
         boxSizing:'border-box' ,
@@ -35,11 +35,11 @@ export default function UserSearchResult({handleInvite}) {
         <Paper sx={paperSX} elevation={1}>
             <Stack direction={'row'} alignItems={'center'}>
                 <Avatar sx={{height:'30px',width:'30px'}}>
-                    H
+                    {user.firstName[0]+user.lastName[0]}
                 </Avatar>
                 <Box whiteSpace={'wrap'} marginLeft={'10px'}>
-                    <Typography  fontSize={'0.75em'}>Firstname lastname long</Typography>
-                    <Typography fontSize={'0.65rem'}>will.m.pattison@gmail.com</Typography>
+                    <Typography  fontSize={'0.75em'}>{user.firstName + " " + user.lastName}</Typography>
+                    <Typography fontSize={'0.65rem'}>{user.email}</Typography>
                 </Box>
             </Stack>
             <Tooltip title='Invite user to group'>

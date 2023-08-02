@@ -43,6 +43,8 @@ import "../styles/ViewTicket.css";
 import TicketComment from "../components/TicketComment";
 import NewComment from "../components/NewComment";
 import TicketHistoryTable from "../components/TicketHistoryTable";
+import { useRef } from "react";
+import Scout from "../../../axios/scout";
 
 
 
@@ -98,6 +100,17 @@ const dummy_group_members = [
 
 export default function ViewTicket() {
 
+    const mounted = useRef(true);
+
+    useEffect(()=> {
+        mounted.current = true;
+
+        
+
+        return ()=> mounted.current = false;
+    },[]);
+
+
     //number of comments to be paginated.
     const comments_pagination = 5;
     const { ticketId } = useParams();
@@ -145,6 +158,10 @@ export default function ViewTicket() {
     function onCloseCommentMenu(){
         setCommentMenuRef(null);
     }
+
+
+
+
 
     /**********END COMMENT STATE *******************/
 
@@ -225,11 +242,11 @@ export default function ViewTicket() {
     }
 
 
-    /* Perform update on entire ticket. */
-    function onSubmitEditChanges() {
+    /* Perform update on entire ticket object */
+    async function onSubmitEditChanges() {
         setPendingPublishChanges(true);
 
-        console.log('setting loading')
+        const updatedTicket = await Scout.put('/')
 
         //simulate the changes being made.
         const timeout = setTimeout(()=> {
@@ -245,6 +262,9 @@ export default function ViewTicket() {
         //fetch the newly updated ticket and store it in the original ticket.
         //append the change to the ticket history (this can be handled by the backend.)
     }
+
+
+
 
 
     /**
@@ -717,5 +737,5 @@ export default function ViewTicket() {
                 </div>
             </div>
         </div>
-    )
+    );
 }

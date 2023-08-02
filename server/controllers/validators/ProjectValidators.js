@@ -70,9 +70,47 @@ export async function validateCreateProjectBody(req) {
 
 
 /**
- * @description validate body types, ensure project belongs to user,
- * 
+ * @description Ensures that the body is valid for updating user permissions.
+ * @returns {[boolean, string]} - success boolean followed by an error message if any.
  */
-export async function validateUpdateProjectBody() {
+export function validateUpdateProjectMembers(req, project) {
+    const {members} = req.body;
+    const permissions = ['developer','project_manager','administrator'];
+    if(members === null || Array.isArray(members) === false){
+        return [false, 'Members must be an array'];
+    }
 
+    
+    for(const member of members) {
+        if(
+            typeof member._id !== 'string' || 
+            typeof member.role !== 'string' || 
+            permissions.includes(member.role) === false
+        ){
+            return [false, '_id and role must be of type string, and must be one of the enumerated roles'];
+        }
+    }
+
+    let allProjectMembers = new Set();
+    let duplicateMembersSet = new Set();
+
+    
+
+    //make sure all members belong to project, and prevent duplicates
+    for(const member of project.members){
+        allProjectMembers.add(member._id.toString());
+    }
+
+    console.log(allProjectMembers)
+
+    for(const member of members){
+        if(duplicateMembersSet.has(member._id.toString()) === false)
+            duplicateMembersSet.add(member._id.toString());
+        else
+            return [false, 'Cannot contain duplicate members']
+        if(allProjectMembers.has(member._id.toString()) === false)
+            return [false, 'Members must be added to project']
+    }
+
+    return [true,''];
 }

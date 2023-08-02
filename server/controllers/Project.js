@@ -10,7 +10,7 @@ import Ticket from "../schema/Ticket.js";
 
 
 import {
-    validateCreateProjectBody
+    validateCreateProjectBody, validateUpdateProjectMembers
 } from './validators/ProjectValidators.js'
 
 /**
@@ -132,6 +132,22 @@ export const getProjectById = asyncHandler(async (req,res,next)=> {
     //attach permission for the the user that is making request
     retrievedProject['userPermission'] = fetchedPermission;
 
+    //find all assigned tickets in project.
+    const assignedTickets = await Ticket.find({
+        assignedTo: req.user._id,
+        project: req.params.projectId,
+        $or:[{progress:'open'},{progress:'in_progress'}]
+    }).countDocuments();
+
+    //find all open tickets in project.
+    const openTickets = await Ticket.find({
+        progress:'open',
+        project:req.params.projectId,
+    }).countDocuments();
+
+    retrievedProject['assignedTickets'] = assignedTickets;
+    retrievedProject['openTickets'] = openTickets;
+
     res.status(status.OK).json({
         data: retrievedProject
     });
@@ -141,7 +157,7 @@ export const getProjectById = asyncHandler(async (req,res,next)=> {
 
 /**
  * @description - Create a new project instance.
- * @method POST
+ * @method POST /api/v1/projects
  * @access authentication required
  */
 export const createProject = asyncHandler( async (req,res,next)=> {
@@ -203,10 +219,90 @@ export const createProject = asyncHandler( async (req,res,next)=> {
 
 
 /**
- * @method PUT /api/v1/projects
+ * @method PUT /api/v1/projects/myProjects/:projectId/members
+ * @param {{
+ *  members: [{
+ *  _id: string,
+ *  role: string
+ * }]
+ * }}
  * @access authentication required
  */
-export const updateProject = asyncHandler( async (req,res,next)=> {
+export const updateProjectMembers = asyncHandler( async (req,res,next)=> {
     //make sure that user is valid
+
+    //find the project associated with the updates
+    const fetchedProject = await Project.findById(req.params.projectId)
+    .populate('members')
+    .lean();
+
+    const [validBody, errorMessage] = validateUpdateProjectMembers(req,fetchedProject);
+    
+    if(validBody === false){
+        return next(
+            new ErrorResponse(
+                status.BAD_REQUEST,
+                errorMessage
+            )
+        );
+    }
+
+    const {members} = req.body;
+
+    //build the response object and apply updates to the permissions
+    for(const memberFromBody of members) {
+        //fetch the permission and provide the update
+        const projectMember = fetchedProject.members.find((projectMember)=> {
+            return projectMember._id.toString() === memberFromBody._id;
+        });
+        const fetchedPermission = await Permission.findOneAndUpdate({
+            user: memberFromBody._id,
+            project: req.params.projectId
+        },{
+            role: memberFromBody.role
+        });
+        projectMember.role = memberFromBody.role;
+    }
+
+    //add the rest of permissions to the project
+    for(const member of fetchedProject.members){
+        const fetchedPermission = await Permission.findOne({
+            project: req.params.projectId,
+            user: member._id.toString()
+        });
+        member.role = fetchedPermission.role
+        if(member._id.toString() === req.user._id)
+            fetchedProject['userPermission'] = fetchedPermission;
+    }
+
+    //find all assigned tickets in project.
+    const assignedTickets = await Ticket.find({
+        assignedTo: req.user._id,
+        project: req.params.projectId,
+        $or:[{progress:'open'},{progress:'in_progress'}]
+    }).countDocuments();
+
+    //find all open tickets in project.
+    const openTickets = await Ticket.find({
+        progress:'open',
+        project:req.params.projectId,
+    }).countDocuments();
+
+    fetchedProject['assignedTickets'] = assignedTickets;
+    fetchedProject['openTickets'] = openTickets;
+
+    //return fetched project instance.
+    res.status(status.OK).json({
+        data: fetchedProject
+    });
 });
 
+
+
+/**
+ * @method DELETE /api/v1/projects/:projectId/members
+ * @access project_manager+
+ */
+export const deleteMember = asyncHandler((req,res,next)=> {
+
+});

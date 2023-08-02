@@ -2,7 +2,7 @@ import Ticket from "../schema/Ticket.js";
 import ErrorResponse from "../utility/ErrorResponse.js";
 import asyncHandler from "../utility/asyncHandler.js";
 import status from "../utility/status.js";
-
+import { updateTicketSchema } from "./validators/Ticket.js";
 
 
 
@@ -23,6 +23,7 @@ export const getTickets = asyncHandler( async (req,res,next)=> {
     const tickets =  await Ticket.find({
         project: req.params.projectId,
     })
+    .populate('assignedTo')
     .skip((page-1)*limit)
     .limit(limit);
 
@@ -56,5 +57,19 @@ export const getTicketById = asyncHandler( async (req,res,next)=> {
  * @method PUT /ticket/:ticketId
  */
 export const updateTicketById = asyncHandler( async (req,res,next)=> {
+    const validBody = await updateTicketSchema.isValid(req.body);
+    if(validBody === false){
+        return next(
+            new ErrorResponse(
+                status.BAD_REQUEST,
+                "Invalid request body"
+            )
+        );
+    }
+
+    const fetchedTicket = await Ticket.findOne({
+        project: req.params.projectId,
+        
+    });
 
 });

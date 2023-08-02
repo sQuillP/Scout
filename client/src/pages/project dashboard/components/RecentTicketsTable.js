@@ -17,45 +17,67 @@ import {
 } from "@mui/material";
 
 import { activityRows } from "../dev/dummy_data";
-import { useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { MoreVert } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import Scout from "../../../axios/scout";
+import { useSelector } from "react-redux";
 
 
 
-export default function RecentTicketsTable() {
+
+
+export default function RecentTicketsTable({onSetCardContent}) {
+
+    let mounted = useRef(true);
 
     const activityHeaders = ['Title','Created By', 'Status','Priority', 'Actions'];
     const avatarSX = {height:'30px', width:'30px', fontSize:'1em', marginRight:'10px'};
-
     const navigate = useNavigate();
 
-    const [currentPage, setCurrentPage] = useState(0);
-    const [rowsPerPage,setRowsPerPage] = useState(5);
-    const [totalRows, setTotalRows] = useState(10);
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const [limit, setLimit] = useState(5);
+
+    const [selectedTicketId, setSelectedTicketId] = useState(null)
+
+    const [totalTicketCount, setTotalTicketCount] = useState(0);
+    const [ticketData, setTicketData] = useState([]);
     const [menuRef, setMenuRef] = useState(null);
-
     const openMenu = Boolean(menuRef);
+    const {currentProject} = useSelector((store)=> store.project);
 
-    function onHandlePageChange(e,newPage) {
-        setCurrentPage(newPage);
+    useEffect(()=> {
+        if(currentProject === null) return;
+        console.log(currentProject);
+        fetchTicketData({});
+
+        return ()=> mounted.current = false;
+    },[currentProject]);
+
+
+    
+
+    async function onHandlePageChange(e,newPage) {
+        setCurrentPage(newPage+1);
+        await fetchTicketData({limit, page: newPage+1});
     }
 
 
-    function onHandleRowChange(e) {
-        setRowsPerPage( parseInt(e.target.value,10) );
-
+    async function onHandleRowChange(e) {
+        setLimit( parseInt(e.target.value,10) );
+        setCurrentPage(1);
+        await fetchTicketData({limit: +e.target.value, page: 1});
     }
 
     function onViewTicket(){
-        //view the ticket logic
         setMenuRef(null);
-        navigate('/projects/asdf/tickets/exampleticket');
+        navigate('/projects/'+currentProject._id+'/tickets/'+selectedTicketId);
     }
 
-    function onOpenMenu(e) {
+    function onOpenMenu(e, selectedTicket) {
         setMenuRef(e.currentTarget)
+        setSelectedTicketId(selectedTicket);
     }
 
     function getPriorityColor(priority) {
@@ -68,6 +90,26 @@ export default function RecentTicketsTable() {
                 return "success";
         }
     }
+
+
+    async function fetchTicketData(queryParams){
+        const ticket_url = `projects/myProjects/${currentProject._id}/tickets`;
+        mounted.current = true;
+        try{
+            const response = await Scout.get(ticket_url, {params:queryParams});
+            if(mounted.current === false) return;
+            console.log(response)
+            setTicketData(response.data.data);
+            setTotalTicketCount(response.data.totalItems);
+            
+        } catch(error) {
+            console.log(error, error.message);
+        }
+    }
+
+    
+
+  
 
     return (
         <>
@@ -91,30 +133,30 @@ export default function RecentTicketsTable() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {activityRows.map((activityRow)=> {
+                        {ticketData.map((ticket)=> {
                             return (
                                 <TableRow
-                                    key={activityRow.id}
+                                    key={ticket._id}
                                 >
                                     <TableCell>
-                                        {activityRow.title}
+                                        {ticket.summary}
                                     </TableCell>
                                     <TableCell>
                                         <div className="avatar-wrapper">
                                             <Avatar sx={avatarSX}>
-                                                {activityRow.createdBy[0]}
+                                                {ticket.assignedTo[0]}
                                             </Avatar>
-                                            {activityRow.createdBy}
+                                            {ticket.assignedTo.firstName + " " + ticket.assignedTo.lastName}
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        {activityRow.status}
+                                        {ticket.progress}
                                     </TableCell>
                                     <TableCell>
-                                        <Chip size="small" label={activityRow.priority} color={getPriorityColor(activityRow.priority)}/>
+                                        <Chip size="small" label={ticket.priority} color={getPriorityColor(ticket.priority)}/>
                                     </TableCell>
                                     <TableCell>
-                                        <IconButton onClick={onOpenMenu}>
+                                        <IconButton onClick={(e)=>onOpenMenu(e,ticket._id)}>
                                             <MoreVert/>
                                         </IconButton>
                                     </TableCell>
@@ -127,9 +169,9 @@ export default function RecentTicketsTable() {
             <TablePagination
                 rowsPerPageOptions={[5, 10, 25]}
                 component="div"
-                count={totalRows}
-                rowsPerPage={rowsPerPage}
-                page={currentPage}
+                count={totalTicketCount}
+                rowsPerPage={limit}
+                page={currentPage-1}
                 onPageChange={onHandlePageChange}
                 onRowsPerPageChange={onHandleRowChange}
             />

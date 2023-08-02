@@ -4,16 +4,16 @@ import "../styles/SearchResult.css";
 
 
 
-export default function SearchResult({data}){
+export default function SearchResult({user}){
 
 
     return (
         // <>
             <div className="sr-container">
-                <Avatar>A</Avatar>
+                <Avatar>{user.firstName[0]  + user.lastName[0]}</Avatar>
                 <div className="user-info">
-                    <p className="text sr-fullname">Allan Smith</p>
-                    <p className="text sm light">allansmith@gmail.com</p>
+                    <p className="text sr-fullname">{user.firstName + " " + user.lastName}</p>
+                    <p className="text sm light">{user.email}</p>
                 </div>
             </div>
         // </>

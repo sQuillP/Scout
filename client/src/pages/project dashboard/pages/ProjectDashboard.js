@@ -14,8 +14,15 @@ import RecentTicketsTable from "../components/RecentTicketsTable";
 import {
     NewReleases,
 } from '@mui/icons-material';
+import { useState } from "react";
+import { useSelector } from "react-redux";
 
 export default function ProjectDashboard() {
+
+    const currentProject = useSelector((store)=> store.project.currentProject);
+
+    console.log(currentProject);
+
 
     function onHandleUpdateRole() {
 
@@ -37,12 +44,12 @@ export default function ProjectDashboard() {
                 >
                     <DashboardPanel
                         title={'Tickets currently assigned to me'}
-                        content={'23'}
+                        content={currentProject?.assignedTickets || 0}
                         PanelIcon={()=> <Avatar sx={{height: '50px', width:'50px'}}>A</Avatar>}
                     />
                     <DashboardPanel
                         title={'Open Tickets (currently not assigned)'}
-                        content={'14'}
+                        content={currentProject?.openTickets || 0}
                         PanelIcon={()=> <NewReleases sx={{fontSize: '3rem', color:'goldenrod'}}/>}
                     />
                     

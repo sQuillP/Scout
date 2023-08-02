@@ -25,6 +25,9 @@ import axios from 'axios';
 import "../styles/Members.css";
 import UserSearchResult from "../components/UserSearchResult";
 import { useEffect, useRef, useState } from "react";
+import Scout from "../../../axios/scout";
+
+
 export default function Members() {
 
     const [searchUserTerm, setSearchUserTerm] = useState('');
@@ -32,16 +35,43 @@ export default function Members() {
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [menuRef, setMenuRef] = useState(null);
     const [filterBy, setFilterBy] = useState('name'); //field should either be name or email
+    const [userSearchResults, setUserSearchResults] = useState([]);
 
     const openMenuRef = !!menuRef;
 
     const debouncedTerm = useDebounce(searchUserTerm,1000);
 
+    const mounted = useRef(true);
+
 
     /* add loading animation when user types into the keyboard. */
     useEffect(()=> {
-        setLoadingUsers(false);
-        if(debouncedTerm.trim() === '') return;
+        if(debouncedTerm.trim() === ''){
+            setLoadingUsers(false);
+            return;
+        } 
+        ( async ()=> {
+            mounted.current = true;
+            const queryParams = {
+                params: {
+                    term: debouncedTerm,
+                    limit: 10,
+                    page:1
+                }
+            };
+            try {
+                const response = await Scout.get('/users/search',queryParams);
+                if(mounted.current === false) return;
+                console.log(response.data);
+                setUserSearchResults(response.data.data);
+                setLoadingUsers(false);
+            } catch(error) {
+                //handle api error
+            }
+        })();
+
+        return ()=> mounted.current = false;
+
     },[debouncedTerm])
 
 
@@ -134,24 +164,17 @@ export default function Members() {
                                     </>
                                 ):(
                                     <>
-                                        <UserSearchResult
-                                            handleInvite={onHandleInvite}
-                                        />
-                                        <UserSearchResult
-                                            handleInvite={onHandleInvite}
-                                        />
-                                        <UserSearchResult
-                                            handleInvite={onHandleInvite}
-                                        />
-                                        <UserSearchResult
-                                            handleInvite={onHandleInvite}
-                                        />
-                                        <UserSearchResult
-                                            handleInvite={onHandleInvite}
-                                        />
-                                        <UserSearchResult
-                                            handleInvite={onHandleInvite}
-                                        />
+                                        {
+                                            userSearchResults.map((result)=> {
+                                                return (
+                                                    <UserSearchResult
+                                                        key={result._id}
+                                                        user={result}
+                                                        handleInvite={onHandleInvite}
+                                                    />
+                                                )
+                                            })
+                                        }
                                     </>
                                 )
                             }

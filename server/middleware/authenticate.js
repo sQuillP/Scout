@@ -24,7 +24,7 @@ export default function authenticate(req,res,next) {
         return next(
             new ErrorResponse(
                 status.BAD_REQUEST,
-                "Not authorized"
+                "Not authenticated"
             )
         );
     }
@@ -49,7 +49,7 @@ export default function authenticate(req,res,next) {
         return next(
             new ErrorResponse(
                 status.BAD_REQUEST,
-                "Invalid token"
+                error.message
             )
         );
     }

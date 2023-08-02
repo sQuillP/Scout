@@ -19,12 +19,13 @@ export default function ProtectRoute({children}) {
         const fetchedToken = localStorage.getItem('token');
         if(fetchedToken === null) return false;
         const decodedToken= decode(fetchedToken);
-        if(new Date(decodedToken.exp).getTime() < Date.now())
+        if(new Date(decodedToken.exp*1000).getTime() < Date.now())
             return false;
         
         return true;
     }
 
+    console.log(authToken,validToken);
 
     return (
         authToken !== null || validToken !== false? (

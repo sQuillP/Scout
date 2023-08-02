@@ -17,19 +17,30 @@ import status from "../utility/status.js";
 export function validateProjectPermission(allowedRoles){
 
     return async (req,res,next)=> {
-        const fetchedPermission = await Permission.findOne({ 
-            user: req.user._id,
-            project: req.params.projectId
-         });
-
-        //check to see if user belongs to project and their role suffices
-        if(fetchedPermission === null || allowedRoles.includes(fetchedPermission.role) === false)
+        try {
+            const fetchedPermission = await Permission.findOne({ 
+                user: req.user._id,
+                project: req.params.projectId
+            });
+            //check to see if user belongs to project and their role suffices
+            if(fetchedPermission === null || allowedRoles.includes(fetchedPermission.role) === false){
+                return next(
+                    new ErrorResponse(
+                        status.FORBIDDEN,
+                        "Insufficient permissions: Project does not belong to user"
+                    )
+                );
+            }
+        } catch(error) {
+            console.log(error.message)
             return next(
                 new ErrorResponse(
-                    status.FORBIDDEN,
-                    "Insufficient permissions: Project does not belong to user"
+                    status.INTERNAL_SERVER_ERROR,
+                    "Middleware permission error. Contact dev team if issue persists"
                 )
-            );
-        next();
+            )
+        } finally{
+            next();
+        }
     }
 }

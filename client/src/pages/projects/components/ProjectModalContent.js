@@ -12,55 +12,16 @@ import useDebounce from '../../../hooks/useDebounce';
 import "../styles/ProjectModalContent.css"
 import SearchResult from './SearchResult';
 import MembersTable from './MembersTable';
-
-
-const dummy_search_results = [
-    {
-        email:'will@gmail.com',
-        fullName:'William Pattison',
-        id:'abc123'
-    },
-    {
-        email:'will@gmail.com',
-        fullName:'William Pattison',
-        id:'abc1233'
-    },
-    {
-        email:'will@gmail.com',
-        fullName:'William Pattison',
-        id:'abc12333'
-    },
-    {
-        email:'will@gmail.com',
-        fullName:'William Pattison',
-        id:'abc123333'
-    },
-    {
-        email:'will@gmail.com',
-        fullName:'William Pattison',
-        id:'abc1223333'
-    },
-    {
-        email:'will@gmail.com',
-        fullName:'William Pattison',
-        id:'abc12223333'
-    },
-    {
-        email:'will@gmail.com',
-        fullName:'William Pattison',
-        id:'abc122223333'
-    },
-    {
-        email:'will@gmail.com',
-        fullName:'William Pattison',
-        id:'abc1222223333'
-    },
-]
-
+import Scout from '../../../axios/scout';
+import { updateProjectSync } from '../../../redux/slice/projectSlice';
+import { useNavigate } from 'react-router-dom';
 
 const MAX_CHAR_COUNT = 1500;
 
 export default function ProjectModalContent({onCloseModal}){
+
+
+    const navigation = useNavigate();
 
     /* State for searching DB using API */
     const [searchUserTerm, setSearchUserTerm] = useState('');
@@ -75,7 +36,7 @@ export default function ProjectModalContent({onCloseModal}){
     const [projectDescription, setProjectDescription] = useState('');
 
 
-const [projectMembers, setProjectMembers] = useState([]);
+    const [projectMembers, setProjectMembers] = useState([]);
 
     /* UI stateful logic */
     const [showSearchResults, setShowSearchResults] = useState(false);
@@ -84,11 +45,34 @@ const [projectMembers, setProjectMembers] = useState([]);
 
     const searchResultsRef = useRef();
 
-    useEffect(()=> {
-        if(!!debouncedTerm.trim())
-            setShowSearchResults(true);
+    const mountedDebounce = useRef(false);
 
-        return ()=> null;
+    useEffect(()=> {
+        if(!!debouncedTerm.trim() === false) return;
+        mountedDebounce.current = true;
+
+        ( async ()=> {
+            const requestParams = {
+                params: {
+                    page: 1,
+                    limit: 10,
+                    term: debouncedTerm
+                }
+            };
+            try{
+                const searchResponse = await Scout.get('/users/search',requestParams);
+                //email, profileImage, firstName, lastName,
+                if(mountedDebounce.current === false) return;
+                setUserResults(searchResponse.data.data);
+                setShowSearchResults(true);
+            } catch(error) {
+                console.log(error,error.message);
+            }
+
+        })();
+
+
+        return ()=> mountedDebounce.current = false;
     },[debouncedTerm]);
 
 
@@ -97,21 +81,21 @@ const [projectMembers, setProjectMembers] = useState([]);
 
     }
 
-    function handleSearchResultClick(data) {
+    function handleSearchResultClick(newMember) {
 
-        const isExistingMember = !!projectMembers.find((member)=> {
-            return member.id === data.id
-        });
-
-        if(isExistingMember === false)
-            setProjectMembers([...projectMembers,data]);
-
-
+        const updatedMembers = [...projectMembers, newMember];
+        setProjectMembers(updatedMembers);
         setShowSearchResults(false);
     }
 
     function handleSubmit(e) {
         e.preventDefault();
+    }
+
+
+    //this is where you l eft off.
+    function onUpdateMemberRole() {
+
     }
 
 
@@ -126,6 +110,29 @@ const [projectMembers, setProjectMembers] = useState([]);
 
         if(!searchResultsRef.current.contains(e.target)){
             setShowSearchResults(false);
+        }
+    }
+
+
+    function onRemoveAddedMember(id) {
+        const newAddedMemberList = projectMembers.filter(member => member._id !== id);
+        setProjectMembers(newAddedMemberList);
+    }
+
+
+    async function createProject(){
+        try {
+            const requestBody = {
+                title: projectName,
+                description: projectDescription,
+                members: projectMembers
+            };
+            console.log('submitting', requestBody);
+            // const responseData = await Scout.post('/projects',requestBody);
+            // updateProjectSync(responseData.data);
+            // navigation('/projects/'+responseData.data._id);
+        } catch(error) {
+            console.log(error.message);
         }
     }
 
@@ -184,13 +191,15 @@ const [projectMembers, setProjectMembers] = useState([]);
                                 <p className="text">33 results found</p>
                             </div>
                             <div className="results-list">
-                                {dummy_search_results.map((result)=> {
+                                {userResults.map((result)=> {
                                     return (
                                         <div
                                             key={result.id}
                                             onClick={()=> handleSearchResultClick(result)}
                                         >
-                                            <SearchResult/>
+                                            <SearchResult
+                                                user={result}
+                                            />
                                         </div>
                                     );
                                 })}
@@ -204,7 +213,7 @@ const [projectMembers, setProjectMembers] = useState([]);
                     <p className="text">Members List</p>
                 </div>
                 {!!projectMembers.length? 
-                    <MembersTable data={projectMembers}/> : (
+                    <MembersTable onDeleteRow={onRemoveAddedMember} members={projectMembers}/> : (
                         <div className="pm-no-members">
                             <p className="text">No Members Added</p>
                         </div>
@@ -227,8 +236,10 @@ const [projectMembers, setProjectMembers] = useState([]);
                 </div>
             </div>
             <div className="pm-section pm-create">
-                <button className="pm-submit-btn"
+                <button 
+                    className="pm-submit-btn"
                     type='submit'
+                    onClick={createProject}
                 >
                     Create project
                     <i 

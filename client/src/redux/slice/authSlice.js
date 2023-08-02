@@ -18,7 +18,7 @@ const authSlice = createSlice({
             
             if(fetchedToken !== null) {
                 const decodedToken = decode(fetchedToken);
-                const expDate = new Date(decodedToken.exp).getTime() * 1000;
+                const expDate = new Date(decodedToken.exp*1000).getTime();
                 if(expDate <  Date.now())//if expDate had already happened
                     fetchedToken = null;
             }

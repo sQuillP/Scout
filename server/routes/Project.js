@@ -4,7 +4,7 @@ import {
     getMyProjects,
     createProject,
     getProjectById,
-    updateProject
+    updateProjectMembers
 } from '../controllers/Project.js';
 import { validateProjectPermission } from '../middleware/authorization.js'
 import authenticate from '../middleware/authenticate.js';
@@ -32,13 +32,17 @@ ProjectRouter.route('/myProjects/:projectId')
 .get(//ensure all members have access to getting project information
     validateProjectPermission(['developer','project_manager','administrator']),
     getProjectById
-)
-.put(
-    validateProjectPermission(['project_manager','administrator']),
-    updateProject
 );
 
 
+ProjectRouter.route('/myProjects/:projectId/members')
+.put(
+    validateProjectPermission(['administrator']),
+    updateProjectMembers
+);
+
+
+//extend the route to the tickets associated with the route.
 ProjectRouter.use('/myProjects/:projectId/tickets',TicketRouter);
 
 export default ProjectRouter;

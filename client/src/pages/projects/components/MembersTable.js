@@ -27,10 +27,10 @@ const modalSX = {
     bgcolor: 'background.paper',
     p:4
 };
+ 
 
 
-
-export default function MembersTable({data, onDeleteRow}) {
+export default function MembersTable({ members, onDeleteRow, onUpdateMemberRole}) {
 
     const [openConfirmModal, setOpenConfirmModal] = useState(false);
     const [removeUser, setRemoveUser] = useState(null);
@@ -40,9 +40,6 @@ export default function MembersTable({data, onDeleteRow}) {
         setRemoveUser(userToRemove);
     }
 
-    function getRemoveConfirmation(removeUser) {
-
-    }
 
     function onRemoveUser() {
         if(removeUser===null) return;
@@ -79,19 +76,19 @@ export default function MembersTable({data, onDeleteRow}) {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {data.map((member)=> {
+                        {members.map((member)=> {
                             return (
                                 <TableRow
-                                    key={member.id}
+                                    key={member._id}
                                 >
                                     <TableCell sx={{display:'flex', alignItems:'center'}}>
                                         <Avatar
                                             sx={{height:'30px', width:'30px', fontSize:'1em', marginRight:'10px'}}>
-                                                WP
+                                            {member.firstName[0].toUpperCase() + member.lastName[0].toUpperCase()}
                                         </Avatar>
-                                        <p className="text">William Pattison</p>
+                                        <p className="text">{member.firstName + " " + member.lastName}</p>
                                     </TableCell>
-                                    <TableCell>will.m.pattison@gmail.com</TableCell>
+                                    <TableCell>{member.email}</TableCell>
                                     <TableCell>
                                         <select className="pm-role-select">
                                             <option value="developer" className="pm-role-option">Developer</option>

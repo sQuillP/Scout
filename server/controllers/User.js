@@ -21,17 +21,17 @@ export const getUsers = asyncHandler( async (req,res,next)=> {
 /**
  * @description - Search a user based on email or username
  * @method GET /api/v1/users/search
- * @param {string} searchBy - query param for how to search for the user
+ * @param {string} term - query param for how to search for the user
  * @param {number} page - pagination page
  * @param {number} limit - max items per page
  * @access authenticated
  */
 export const searchUsers = asyncHandler( async (req,res,next)=> {
     const term = req.query.term;
-    const limit = req.query.limit || 10;
-    const page = req.query.page || 1;
+    const limit = +req.query.limit || 10;
+    const page = +req.query.page || 1;
 
-
+    console.log(req.query);
     let query = {
         $or: [
             {firstName:{'$regex': term, '$options': 'i'}},
