@@ -57,7 +57,8 @@ export const getTicketById = asyncHandler( async (req,res,next)=> {
  * @method PUT /ticket/:ticketId
  */
 export const updateTicketById = asyncHandler( async (req,res,next)=> {
-    const validBody = await updateTicketSchema.isValid(req.body);
+    const validBody = updateTicketSchema.isValidSync(req.body);
+    console.log(validBody, req.body);
     if(validBody === false){
         return next(
             new ErrorResponse(
@@ -67,17 +68,26 @@ export const updateTicketById = asyncHandler( async (req,res,next)=> {
         );
     }
 
-    const fetchedTicket = await Ticket.findOneAndUpdate({
-        project: req.params.projectId,
-    },
-    {
+    if((await Ticket.exists({_id: req.params.ticketId}) === null)){
+        return next(
+            new ErrorResponse(
+                status.BAD_REQUEST,
+                "Ticket " + req.params.ticketId + " does not exist"
+            )
+        );
+    }
+
+   
+    console.log('line 81',req.body);
+
+    const updatedTicket = await Ticket.findByIdAndUpdate(req.params.ticketId,{
         ...req.body
-    });
+    },{new:true});
 
 
     
 
     res.status(status.OK).json({
-        data: fetchedTicket
+        data: updatedTicket
     });
 });

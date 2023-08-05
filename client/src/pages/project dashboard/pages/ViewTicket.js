@@ -104,7 +104,7 @@ export default function ViewTicket() {
     const mounted = useRef(true);
     const currentProject = useSelector((store)=> store.project.currentProject);
     const dispatch = useDispatch();
-
+    const navigate = useNavigate();
 
     //number of comments to be paginated.
     const comments_pagination = 5;
@@ -121,10 +121,16 @@ export default function ViewTicket() {
         updatedAt:''
     });
 
+    /* Request object that is made  */
+    const [ticketInfoRequest, setTicketInfoRequest] = useState({});
+
+
     /* STATE FOR HANDLING COMMENTS */
 
     //set state for ticket comments
     const [ticketComments, setTicketComments] = useState([]);
+
+    const [commentPage, setCommentPage] = useState(1);
 
     /* State for handling comments */
     const [searchComment, setSearchComment] = useState('');
@@ -138,7 +144,16 @@ export default function ViewTicket() {
     * make a new request to the server with the updated comments list to show
     * the most recent changes. 
     */
-    function onCreateNewComment(newComment) {
+    async function onCreateNewComment(newComment) {
+        try{
+            //make a post request to comments route
+            const commentResponse = await Scout.post(`/projects/myProjects/${currentProject._id}/tickets/${ticketId}/comments`);
+            //from the response, should return the first five comments in the database, set those comemnts
+            setCommentPage(1);
+            setTicketComments(commentResponse.data.data);
+        } catch(error){
+
+        }
         onOpenSnackbar("Comment successfully created!", "success");
     }
 
@@ -153,8 +168,6 @@ export default function ViewTicket() {
     function onCloseCommentMenu(){
         setCommentMenuRef(null);
     }
-
-
 
 
 
@@ -217,6 +230,7 @@ export default function ViewTicket() {
         setDisplayPublishChangesButton(false);
         setTicketChangeComments('');
         onOpenSnackbar("Ticket modifications have been discarded","error");
+        setTicketInfoRequest({});
         
     }
 
@@ -224,10 +238,9 @@ export default function ViewTicket() {
     display a button on screen to allow modifications. */
     function updateTicketCopy(newValue, field) {
         const modifiedTicketInfoCopy = {...ticketInfoCopy,[field]:newValue};
+        ticketInfoRequest[field] = newValue;
         /* Deep comparison of objects */
         const madeTicketModifications = !_.isEqual(ticketInfo, modifiedTicketInfoCopy);
-
-        // console.log('newvalue,modified,real',newValue,modifiedTicketInfoCopy, ticketInfoCopy);
         /* if modifications have been made, allow users to publish changes. */
         if(madeTicketModifications)
             setDisplayPublishChangesButton(true);
@@ -241,34 +254,25 @@ export default function ViewTicket() {
     async function onSubmitEditChanges() {
         setPendingPublishChanges(true);
 
-        // const updatedTicket = await Scout.put('/')
-
-        //simulate the changes being made.
-        // const timeout = setTimeout(()=> {
-        //     setShowConfirmTicketChangesModal(false);
-        //     // setTicketInfo(_.cloneDeep(ticketInfoCopy));
-        //     setDisplayPublishChangesButton(false);
-        //     setCanEdit(false);
-        //     setTicketChangeComments('');
-        //     onOpenSnackbar("Successfully updated ticket.","success");
-        // },2000);
-        //just update the ticket manually, make the change later from the db.
-        //submit the new ticket,
-        //fetch the newly updated ticket and store it in the original ticket.
-        //append the change to the ticket history (this can be handled by the backend.)
+ 
         try {
             setShowConfirmTicketChangesModal(false);
-            displayPublishChangesButton(false);
+            setDisplayPublishChangesButton(false);
             setCanEdit(false);
-            setTicketChangeComments('');
-            const ticketResponse = await Scout.put('/tickets/'+ticketId,ticketInfoCopy);
-            //update the project
-            dispatch(updateProjectSync(ticketResponse.data.data));
+            const ticketHistoryBody = {ticket:ticketId, description: ticketChangeComments};
+            const resolvedData = await Promise.all([
+                Scout.put(`/projects/myProjects/${currentProject._id}/tickets/${ticketId}`,ticketInfoRequest),
+                Scout.post(`/projects/myProjects/${currentProject._id}/tickets/${ticketId}/ticketHistory`,ticketHistoryBody)
+            ]);
+
+            setTicketInfo(resolvedData[0].data.data);
+            setTicketInfoCopy(_.cloneDeep(resolvedData[0].data.data));
             onOpenSnackbar("Successfully updated ticket.","success");
-            console.log(ticketResponse);
         } catch(error) {
-            console.log(error, error.message);
             onOpenSnackbar("Unable to update ticket","error");
+        } finally {
+            setPendingPublishChanges(false);
+            setTicketChangeComments('');
         }
     }
 
@@ -288,8 +292,6 @@ export default function ViewTicket() {
     }
 
 
-    /* **** */
-
     useEffect(()=> {
         mounted.current = true;
         ( async()=> {
@@ -298,17 +300,42 @@ export default function ViewTicket() {
                     Scout.get('/projects/myProjects/'+currentProject._id+'/tickets/'+ticketId),
                     Scout.get('/projects/myProjects/'+currentProject._id+'/tickets/'+ticketId+'/comments')
                 ]);
+                if(Object.keys(resolvedTicketInfo[0].data.data).length === 0){
+                    return navigate('/auth/login');
+                }
+                if(mounted.current === false) return;
                 setTicketInfo(resolvedTicketInfo[0].data.data);
                 setTicketComments(resolvedTicketInfo[1].data.data);
-                console.log(resolvedTicketInfo);
+                setTicketInfoCopy(_.cloneDeep(resolvedTicketInfo[0].data.data));
             } catch(error) {
                 console.error(error,error.message);
+                navigate('/auth/login');
             }
         })();
-
         return ()=> mounted.current = false;
     },[]);
 
+
+    //you left off here.
+    useEffect(()=> {
+        ( async ()=> {
+            try {
+                const commentResponse = await Scout.get(`/projects/myProjects/${currentProject._id}/tickets/${ticketId}/comments`);
+                setTicketComments(commentResponse.data.data);
+
+
+            } catch(error) {
+                console.log('search comments error');
+                //display error with comments
+            }
+        })();
+    },[debouncedCommentSearch]);
+
+
+    /* Make sure editable project has latest instance of project */
+    useEffect(()=> {
+        setTicketInfoCopy(_.cloneDeep(currentProject));
+    },[currentProject]);
 
     /**
      * @param {string} priority - can be either high | medium | low and maps those accordingly
@@ -533,11 +560,11 @@ export default function ViewTicket() {
                                                         className="vt-edit-select"
                                                     >
                                                         {
-                                                            dummy_group_members.map((member)=> {
+                                                            currentProject.members.map((member)=> {
                                                                 return (
                                                                     <option 
-                                                                        value={member.email} 
-                                                                        key={member.email}
+                                                                        value={member._id} 
+                                                                        key={member._id}
                                                                     >
                                                                         {member.email}
                                                                     </option>
@@ -548,7 +575,12 @@ export default function ViewTicket() {
                                                 </td>
 
                                             ):(
-                                                <td className="vt-td-value">{ticketInfo.assignedTo}</td>
+                                                <td className="vt-td-value">
+                                                    {
+                                                    currentProject.members.find((member)=>{
+                                                    return member._id === ticketInfo.assignedTo
+                                                })?.email
+                                                }</td>
                                             )
                                         }
                                     </tr>
