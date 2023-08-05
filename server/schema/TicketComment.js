@@ -18,6 +18,8 @@ const TicketCommentSchema = new mongoose.Schema({
         type: String,
         required: [true, 'please provide comment content']
     },
+},{
+    timestamps: true
 });
 
 //handle ticket comment logic.

@@ -14,6 +14,7 @@ const ProjectSchema = new mongoose.Schema({
     members: {
        type: [{type: mongoose.Schema.ObjectId, ref:'User'}],
        validate: {
+
             //prevent any duplicate ids from getting into the db.
             validator: function(arr){
                 let uniqueIds = new Set();
@@ -49,8 +50,7 @@ ProjectSchema.pre('remove',async function(next) {
         project: this._id
     });
 
-    await 
-    next();
+    await next();
 })
 
 const Project = mongoose.model("Project",ProjectSchema);

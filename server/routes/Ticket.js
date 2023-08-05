@@ -1,12 +1,14 @@
 import express from 'express';
 
 import {
-    getTickets,
+    getTickets, 
     getTicketById,
     updateTicketById
 } from '../controllers/Ticket.js';
 
 import { validateProjectPermission } from '../middleware/authorization.js';
+import TicketHistoryRouter from './TicketHistory.js';
+import TicketCommentRouter from './TicketComment.js';
 
 /**
  * NOTE: This router extends the project router in order to get the tickets.
@@ -30,9 +32,12 @@ TicketRouter.route("/:ticketId")
 .put(//all members
     validateProjectPermission(['developer','project_manager','administrator']),
     updateTicketById
-)
+);
 
 
+//append ticket history
+TicketRouter.use('/:ticketId/ticketHistory',TicketHistoryRouter);
 
+TicketRouter.use('/:ticketId/comments', TicketCommentRouter);
 
 export default TicketRouter;

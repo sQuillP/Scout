@@ -4,7 +4,8 @@ import { getProjectById } from "../thunk/project";
 
 const initialState = {
     currentProject: null,
-    loadingCurrentProject:false,
+    loadingCurrentProject:true,
+    loadCurrentProjectFailure: false,
     role: null,
 };
 
@@ -18,6 +19,9 @@ const projectSlice = createSlice({
             console.log(payload)
             state.currentProject = payload;
             state.role = payload.userPermission.role;
+        },
+        clearLoadingErrors(state,_) {
+            state.loadCurrentProjectFailure = false;
         }
     },
     extraReducers:(builder)=> {
@@ -31,10 +35,15 @@ const projectSlice = createSlice({
             state.loadingCurrentProject = false;
             state.role = payload.userPermission.role;
         });
+
+        builder.addCase(getProjectById.rejected, (state,_)=> {
+            state.loadingCurrentProject = false;
+            state.loadCurrentProjectFailure = true;
+        });
     }
 });
 
 
 export default projectSlice.reducer;
 
-export const { updateProjectSync } = projectSlice.actions;
+export const { updateProjectSync, clearLoadingErrors } = projectSlice.actions;

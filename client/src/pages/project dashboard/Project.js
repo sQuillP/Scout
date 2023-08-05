@@ -1,24 +1,43 @@
 import { useEffect } from "react";
 import HorizontalNavigation from "../../components/HorizontalNavigation";
 import VerticalNavigation from "./components/VerticalNavigation";
-import { Outlet, useParams } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { Outlet, useNavigate, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { getProjectById } from "../../redux/thunk/project";
+import LoadingProject from "./components/LoadingProject";
+
+
+
+
 export default function Project() {
 
     const {projectId} = useParams();
     const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+    const {loadingCurrentProject, loadingCurrentProjectFailure} = useSelector((store)=> store.project);
 
     //get new project whenever the params change.
     useEffect(()=> {
         dispatch(getProjectById(projectId));
-    },[projectId])
+        
+    },[projectId]);
+
+    useEffect(()=> {
+
+        if(loadingCurrentProjectFailure === true){
+            navigate('/auth/login');
+        }
+
+    },[loadingCurrentProjectFailure]);
 
     return (
         <>
             <HorizontalNavigation/>
             <VerticalNavigation/>
-            <Outlet/>
+            {
+                loadingCurrentProject? (<LoadingProject/>):(<Outlet/>)
+            }
         </>
     )
 

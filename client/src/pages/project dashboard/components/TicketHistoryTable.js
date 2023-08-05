@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { 
     Avatar,
@@ -21,6 +21,9 @@ import {
 import {
     SignalWifiStatusbarConnectedNoInternet4
 } from '@mui/icons-material';
+
+import Scout from "../../../axios/scout";
+import { useSelector } from "react-redux";
 
 const dummy_data = [
     {
@@ -89,46 +92,52 @@ const dummy_data = [
  */
 export default function TicketHistoryTable({ticketId, }) {
 
+    
+    const currentProject = useSelector((store)=> store.project.currentProject);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [loadingTicketHistory, setLoadingTicketHistory] = useState(false);
+    const [loadingTicketError, setLoadingTicketError] = useState(false);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [ticketHistory, setTicketHistory] = useState([]);
+    const [ticketHistoryCount, setTicketHistoryCount] = useState(0);
+    const [showSnackbar, setShowSnackbar] = useState(false);
+    const mountedRef = useRef(true);
+
+    const PAGE_LIMIT = 5;
+
     useEffect(()=> {
-        //make async request to get ticket history given the ticket id.
-
-        //for ui testing purposes 
-        const debugTimeout = setTimeout(()=> {
-            //clear loading
-            setLoadingTicketHistory(false);
-            setShowSnackbar(true);
-        
-        },3000);
-
-        return ()=> clearTimeout(debugTimeout);
-        //**** 
+        fetchTicketHistory({page: currentPage, limit: PAGE_LIMIT});
+        return ()=> mountedRef.current = false;
     },[ticketId]);
 
-    const [currentPage, setCurrentPage] = useState(0);
 
-    const [loadingTicketHistory, setLoadingTicketHistory] = useState(true);
-    const [loadingTicketError, setLoadingTicketError] = useState(true);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
+    async function fetchTicketHistory(params) {
+        mountedRef.current = true;
+        setLoadingTicketHistory(true);
+        try{
+            const historyResponse = await Scout.get('/projects/myProjects/'+currentProject._id+'/tickets/'+ticketId+'/ticketHistory',{params});
+            if(mountedRef.current === false) return;
+            setTicketHistory(historyResponse.data.data);
+            console.log(historyResponse.data);
+            setTicketHistoryCount(historyResponse.data.itemCount || 0);
+            setLoadingTicketHistory(false);
+        } catch(error) {
+            setShowSnackbar(true);
+            console.log(error, error.message);
+        }
+    }
 
-    const [showSnackbar, setShowSnackbar] = useState(false);
 
     function onDismissSnackbar() {
         setShowSnackbar(false);
     }
 
-    function handlePageChange() {
-
+    async function handlePageChange(_,page) {
+        setCurrentPage((page+1));
+        await fetchTicketHistory({page: (page+1), limit: PAGE_LIMIT});
     }
 
-    function onFetchTicketHistory() {
-        //make axios request
-        setLoadingTicketHistory(true);
-        const timeout = setTimeout(()=> {
-            setLoadingTicketHistory(false);
-            setLoadingTicketError(false);
-        },3000);
-
-    }
+   
 
     return (
         <Paper 
@@ -181,7 +190,7 @@ export default function TicketHistoryTable({ticketId, }) {
                             </TableHead>
                             <TableBody>
                                 {
-                                    dummy_data.map((historyItem)=> {
+                                    ticketHistory.map((historyItem)=> {
                                         return (
                                             <TableRow
                                                 key={historyItem._id}
@@ -192,15 +201,15 @@ export default function TicketHistoryTable({ticketId, }) {
                                                         spacing={2} 
                                                         flexWrap={'wrap'}
                                                         alignItems={'center'}
-                                                        justifyContent={'center'}
+                                                        justifyContent={'flex-start'}
                                                     >
                                                         <Avatar 
-                                                            src={historyItem.modifiedBy.image}
+                                                            src={historyItem.modifiedBy.profileImage}
                                                             alt={historyItem.modifiedBy.email[0].toUpperCase()}
                                                             sx={{}}
                                                         />
-                                                        <p className="text">
-                                                            {historyItem.modifiedBy.username}
+                                                        <p  className="text">
+                                                            {historyItem.modifiedBy.firstName + " " + historyItem.modifiedBy.lastName}
                                                         </p>
                                                     </Stack>
                                                 </TableCell>
@@ -208,7 +217,7 @@ export default function TicketHistoryTable({ticketId, }) {
                                                     {historyItem.description}
                                                 </TableCell>
                                                 <TableCell>
-                                                    {historyItem.modifiedDate}
+                                                    {historyItem.updatedAt}
                                                 </TableCell>
                                             </TableRow>
                                         )
@@ -241,7 +250,7 @@ export default function TicketHistoryTable({ticketId, }) {
                                 textTransform:'none'
                             }}
                             //variant
-                            onClick={onFetchTicketHistory}
+                            onClick={fetchTicketHistory}
                         >Click to Refresh</Button>
                     </Stack>
                     
@@ -252,10 +261,10 @@ export default function TicketHistoryTable({ticketId, }) {
                 <TablePagination
                     rowsPerPageOptions={[5]}
                     component="div"
-                    rowsPerPage={rowsPerPage}
-                    page={currentPage}
+                    rowsPerPage={ticketHistory.length}
+                    page={currentPage-1}
                     onPageChange={handlePageChange}
-                    count={dummy_data.length}
+                    count={ticketHistoryCount}
                 />
                 )
             }

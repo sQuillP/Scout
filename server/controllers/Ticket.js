@@ -67,9 +67,17 @@ export const updateTicketById = asyncHandler( async (req,res,next)=> {
         );
     }
 
-    const fetchedTicket = await Ticket.findOne({
+    const fetchedTicket = await Ticket.findOneAndUpdate({
         project: req.params.projectId,
-        
+    },
+    {
+        ...req.body
     });
 
+
+    
+
+    res.status(status.OK).json({
+        data: fetchedTicket
+    });
 });

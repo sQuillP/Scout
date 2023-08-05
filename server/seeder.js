@@ -105,31 +105,26 @@ async function seedTickets(projectIds) {
     const ticketTypes = ['bug','crash','task','change'];
 
     const ticketIds = [];
-
-        //for each project
-            //create 12 tickets
-            //assign them to a user in the group
-            //add random populated fields
-        for(const projectId of projectIds) {
-            const fetchedProject = await Project.findById(projectId);
-            let userIdx = 0;
-            for(let i = 0; i<TICKETS_PER_PROJECT; i++) {
-                const _id = new mongoose.Types.ObjectId();
-                await Ticket.create({
-                    assignedTo: fetchedProject.members[userIdx],
-                    project:projectId,
-                    priority: priorities[Math.floor(Math.random()*priorities.length)],
-                    progress: progress[Math.floor(Math.random()*progress.length)],
-                    ticketType: ticketTypes[Math.floor(Math.random()*ticketTypes.length)],
-                    description:'Just a quick description',
-                    summary: 'This should be a long summar '+(i+1),
-                    _id,
-                });
-                userIdx= (userIdx+1)%fetchedProject.members.length;
-                ticketIds.push(_id);
-            }
+    for(const projectId of projectIds) {
+        const fetchedProject = await Project.findById(projectId);
+        let userIdx = 0;
+        for(let i = 0; i<TICKETS_PER_PROJECT; i++) {
+            const _id = new mongoose.Types.ObjectId();
+            await Ticket.create({
+                assignedTo: fetchedProject.members[userIdx],
+                project:projectId,
+                priority: priorities[Math.floor(Math.random()*priorities.length)],
+                progress: progress[Math.floor(Math.random()*progress.length)],
+                ticketType: ticketTypes[Math.floor(Math.random()*ticketTypes.length)],
+                description:'Just a quick description',
+                summary: 'This should be a long summar '+(i+1),
+                _id,
+            });
+            userIdx= (userIdx+1)%fetchedProject.members.length;
+            ticketIds.push(_id);
         }
-        return ticketIds;
+    }
+    return ticketIds;
 }
 
 
@@ -139,16 +134,28 @@ async function seedTickets(projectIds) {
  * @returns {Promise<void>}
  */
 async function seedComments(projectIds) {
+    const COMMENTS_PER_TICKET = 10;
+    //for each project
     for(const projectId of projectIds) {
-        const project = await Project.findById(projectId).populate("members");
-        for(const user of project.members){
-            const comment = {
-                author: user._id,
-                ticket: project._id,
-                content: 'comment from user ' + user.email
+
+        //fetch the project by id
+        const fetchedProject = await Project.findById(projectId);
+
+        //get all tickets associated with project
+        const tickets = await Ticket.find({project:projectId})
+        .populate('assignedTo');
+
+        //create comments for each ticket
+        //each user is part of the project as well.
+        for(const ticket of tickets) {
+            for(let i = 0; i<COMMENTS_PER_TICKET; i++){
+                const newComment = {
+                    author: fetchedProject.members[(i%fetchedProject.members.length)],
+                    ticket: ticket._id,
+                    content: "comment from some user. This should be a lot of text"
+                }
+                await TicketComment.create(newComment);
             }
-            await TicketComment.create(comment);
-            await TicketComment.create(comment)
         }
     }
 }
@@ -184,7 +191,7 @@ async function seedTicketHistory(projectIds) {
  * @description - delete all items in the database, start clean again.
  * @returns {Promise<void>} - empty promise, like life (jk).
  */
-async function abortDB() {
+async function dumpDB() {
     try {
             await User.deleteMany();
             await Project.deleteMany();
@@ -207,7 +214,7 @@ async function run() {
     try {
         await connectDB();
         if(flag ==='-s'){
-            await abortDB();
+            await dumpDB();
             const userIds = await seedUsers();
             const projectIds = await seedProjects(userIds);
             await seedTickets(projectIds);
@@ -216,11 +223,11 @@ async function run() {
             console.log('seed successful');
         }
         else if(flag === '-d') 
-            await abortDB();
+            await dumpDB();
     }
     catch(error) {
         console.log('error happended when running: ',error.message,'aborting db...');
-        await abortDB();//clean db if seeding fails.
+        await dumpDB();//clean db if seeding fails.
     }
     finally {
         process.exit(0);

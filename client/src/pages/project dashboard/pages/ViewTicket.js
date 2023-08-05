@@ -39,12 +39,15 @@ import {
     Publish
 } from '@mui/icons-material';
 
+
 import "../styles/ViewTicket.css";
 import TicketComment from "../components/TicketComment";
 import NewComment from "../components/NewComment";
 import TicketHistoryTable from "../components/TicketHistoryTable";
 import { useRef } from "react";
 import Scout from "../../../axios/scout";
+import { useSelector, useDispatch } from "react-redux";
+import { updateProjectSync } from "../../../redux/slice/projectSlice";
 
 
 
@@ -101,34 +104,29 @@ const dummy_group_members = [
 export default function ViewTicket() {
 
     const mounted = useRef(true);
-
-    useEffect(()=> {
-        mounted.current = true;
-
-        
-
-        return ()=> mounted.current = false;
-    },[]);
+    const currentProject = useSelector((store)=> store.project.currentProject);
+    const dispatch = useDispatch();
 
 
     //number of comments to be paginated.
     const comments_pagination = 5;
     const { ticketId } = useParams();
     const [ticketInfo, setTicketInfo] = useState({
-        ticketType:'bug',
-        briefDescription:'Sit fugiat aliquip est quis consectetur laboris sint excepteur do laboris aute enim. Laborum ullamco reprehenderit occaecat laborum reprehenderit eu irure est velit culpa. Laborum in dolor nostrud fugiat anim cupidatat consectetur laboris ex cillum anim minim. Ex elit officia est culpa excepteur irure. Elit est nostrud nostrud adipisicing Lorem officia nisi aliquip ipsum velit.',
-        summary:'React application keeps crashing for no reason at all',
-        priority:'high',
-        assignTo: dummy_group_members[0].email,
-        status:'in progress',
-        createdOn:'02/26/1999',
-        lastUpdated: '03/14/1999'
+        assignedTo:'',
+        createdAt:'',
+        description:'',
+        priority:'',
+        progress:'',
+        project:'',
+        summary:'',
+        ticketType:'',
+        updatedAt:''
     });
 
     /* STATE FOR HANDLING COMMENTS */
 
     //set state for ticket comments
-    const [ticketComments, setTicketComments] = useState([1,2,3,4,5]);
+    const [ticketComments, setTicketComments] = useState([]);
 
     /* State for handling comments */
     const [searchComment, setSearchComment] = useState('');
@@ -143,7 +141,6 @@ export default function ViewTicket() {
     * the most recent changes. 
     */
     function onCreateNewComment(newComment) {
-        console.log('Creating comment',newComment);
         onOpenSnackbar("Comment successfully created!", "success");
     }
 
@@ -232,7 +229,7 @@ export default function ViewTicket() {
         /* Deep comparison of objects */
         const madeTicketModifications = !_.isEqual(ticketInfo, modifiedTicketInfoCopy);
 
-        console.log('newvalue,modified,real',newValue,modifiedTicketInfoCopy, ticketInfoCopy);
+        // console.log('newvalue,modified,real',newValue,modifiedTicketInfoCopy, ticketInfoCopy);
         /* if modifications have been made, allow users to publish changes. */
         if(madeTicketModifications)
             setDisplayPublishChangesButton(true);
@@ -246,21 +243,35 @@ export default function ViewTicket() {
     async function onSubmitEditChanges() {
         setPendingPublishChanges(true);
 
-        const updatedTicket = await Scout.put('/')
+        // const updatedTicket = await Scout.put('/')
 
         //simulate the changes being made.
-        const timeout = setTimeout(()=> {
-            setShowConfirmTicketChangesModal(false);
-            setTicketInfo(_.cloneDeep(ticketInfoCopy));
-            setDisplayPublishChangesButton(false);
-            setCanEdit(false);
-            setTicketChangeComments('');
-            onOpenSnackbar("Successfully updated ticket.","success");
-        },2000);
+        // const timeout = setTimeout(()=> {
+        //     setShowConfirmTicketChangesModal(false);
+        //     // setTicketInfo(_.cloneDeep(ticketInfoCopy));
+        //     setDisplayPublishChangesButton(false);
+        //     setCanEdit(false);
+        //     setTicketChangeComments('');
+        //     onOpenSnackbar("Successfully updated ticket.","success");
+        // },2000);
         //just update the ticket manually, make the change later from the db.
         //submit the new ticket,
         //fetch the newly updated ticket and store it in the original ticket.
         //append the change to the ticket history (this can be handled by the backend.)
+        try {
+            setShowConfirmTicketChangesModal(false);
+            displayPublishChangesButton(false);
+            setCanEdit(false);
+            setTicketChangeComments('');
+            const ticketResponse = await Scout.put('/tickets/'+ticketId,ticketInfoCopy);
+            //update the project
+            dispatch(updateProjectSync(ticketResponse.data.data));
+            onOpenSnackbar("Successfully updated ticket.","success");
+            console.log(ticketResponse);
+        } catch(error) {
+            console.log(error, error.message);
+            onOpenSnackbar("Unable to update ticket","error");
+        }
     }
 
 
@@ -282,8 +293,22 @@ export default function ViewTicket() {
     /* **** */
 
     useEffect(()=> {
-        //async request to get the ticket information using the ticketId params.
-        //get the comments associated with the ticket, make sure to include pagination to the results.
+        mounted.current = true;
+        ( async()=> {
+            try {
+                const resolvedTicketInfo = await Promise.all([
+                    Scout.get('/projects/myProjects/'+currentProject._id+'/tickets/'+ticketId),
+                    Scout.get('/projects/myProjects/'+currentProject._id+'/tickets/'+ticketId+'/comments')
+                ]);
+                setTicketInfo(resolvedTicketInfo[0].data.data);
+                setTicketComments(resolvedTicketInfo[1].data.data);
+                console.log(resolvedTicketInfo);
+            } catch(error) {
+                console.error(error,error.message);
+            }
+        })();
+
+        return ()=> mounted.current = false;
     },[]);
 
 
@@ -505,8 +530,8 @@ export default function ViewTicket() {
                                             canEdit?(
                                                 <td className="vt-td-value">
                                                     <select 
-                                                        onChange={(e)=> updateTicketCopy(e.target.value,"assignTo")}
-                                                        value={ticketInfoCopy.assignTo}
+                                                        onChange={(e)=> updateTicketCopy(e.target.value,"assignedTo")}
+                                                        value={ticketInfoCopy.assignedTo}
                                                         className="vt-edit-select"
                                                     >
                                                         {
@@ -525,7 +550,7 @@ export default function ViewTicket() {
                                                 </td>
 
                                             ):(
-                                                <td className="vt-td-value">{ticketInfo.assignTo}</td>
+                                                <td className="vt-td-value">{ticketInfo.assignedTo}</td>
                                             )
                                         }
                                     </tr>
@@ -590,12 +615,12 @@ export default function ViewTicket() {
                                             {
                                                 canEdit? (
                                                     <select 
-                                                        value={ticketInfoCopy.status}
-                                                        onChange={(e)=> updateTicketCopy(e.target.value,"status")}
+                                                        value={ticketInfoCopy.progress}
+                                                        onChange={(e)=> updateTicketCopy(e.target.value,"progress")}
                                                         className="vt-edit-select"
                                                     >
                                                         <option value="open">Open</option>
-                                                        <option value="in progress">In progress</option>
+                                                        <option value="in_progress">In progress</option>
                                                         <option value="closed">Closed</option>
                                                     </select>
                                                 ):(
@@ -603,7 +628,7 @@ export default function ViewTicket() {
                                                         variant="outlined"
                                                         size="small"
                                                         sx={{color:'var(--dark-gold)', borderColor:'var(--dark-gold)'}}
-                                                        label={ticketInfo.status}
+                                                        label={ticketInfo.progress}
                                                     />
                                                 )
                                             }
@@ -613,7 +638,7 @@ export default function ViewTicket() {
                                         <th className="vt-th-label">Created on</th>
                                         <td className="vt-td-value">
                                             <p className="text vt-smalltext">
-                                                {ticketInfo.createdOn}
+                                                {ticketInfo.createdAt}
                                             </p>
                                         </td>
                                     </tr>
@@ -621,7 +646,7 @@ export default function ViewTicket() {
                                         <th className="vt-th-label">Last updated</th>
                                         <td className="vt-td-value">
                                             <p className="text vt-smalltext">
-                                                {ticketInfo.lastUpdated}
+                                                {ticketInfo.updatedAt}
                                             </p>
                                         </td>
                                     </tr>
@@ -636,13 +661,13 @@ export default function ViewTicket() {
                                 canEdit?(
                                     <textarea 
                                         className="vt-edit-description"
-                                        onChange={(e)=> updateTicketCopy(e.target.value,"briefDescription")}
-                                        value={ticketInfoCopy.briefDescription}
+                                        onChange={(e)=> updateTicketCopy(e.target.value,"description")}
+                                        value={ticketInfoCopy.description}
                                     >
                                     </textarea>
                                 ):(
                                     <p className="text vt-description">
-                                        {ticketInfo.briefDescription}
+                                        {ticketInfo.description}
                                     </p>   
                                 )
                             }                 
@@ -728,7 +753,11 @@ export default function ViewTicket() {
                             {// conditionally render comment section
                                 ticketComments.length === 0 && createCommentMode === false ?( <NoComments/>):(
                                     ticketComments.map(comment=> {
-                                        return <TicketComment key={comment}/>
+                                        return (
+                                            <TicketComment 
+                                                comment={comment}
+                                                key={comment._id}/>
+                                        )
                                     })
                                 )
                             }

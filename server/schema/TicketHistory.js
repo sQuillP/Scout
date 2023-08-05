@@ -17,6 +17,8 @@ const TicketHistorySchema = new mongoose.Schema({
         required: [true, 'description is a required field for ticket history'],
         max: [90,'Please leave description to a max of 90 characters in ticket history'],
     }
+},{
+    timestamps: true
 });
 
 
