@@ -95,9 +95,7 @@ const dummy_group_members = [
 
 /**
  * 
- * TODO: add editable fields , make a submit button that glitters/glows,
- *  and have that be the submit button. If the form has not changed, do not allow changes
- * to be made.
+ * Work on updating the fields and connect to the db.
  */
 
 
