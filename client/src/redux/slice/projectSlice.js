@@ -37,8 +37,9 @@ const projectSlice = createSlice({
         });
 
         builder.addCase(getProjectById.rejected, (state,_)=> {
-            state.loadingCurrentProject = false;
             state.loadCurrentProjectFailure = true;
+            state.loadingCurrentProject = false;
+            console.log('rejected')
         });
     }
 });

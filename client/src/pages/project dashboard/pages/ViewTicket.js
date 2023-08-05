@@ -293,7 +293,7 @@ export default function ViewTicket() {
         setSnackbarSeverity(severity);
     }
 
-
+ 
     useEffect(()=> {
         mounted.current = true;
         ( async()=> {
@@ -320,11 +320,17 @@ export default function ViewTicket() {
 
     //you left off here.
     useEffect(()=> {
+        if(debouncedCommentSearch === '') return;
         ( async ()=> {
             try {
+                //search comment endpoint to find relevant comments
+                const query = {
+                    page: commentPage,
+                    query: debouncedCommentSearch,
+                };
                 const commentResponse = await Scout.get(`/projects/myProjects/${currentProject._id}/tickets/${ticketId}/comments`);
+                console.log(commentResponse.data.data);
                 setTicketComments(commentResponse.data.data);
-
 
             } catch(error) {
                 console.log('search comments error');

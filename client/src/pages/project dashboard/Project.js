@@ -15,7 +15,7 @@ export default function Project() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const {loadingCurrentProject, loadingCurrentProjectFailure} = useSelector((store)=> store.project);
+    const {loadingCurrentProject, loadCurrentProjectFailure, currentProject} = useSelector((store)=> store.project);
 
     //get new project whenever the params change.
     useEffect(()=> {
@@ -25,18 +25,19 @@ export default function Project() {
 
     useEffect(()=> {
 
-        if(loadingCurrentProjectFailure === true){
+        if(loadCurrentProjectFailure === true){
+            console.log('navigating');
             navigate('/auth/login');
         }
 
-    },[loadingCurrentProjectFailure]);
+    },[loadCurrentProjectFailure]);
 
     return (
         <>
             <HorizontalNavigation/>
             <VerticalNavigation/>
             {
-                loadingCurrentProject? (<LoadingProject/>):(<Outlet/>)
+                (loadingCurrentProject || currentProject===null)? (<LoadingProject/>):(<Outlet/>)
             }
         </>
     )

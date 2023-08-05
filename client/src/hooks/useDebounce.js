@@ -12,9 +12,10 @@ export default function useDebounce(term,delay) {
         const timer = setTimeout(()=> {
             setDebouncedTerm(term);
         },delay);
-
         return ()=> clearTimeout(timer);
-    });
+    },[term]);
+
+    console.log('in debounce')
 
     return debouncedTerm;
 }
