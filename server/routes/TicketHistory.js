@@ -1,6 +1,7 @@
 import express from 'express';
 import { 
-    getTicketHistoryFromTicket 
+    getTicketHistoryFromTicket,
+    addToTicketHistory 
 } from '../controllers/TicketHistory.js';
 
 
@@ -13,8 +14,8 @@ const TicketHistoryRouter = express.Router({mergeParams:true});
 
 
 TicketHistoryRouter.route('/')
-.get(getTicketHistoryFromTicket);
-
+.get(getTicketHistoryFromTicket)
+.post(addToTicketHistory);
 
 
 export default TicketHistoryRouter; 

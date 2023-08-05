@@ -38,6 +38,6 @@ TicketRouter.route("/:ticketId")
 //append ticket history
 TicketRouter.use('/:ticketId/ticketHistory',TicketHistoryRouter);
 
-TicketRouter.use('/:ticketId/comments', TicketCommentRouter);
+TicketRouter.use('/:ticketId/comments', TicketCommentRouter); 
 
 export default TicketRouter;
