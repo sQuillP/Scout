@@ -10,6 +10,7 @@ import errorRoute from './middleware/Error.js';
 import UserRouter from './routes/User.js';
 import TicketRouter from './routes/Ticket.js';
 import status from './utility/status.js';
+import InviteRouter from './routes/Invite.js';
 
 //get environment variables
 const app = express();
@@ -17,15 +18,15 @@ dotenv.config({path:'./environments/environments.env'});
 connectDB();
 
 app.use(express.json());
-app.use(cors({
-    origin:'*',
-}));
+app.use(cors({origin:'*'}));
 
 
 /* Mount the routers and their controllers */
 app.use('/api/v1/auth', AuthRouter);
 app.use('/api/v1/projects', ProjectRouter);
 app.use('/api/v1/users',UserRouter);
+app.use('/api/v1/invite',InviteRouter);
+
 
 //catch all route
 app.use('*',(req,res)=> {

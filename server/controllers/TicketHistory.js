@@ -56,7 +56,7 @@ export const getTicketHistoryFromTicket = asyncHandler( async(req,res, next)=> {
  */
 
 export const addToTicketHistory = asyncHandler( async (req,res,next)=> {
-    if(createTicketHistorySchema.validateSync(req.body) === false){
+    if(createTicketHistorySchema.isValidSync(req.body) === false){
         return next(
             new ErrorResponse(
                 status.BAD_REQUEST,
