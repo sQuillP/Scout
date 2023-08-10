@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom"
-import { useState, useEffect, forwardRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import useDebounce from "../../../hooks/useDebounce";
 import NoComments from "../components/NoComments";
 import _ from 'lodash';
@@ -36,7 +36,9 @@ import {
     Search,
     AddComment,
     FilterAltSharp,
-    Publish
+    Publish,
+    ChevronLeft,
+    ChevronRight,
 } from '@mui/icons-material';
 
 
@@ -44,10 +46,8 @@ import "../styles/ViewTicket.css";
 import TicketComment from "../components/TicketComment";
 import NewComment from "../components/NewComment";
 import TicketHistoryTable from "../components/TicketHistoryTable";
-import { useRef } from "react";
 import Scout from "../../../axios/scout";
 import { useSelector, useDispatch } from "react-redux";
-import { updateProjectSync } from "../../../redux/slice/projectSlice";
 
 
 
@@ -66,38 +66,6 @@ function IconSwitch({ticketType,}) {
         default: return null;
     }
 }
-
-
-
-const dummy_group_members = [
-    {
-        email:'will.m.pattison@gmail.com',
-        username:'williampattison',
-        _id:1
-    },
-    {
-        email:'dan@gmail.com',
-        username:'dantheman',
-        _id:2
-    },
-    {
-        email:'kristine@yahoo.com',
-        username:'kristineisbest123',
-        _id: 3
-    },
-    {
-        email:'danielle@hotmail.com',
-        username:'daniellehello2023',
-        _id:5
-    }
-];
-
-
-/**
- * 
- * Work on updating the fields and connect to the db.
- */
-
 
 export default function ViewTicket() {
 
@@ -131,6 +99,8 @@ export default function ViewTicket() {
     const [ticketComments, setTicketComments] = useState([]);
 
     const [commentPage, setCommentPage] = useState(1);
+    const [commentLimit, setCommentLimit] = useState(5);
+    const [totalComments, setTotalComments] = useState(0);
 
     /* State for handling comments */
     const [searchComment, setSearchComment] = useState('');
@@ -140,25 +110,49 @@ export default function ViewTicket() {
     const showCommentMenu = Boolean(commentMenuRef);
     const [createCommentMode, setCreateCommentMode] = useState(false);
 
-    /* Create async request to server adding a new comment to the list.
+    /*
+     Create async request to server adding a new comment to the list.
     * make a new request to the server with the updated comments list to show
     * the most recent changes. 
     */
     async function onCreateNewComment(newComment) {
         try{
             //make a post request to comments route
-            const commentResponse = await Scout.post(`/projects/myProjects/${currentProject._id}/tickets/${ticketId}/comments`);
+            const requestBody = {
+                content:newComment
+            };
+            const commentResponse = await Scout.post(`/projects/myProjects/${currentProject._id}/tickets/${ticketId}/comments`,requestBody);
             //from the response, should return the first five comments in the database, set those comemnts
             setCommentPage(1);
+            setTotalComments(commentResponse.data.itemCount);
             setTicketComments(commentResponse.data.data);
+            onOpenSnackbar("Comment successfully created!", "success");
+            //fetch latest instance of comments
         } catch(error){
-
+            onOpenSnackbar("Unable to post comment", "error");
         }
-        onOpenSnackbar("Comment successfully created!", "success");
     }
 
     function handleCommentFilterChange(e) {
         // setCommentFilters(e.target.value);
+    }
+
+    /* When user paginates through the comment list */
+    async function onToggleCommentPage(increment) {
+        try{
+
+            const query = {
+                page: commentPage+increment,
+                limit: commentLimit,
+                term: debouncedCommentSearch
+            };
+
+            await fetchComments(query);
+            setCommentPage(commentPage+increment);
+        } catch(error){
+            console.log(error,error.message);
+            onOpenSnackbar("Unable to retrieve comment list","error");
+        }
     }
 
     function onOpenCommentMenu(e) {
@@ -168,12 +162,7 @@ export default function ViewTicket() {
     function onCloseCommentMenu(){
         setCommentMenuRef(null);
     }
-
-
-
     /**********END COMMENT STATE *******************/
-
-
 
     /**********STATE FOR SNACKBAR ************/
     /* Conditionally show snackbar */
@@ -292,21 +281,20 @@ export default function ViewTicket() {
     }
 
  
+    /* Initial page load */
     useEffect(()=> {
         mounted.current = true;
         ( async()=> {
             try {
-                const resolvedTicketInfo = await Promise.all([
-                    Scout.get('/projects/myProjects/'+currentProject._id+'/tickets/'+ticketId),
-                    Scout.get('/projects/myProjects/'+currentProject._id+'/tickets/'+ticketId+'/comments')
-                ]);
-                if(Object.keys(resolvedTicketInfo[0].data.data).length === 0){
+                
+                const resolvedTicketInfo = await Scout.get('/projects/myProjects/'+currentProject._id+'/tickets/'+ticketId);
+                await fetchComments({limit:5, page: 1,})
+                if(Object.keys(resolvedTicketInfo.data.data).length === 0){
                     return navigate('/auth/login');
                 }
                 if(mounted.current === false) return;
-                setTicketInfo(resolvedTicketInfo[0].data.data);
-                setTicketComments(resolvedTicketInfo[1].data.data);
-                setTicketInfoCopy(_.cloneDeep(resolvedTicketInfo[0].data.data));
+                setTicketInfo(resolvedTicketInfo.data.data);
+                setTicketInfoCopy(_.cloneDeep(resolvedTicketInfo.data.data));
             } catch(error) {
                 console.error(error,error.message);
                 navigate('/auth/login');
@@ -316,32 +304,47 @@ export default function ViewTicket() {
     },[]);
 
 
-    //you left off here.
     useEffect(()=> {
-        if(debouncedCommentSearch === '') return;
+        const params = {
+            page: commentPage,
+            limit: 5,
+            term: debouncedCommentSearch
+        };
+
+        if(debouncedCommentSearch === ''){
+            fetchComments(params);
+            return;
+        };
         ( async ()=> {
             try {
-                //search comment endpoint to find relevant comments
-                const query = {
-                    page: commentPage,
-                    query: debouncedCommentSearch,
-                };
-                const commentResponse = await Scout.get(`/projects/myProjects/${currentProject._id}/tickets/${ticketId}/comments`);
-                console.log(commentResponse.data.data);
-                setTicketComments(commentResponse.data.data);
-
+                await fetchComments(params);
+                setCommentPage(1);
             } catch(error) {
                 console.log('search comments error');
-                //display error with comments
             }
         })();
     },[debouncedCommentSearch]);
+
+
+    /* Get the data from comments and set the current data and item count */
+    async function fetchComments(query){
+        try{
+            const commentResponse = await Scout.get(`/projects/myProjects/${currentProject._id}/tickets/${ticketId}/comments`,{params:query});
+            if(mounted.current === false) return;
+            setTicketComments(commentResponse.data.data);
+            setTotalComments(commentResponse.data.itemCount);
+        } catch(error){
+            //error to load any comments
+        }
+    }
 
 
     /* Make sure editable project has latest instance of project */
     useEffect(()=> {
         setTicketInfoCopy(_.cloneDeep(currentProject));
     },[currentProject]);
+
+
 
     /**
      * @param {string} priority - can be either high | medium | low and maps those accordingly
@@ -757,6 +760,7 @@ export default function ViewTicket() {
                                     alignItems={'center'} 
                                     justifyContent={'center'}
                                     marginLeft={'10px'}
+                                    gap={1}
                                 >
                                     <Tooltip
                                         title='Filter Comments'
@@ -772,8 +776,28 @@ export default function ViewTicket() {
                                     <Tooltip title="Add Comment">
                                         <IconButton 
                                             disabled={createCommentMode}
-                                            onClick={()=> setCreateCommentMode(true)} size='medium'>
+                                            onClick={()=> setCreateCommentMode(true)} size='medium'
+                                        >
                                             <AddComment color="lightgray"/>
+                                        </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Previous page">
+                                        <IconButton 
+                                            size='small' 
+                                            onClick={()=>onToggleCommentPage(-1)}
+                                            disabled={commentPage === 1}
+                                        >
+                                            <ChevronLeft/>
+                                        </IconButton>
+                                    </Tooltip>
+
+                                    <Tooltip title="Next Page">
+                                        <IconButton 
+                                            size="small" 
+                                            onClick={()=>onToggleCommentPage(1)}
+                                            disabled={commentPage*commentLimit >= totalComments}
+                                        >
+                                            <ChevronRight/>
                                         </IconButton>
                                     </Tooltip>
                                 </Stack>

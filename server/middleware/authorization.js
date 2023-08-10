@@ -1,8 +1,7 @@
-import User from "../schema/User.js";
 import Permission from "../schema/Permission.js";
 import ErrorResponse from "../utility/ErrorResponse.js";
 import status from "../utility/status.js";
-
+import Invitation from "../schema/Invite.js";
 
 /**
  * @description - Ensure that a user has proper permissions to do modifications on a project.
@@ -40,6 +39,67 @@ export function validateProjectPermission(allowedRoles){
                 )
             )
         } finally{
+            next();
+        }
+    }
+}
+
+
+
+/**
+ * 
+ * @description - check if user belongs to project, and that they have 
+ * the right permissions before deleting invite
+ * 
+ * @param {string[]} allowedRoles - strings of each permission that can execute 
+ * operations on a resource.
+ * 
+ * 
+ */
+export function validateDeleteInvite(allowedRoles){
+
+    return async (req,res,next)=> {
+
+        try {
+            const fetchedInvitation = await Invitation.findById(req.body.invitation);
+            if(fetchedInvitation === null ){
+                return next(
+                    new ErrorResponse(
+                        status.NOT_FOUND,
+                        "Invitation " + req.body.invitation + " does not exist"
+                    )
+                );
+            }
+            const projectId = fetchedInvitation.project.toString();
+            const fetchedPermission = await Permission.findOne({
+                user: req.user._id,
+                project: projectId
+            });
+
+            if(fetchedPermission === null){
+                return next(
+                    new ErrorResponse(
+                        status.UNAUTHORIZED,
+                        "User does not belong to project"
+                    )
+                );
+            }
+            if(allowedRoles.includes(fetchedPermission.role) === false){
+                return next(
+                    new ErrorResponse(
+                        status.UNAUTHORIZED,
+                        "Not authorized"
+                    )
+                );
+            }
+        } catch(error) {
+            return next(
+                new ErrorResponse(
+                    status.INTERNAL_SERVER_ERROR,
+                    "Internal server error =("
+                )
+            );
+        } finally {
             next();
         }
     }

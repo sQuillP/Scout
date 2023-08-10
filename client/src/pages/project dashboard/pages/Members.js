@@ -1,7 +1,6 @@
 
-import HorizontalNavigation from "../../../components/HorizontalNavigation";
 import ProjectMembersTable from "../components/ProjectMembersTable";
-import VerticalNavigation from "../components/VerticalNavigation";
+import ManageInviteTable from "../components/ManageInviteTable";
 import{ 
     CircularProgress,
     Snackbar,
@@ -21,7 +20,6 @@ import{
     FilterAlt
  } from '@mui/icons-material'
 import useDebounce from '../../../hooks/useDebounce';
-import axios from 'axios';
 import "../styles/Members.css";
 import UserSearchResult from "../components/UserSearchResult";
 import { useEffect, useRef, useState } from "react";
@@ -187,6 +185,13 @@ export default function Members() {
                         />
                     </div>
                 </div>
+            </div>
+            <div className="mem-section">
+                <div className="page-title">
+                    <p className="text mem-intro">Manage Invites</p>
+                    <ManageInviteTable/>
+                </div>
+
             </div>
         </div>
     )

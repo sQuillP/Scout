@@ -25,72 +25,13 @@ import {
 import Scout from "../../../axios/scout";
 import { useSelector } from "react-redux";
 
-const dummy_data = [
-    {
-        //should be the user object
-        modifiedBy: {
-            username:'williamPattison',
-            email:'will.m.pattison@gmail.com',
-            image:'none',
-        },
-        description:'Pariatur veniam deserunt cillum esse fugiat elit sunt aute eu mollit in eu cupidatat est.',
-        modifiedDate:'02/26/1999',
-        _id:1
-    },
-    {
-        //should be the user object
-        modifiedBy: {
-            username:'williamPattison',
-            email:'will.m.pattison@gmail.com',
-            image:'none',
-        },
-        description:'Pariatur veniam deserunt cillum esse fugiat elit sunt aute eu mollit in eu cupidatat est.',
-        modifiedDate:'02/26/1999',
-        _id:2
-    },
-    {
-        //should be the user object
-        modifiedBy: {
-            username:'williamPattison',
-            email:'will.m.pattison@gmail.com',
-            image:'none',
-        },
-        description:'Pariatur veniam deserunt cillum esse fugiat elit sunt aute eu mollit in eu cupidatat est.',
-        modifiedDate:'02/26/1999',
-        _id:3
-    },
-    {
-        //should be the user object
-        modifiedBy: {
-            username:'williamPattison',
-            email:'will.m.pattison@gmail.com',
-            image:'none',
-        },
-        description:'Pariatur veniam deserunt cillum esse fugiat elit sunt aute eu mollit in eu cupidatat est.',
-        modifiedDate:'02/26/1999',
-        _id:4
-    },
-    {
-        //should be the user object
-        modifiedBy: {
-            username:'williamPattison',
-            email:'will.m.pattison@gmail.com',
-            image:'none',
-        },
-        description:'Pariatur veniam deserunt cillum esse fugiat elit sunt aute eu mollit in eu cupidatat est.',
-        modifiedDate:'02/26/1999',
-        _id:5
-    },
-
-]
-
 
 /**
  * @description - Will fetch the latest ticket history for a given ticket.
  * 
  * NOTE: Fix state when there is data to display, as in, if there is data, display it?
  */
-export default function TicketHistoryTable({ticketId, }) {
+export default function TicketHistoryTable({ticketId}) {
 
     
     const currentProject = useSelector((store)=> store.project.currentProject);
@@ -261,7 +202,7 @@ export default function TicketHistoryTable({ticketId, }) {
                 <TablePagination
                     rowsPerPageOptions={[5]}
                     component="div"
-                    rowsPerPage={ticketHistory.length}
+                    rowsPerPage={PAGE_LIMIT}
                     page={currentPage-1}
                     onPageChange={handlePageChange}
                     count={ticketHistoryCount}

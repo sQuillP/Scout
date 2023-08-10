@@ -6,7 +6,14 @@ import { validateCreateInviteSchema, acceptInviteSchema } from "./validators/Inv
 import User from '../schema/User.js';
 import Project from "../schema/Project.js";
 import Permission from "../schema/Permission.js";
+import mongoose from 'mongoose';
 
+
+/**
+ * @description - Get all the invites associated with a user
+ * @method - GET /api/v1/invite
+ * @access authenticated
+ */
 export const getMyInvites = asyncHandler( async (req,res,next)=> {
 
     const limit = req.query.limit || 10;
@@ -31,10 +38,39 @@ export const getMyInvites = asyncHandler( async (req,res,next)=> {
 });
 
 
+/**
+ * @description - get all invites associated with a project
+ * @method - GET /api/v1/invite/:projectId
+ * @access - authenticated, developer+
+ */
+export const getProjectInvites = asyncHandler( async (req,res,next)=> {
 
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 10;
+
+    const fetchedInvitations = await Invitation.find({project: req.params.projectId})
+    .skip((page-1)*limit)
+    .limit(limit)
+    .populate('user');
+
+    const totalItems = await Invitation.countDocuments({project: req.params.projectId});
+
+    res.status(status.OK).json({
+        data: fetchedInvitations,
+        totalItems
+    });
+});
+
+
+
+/**
+ * @description - Send an invite to a user
+ * @method - POST /api/v1/invite
+ * @access - authenticated, developer+
+ */
 export const inviteUser = asyncHandler( async (req,res,next)=> {
 
-    if(await (validateCreateInviteSchema.isValid(req.body)) === false){
+    if((await validateCreateInviteSchema.isValid(req.body)) === false){
         return next(
             new ErrorResponse(
                 status.BAD_REQUEST,
@@ -60,6 +96,8 @@ export const inviteUser = asyncHandler( async (req,res,next)=> {
         data: createdInvitation
     });
 });
+
+
 
 
 /**
@@ -118,5 +156,42 @@ export const acceptInvites = asyncHandler( async (req,res,next)=> {
     res.status(status.OK).json({
         data: fetchedProject
     });
+});
+
+
+
+
+
+
+/**
+ * @description - remove an invitation from a user, send updated list of invitations to requestor.
+ * @method POST - /api/v1/invite
+ * @access - authenticated, project_manager+
+ */
+export const deleteInvitation = asyncHandler( async (req,res,next)=> {
+    const fetchedInvitation = await Invitation.findById(req.body.invitation);
+
+    if(mongoose.Types.ObjectId.isValid(req.body.invitation) === false || fetchedInvitation === null){
+        return next(
+            new ErrorResponse(
+                status.NOT_FOUND,
+                "Invitation " + req.body.invitation + " does not exist"
+            )
+        );
+    }
+
+
+    await fetchedInvitation.deleteOne();
+
+    //find all invitations associated with a project
+    const fetchedInvites = await Invitation.find({project: req.body.projectId})
+    .limit(5);
+
+    
+
+    res.status(status.OK).json({
+        data:fetchedInvites
+    });
+
 
 });
