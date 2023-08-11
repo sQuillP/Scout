@@ -3,7 +3,7 @@ import { Box, Paper, Stack, Typography } from "@mui/material";
 import SearchOffIcon from '@mui/icons-material/SearchOff';
 
 
-export default function EmptyTable() {
+export default function EmptyTable({message = 'No data available'}) {
 
 
     return (
@@ -27,7 +27,7 @@ export default function EmptyTable() {
                 <SearchOffIcon
                     sx={{fontSize:'3rem'}}                    
                 />
-                <Typography>No data available</Typography>
+                <Typography>{message}</Typography>
             </Stack>
         </Paper>
     )

@@ -24,6 +24,7 @@ import "../styles/Members.css";
 import UserSearchResult from "../components/UserSearchResult";
 import { useEffect, useRef, useState } from "react";
 import Scout from "../../../axios/scout";
+import { useSelector } from "react-redux";
 
 
 export default function Members() {
@@ -34,6 +35,11 @@ export default function Members() {
     const [menuRef, setMenuRef] = useState(null);
     const [filterBy, setFilterBy] = useState('name'); //field should either be name or email
     const [userSearchResults, setUserSearchResults] = useState([]);
+    const projectId = useSelector((store)=> store.project.currentProject._id);
+
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+
 
     const openMenuRef = !!menuRef;
 
@@ -80,11 +86,24 @@ export default function Members() {
         setSearchUserTerm(e.target.value);
     }
 
-    function onHandleInvite() {
-        //async code to invite user to app.
-        setSnackbarOpen(true);
+
+
+    async function onHandleInvite(uid) {
+        try{
+            const body ={project: projectId, user: uid};
+            const responseData = await Scout.post('/invite',body);            
+            onOpenSnackbar("User successully invited","success");
+        } catch(error) {
+            onOpenSnackbar("Unable to send invite.","error");
+        }
     }
 
+    function onOpenSnackbar(message,severity){
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setSnackbarOpen(true);
+    }
+    
     function onChooseSearchFilter(filter){
         setFilterBy(filter);
         onCloseMenu();
@@ -131,7 +150,6 @@ export default function Members() {
             <div className="mem-section">
                 <div className="mem-flex-section">
                     <div className="member-col">
-
                         <div className="input-wrapper">
                             <Stack direction='row' justifyContent={'center'} alignItems={'center'}>
                                 <label className="mem-add-label" htmlFor="_mem-add-member">Invite New Members</label>
@@ -168,7 +186,7 @@ export default function Members() {
                                                     <UserSearchResult
                                                         key={result._id}
                                                         user={result}
-                                                        handleInvite={onHandleInvite}
+                                                        handleInvite={()=>onHandleInvite(result._id)}
                                                     />
                                                 )
                                             })
@@ -191,7 +209,6 @@ export default function Members() {
                     <p className="text mem-intro">Manage Invites</p>
                     <ManageInviteTable/>
                 </div>
-
             </div>
         </div>
     )

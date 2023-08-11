@@ -253,7 +253,9 @@ export default function ProjectMembersTable({showActions = false, containerSX = 
             }
             {
                 project === null || project.members.length === 0 && (
-                    <EmptyTable/>
+                    <EmptyTable
+                        message="No project member data available"
+                    />
                 )
             }
             <Stack
@@ -286,7 +288,6 @@ export default function ProjectMembersTable({showActions = false, containerSX = 
                         <Publish/>
                     </IconButton>
                 </Tooltip>
-
             </Stack>
         </>
     )
