@@ -16,5 +16,5 @@ function validateId(value) {
 
 
 export const acceptInviteSchema = Yup.object().shape({
-    project: Yup.string().test("validateObjectId","test invalid objectId", validateId)
+    invitation: Yup.string().test("validateObjectId","test invalid objectId", validateId)
 });

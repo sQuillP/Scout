@@ -5,12 +5,14 @@ import {
     inviteUser,
     deleteInvitation,
     getProjectInvites,
+    acceptInvites,
 } from '../controllers/Invite.js';
 
 import authenticate from '../middleware/authenticate.js';
 import { 
     validateProjectPermission,
-    validateDeleteInvite
+    validateDeleteInvite,
+    validateInvite,
 } from '../middleware/authorization.js';
 import Invitation from "../schema/Invite.js";
 
@@ -22,7 +24,7 @@ const InviteRouter = Router();
 InviteRouter.use(authenticate);
 
 
-InviteRouter.route('/:projectId')
+InviteRouter.route('/')
 .get(getMyInvites)
 .post(inviteUser)
 .delete(
@@ -39,6 +41,11 @@ InviteRouter.route('/:projectId')
         ["administrator","project_manager","developer"]
     ),
     getProjectInvites
+);
+
+InviteRouter.route('/:projectId/accept')
+.post(
+    acceptInvites
 );
 
 

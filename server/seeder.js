@@ -8,6 +8,7 @@ import crypto from 'crypto';
 import Ticket from "./schema/Ticket.js";
 import TicketComment from './schema/TicketComment.js';
 import TicketHistory from './schema/TicketHistory.js';
+import Invitation from "./schema/Invite.js";
 
 
 /**
@@ -197,6 +198,7 @@ async function dumpDB() {
             await Project.deleteMany();
             await Permission.deleteMany();
             await Ticket.deleteMany();
+            await Invitation.deleteMany();
             console.log('dabatase cleared');
     } catch(error) {
         console.log('unable to abort DB, please manually clear database');

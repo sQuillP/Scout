@@ -69,6 +69,7 @@ export const getProjectInvites = asyncHandler( async (req,res,next)=> {
  * @access - authenticated, developer+
  */
 export const inviteUser = asyncHandler( async (req,res,next)=> {
+    //body = {project:projectId, user: userId}
 
     if((await validateCreateInviteSchema.isValid(req.body)) === false){
         return next(
@@ -79,6 +80,16 @@ export const inviteUser = asyncHandler( async (req,res,next)=> {
         );
     }
 
+    if((await Permission.exists({project: req.body.projectId,user: req.body.user})) !== null){
+        return next( 
+            new ErrorResponse(
+                status.BAD_REQUEST,
+                "User " + req.body.user + " "+"already belongs to project"
+            )
+        );
+    }
+
+
     if((await User.exists({_id: req.body.user})) === null){
         return next(
             new ErrorResponse(
@@ -88,8 +99,20 @@ export const inviteUser = asyncHandler( async (req,res,next)=> {
         );
     }
 
+    const exists = await Invitation.exists(req.body);
+    console.log(exists);
+    if((await Invitation.exists(req.body)) !== null){
+        return next(
+            new ErrorResponse(
+                status.BAD_REQUEST,
+                "Invitation has already been sent."
+            )
+        );
+    }
 
-    const createdInvitation = await Invitation.create(req.body,{new:true});
+    console.log(req.body);
+
+    const createdInvitation = await Invitation.create(req.body);
 
 
     res.status(status.CREATED).json({
@@ -102,7 +125,8 @@ export const inviteUser = asyncHandler( async (req,res,next)=> {
 
 /**
  * @description - person accepts invitation to join a group.
- * {project: projectId}
+ * @method - POST /api/v1/invititation/:projectId/accept
+ * {invitation: invitationId}
  * @access - authenticated
  */
 export const acceptInvites = asyncHandler( async (req,res,next)=> {
@@ -116,7 +140,7 @@ export const acceptInvites = asyncHandler( async (req,res,next)=> {
         );
     }
 
-    const fetchedInvitation = await Invitation.findOne({project: req.body.project, user: req.user._id});
+    const fetchedInvitation = await Invitation.findById(req.body.invitation);
 
     if(fetchedInvitation === null){
         return next(
@@ -127,13 +151,13 @@ export const acceptInvites = asyncHandler( async (req,res,next)=> {
         );
     }
 
-    const fetchedProject = await Project.findById(req.body.project);
+    const fetchedProject = await Project.findById(req.params.projectId)
 
     if(fetchedProject === null){
         return next(
             new ErrorResponse(
                 status.NOT_FOUND,
-                "Project " + req.body.project + " does not exist"
+                "Project " +req.params.projectId +" does not exist"
             )
         );
     }
@@ -141,7 +165,7 @@ export const acceptInvites = asyncHandler( async (req,res,next)=> {
      //assign default permission to the user
      await Permission.create({
         user: req.user._id,
-        project: req.body.project,
+        project: fetchedInvitation.project,
         role:'developer'
     });
 

@@ -11,7 +11,7 @@ import Invitation from "../schema/Invite.js";
  * @requires /api/v1/projects/:projectId/* - handles authorization for the preceding routes
  * 
  * @param {string[]} allowedRoles - either "administrator" | "developer" | "project_manager". This is an array
- * @returns {async()=>Promise<void>}
+ * @returns {()=>Promise<void>}
  */
 export function validateProjectPermission(allowedRoles){
 
@@ -102,5 +102,52 @@ export function validateDeleteInvite(allowedRoles){
         } finally {
             next();
         }
+    }
+}
+
+
+/**
+ * @description - check if user belongs to group and has adequate permissions.
+ * @param {string[]} roles 
+ * @returns {()=> Promise<void>}
+ */
+export function validateInvite(roles) {
+
+
+    return async (req,res,next)=> {
+        try {
+            const fetchedPermission = await Permission.findOne({
+                project: req.body.projectId,
+                user: req.user._id
+            });
+
+            if(fetchedPermission === null){
+                return next(
+                    new ErrorResponse(
+                        status.NOT_FOUND,
+                        "User does not belong to project"
+                    )
+                )
+            }
+
+            if(roles.includes(fetchedPermission.role) === false){
+                return next(
+                    new ErrorResponse(
+                        status.UNAUTHORIZED,
+                        "Not authorized"
+                    )
+                );
+            }
+        } catch(error) {
+            return next(
+                new ErrorResponse(
+                    status.INTERNAL_SERVER_ERROR,
+                    "Backend error. Contact dev team if issue persists."
+                )
+            );
+        } finally{
+            next();
+        }
+        
     }
 }
