@@ -45,6 +45,7 @@ export const getMyInvites = asyncHandler( async (req,res,next)=> {
  * @access - authenticated, developer+
  */
 export const inviteUser = asyncHandler( async (req,res,next)=> {
+    //body = {project:projectId, user: userId}
 
     const createdInvitation = await Invitation.create(req.body);
 
@@ -71,6 +72,7 @@ export const acceptInvite = asyncHandler( async (req,res,next)=> {
      //assign default permission to the user
      await Permission.create({
         user: req.user._id,
+        project: fetchedInvitation.project,
         project: fetchedInvitation.project,
         role:'developer'
     });

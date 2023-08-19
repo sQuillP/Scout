@@ -43,7 +43,7 @@ export default function UserSearchResult({handleInvite, user}) {
                 </Box>
             </Stack>
             <Tooltip title='Invite user to group'>
-                <IconButton size='small' onClick={()=> handleInvite('db info to invite user')}>
+                <IconButton size='small' onClick={handleInvite}>
                     <GroupAdd fontSize='0.9rem'/>
                 </IconButton>
             </Tooltip>
