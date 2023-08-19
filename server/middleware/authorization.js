@@ -2,6 +2,9 @@ import Permission from "../schema/Permission.js";
 import ErrorResponse from "../utility/ErrorResponse.js";
 import status from "../utility/status.js";
 import Invitation from "../schema/Invite.js";
+import { validateCreateInviteSchema, acceptInviteSchema } from "../controllers/validators/Invite.js";
+import User from "../schema/User.js";
+import Project from "../schema/Project.js";
 
 /**
  * @description - Ensure that a user has proper permissions to do modifications on a project.
@@ -47,51 +50,60 @@ export function validateProjectPermission(allowedRoles){
 
 
 /**
- * 
  * @description - check if user belongs to project, and that they have 
  * the right permissions before deleting invite
- * 
  * @param {string[]} allowedRoles - strings of each permission that can execute 
  * operations on a resource.
- * 
- * 
  */
 export function validateDeleteInvite(allowedRoles){
 
     return async (req,res,next)=> {
-
         try {
-            const fetchedInvitation = await Invitation.findById(req.body.invitation);
-            if(fetchedInvitation === null ){
+
+            if((await acceptInviteSchema.isValid(req.body)) === false){
                 return next(
                     new ErrorResponse(
-                        status.NOT_FOUND,
-                        "Invitation " + req.body.invitation + " does not exist"
+                        status.BAD_REQUEST,
+                        "Invalid request body"
                     )
                 );
             }
-            const projectId = fetchedInvitation.project.toString();
+
+
+            const fetchedInvite = await Invitation.findById(req.body.invitation);
+
+            if(fetchedInvite === null) {
+                return next(
+                    new ErrorResponse(
+                        status.NOT_FOUND,
+                        "Invite " + req.body.invitation + " does not exist"
+                    )
+                );
+            }
+
             const fetchedPermission = await Permission.findOne({
                 user: req.user._id,
-                project: projectId
+                project: fetchedInvite.project
             });
 
             if(fetchedPermission === null){
                 return next(
                     new ErrorResponse(
                         status.UNAUTHORIZED,
-                        "User does not belong to project"
+                        "Permission not found"
                     )
                 );
             }
+
             if(allowedRoles.includes(fetchedPermission.role) === false){
                 return next(
                     new ErrorResponse(
                         status.UNAUTHORIZED,
-                        "Not authorized"
+                        "Insufficient permissions"
                     )
                 );
             }
+
         } catch(error) {
             return next(
                 new ErrorResponse(
@@ -100,7 +112,164 @@ export function validateDeleteInvite(allowedRoles){
                 )
             );
         } finally {
-            next();
+            return next();
+        }
+    }
+}
+
+
+/**
+ * @param {string[]} roles 
+ * @description - prevents bad requests from creating an invite object.
+ * This ensures that request body is valid, and proper permissions as well as
+ * other db objects exist before invite is sent.
+ */
+export function validateCreateInvite(roles){
+    return async (req,res,next)=> {
+
+        try {
+
+            //valid request body
+            if((await validateCreateInviteSchema.isValid(req.body)) === false){
+                return next(
+                    new ErrorResponse(
+                        status.BAD_REQUEST,
+                        "Invalid request body"
+                    )
+                );
+            }
+        
+            //ensure user exists
+            if((await User.exists({_id: req.body.user})) === null){
+                return next(
+                    new ErrorResponse(
+                        status.NOT_FOUND,
+                        "User "+req.body.user + " does not exist."
+                    )
+                );
+            }
+        
+            const project = await Project.findById(req.body.project);
+            //ensure project exists.
+            if(project === null){
+                return next(
+                    new ErrorResponse(
+                        status.NOT_FOUND,
+                        "Project does not exist"
+                    )
+                );
+            }
+
+            const isMember = project.members.includes(req.user._id);
+            
+            //ensure inviter belongs to project
+            if(isMember === false){
+                return next(
+                    new ErrorResponse(
+                        status.FORBIDDEN,
+                        "You do not belong to project " + req.body.project
+                    )
+                );
+            }
+
+            //ensure that person that is invited belongs to the group already
+            if(project.members.includes(req.body.user) === true) {
+                return next(
+                    new ErrorResponse(
+                        status.BAD_REQUEST,
+                        "User " + req.body.user + " already belongs to the group"
+                    )
+                );
+            }
+
+            const fetchedPermission = await Permission.findOne({
+                user: req.user._id,
+                project: req.body.project
+            });
+
+            //ensure user has correct permission.
+            if(fetchedPermission === null){
+                return next(
+                    new ErrorResponse(
+                        status.NOT_FOUND,
+                        "Permission does not exist"
+                    )
+                );
+            }
+
+            //make sure they have the right roles for inviting others.
+            if(roles.includes(fetchedPermission.role) === false){
+                return next(
+                    new ErrorResponse(
+                        status.UNAUTHORIZED,
+                        "Insufficient permissions to invite user."
+                    )
+                );
+            }
+
+            //make sure invitation has not already been sent.
+            if(( await Invitation.exists(req.body)) !== null){
+                return next(
+                    new ErrorResponse(
+                        status.BAD_REQUEST,
+                        "Invite has already been sent."
+                    )
+                );
+            }
+
+    } catch(error){
+        return next(
+            new ErrorResponse(
+                status.INTERNAL_SERVER_ERROR,
+                "Internal server error in middleware. Contact dev team if issue persists."
+            )
+        );
+    } finally {
+        return next();
+    }
+    }
+}
+
+
+
+/**
+ * @description middleware for when a user rejects or accepts an invitation.
+ * {invitation: objectId}
+ * @returns 
+ */
+export function validateAcceptOrRejectInvite(){
+
+    return async (req,res,next)=> {
+        try{
+            if((await acceptInviteSchema.isValid(req.body) === false)){
+                return next(
+                    new ErrorResponse(
+                        status.BAD_REQUEST,
+                        "Invalid request body"
+                    )
+                );
+            }
+        
+            const fetchedInvitation = await Invitation.findOne({
+                _id: req.body.invitation,
+                user: req.user._id
+            });
+        
+            if(fetchedInvitation === null){
+                return next(
+                    new ErrorResponse(
+                        status.NOT_FOUND,
+                        "User has not received any invitation to group"
+                    )
+                );
+            }
+        } catch(error){
+            return next(
+                status.INTERNAL_SERVER_ERROR,
+                "Internal server error in middleware. Contact dev team if issue persists."
+            )
+        } finally{
+            return next();
         }
     }
 }

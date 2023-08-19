@@ -72,7 +72,8 @@ export const login = asyncHandler( async (req,res,next)=> {
  */
 export const signUp = asyncHandler( async (req,res,next)=> {
 
-    if((await validateSignupBody.isValid({...req.body})) === false){
+    console.log(req.body);
+    if((await validateSignupBody.isValid(req.body)) === false){
         return next(
             new ErrorResponse(
                 status.BAD_REQUEST,

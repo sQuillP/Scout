@@ -8,7 +8,7 @@ export const validateSignupBody = Yup.object().shape({
     password: Yup.string().min(6).required(),
     firstName: Yup.string().required(),
     lastName: Yup.string().required(),
-    profileImage: Yup.string(),
+    profileImage: Yup.string().notRequired(),
 });
 
 
