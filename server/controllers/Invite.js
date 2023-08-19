@@ -90,7 +90,6 @@ export const acceptInvite = asyncHandler( async (req,res,next)=> {
 
 
 /**
- * SHOUDL WORK
  * @description - when user declines invitation, just delete the current one that exists.
  */
 export const rejectInvite = asyncHandler( async (req,res,next)=> {
