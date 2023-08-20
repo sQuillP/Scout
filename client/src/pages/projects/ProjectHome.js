@@ -6,7 +6,7 @@ import Tooltip from "@mui/material/Tooltip";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DoubleArrowIcon from '@mui/icons-material/DoubleArrow';
 import IconButton from "@mui/material/IconButton";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import Modal from "@mui/material/Modal";
@@ -35,14 +35,16 @@ export default function ProjectHome() {
     const [projectList, setProjectList] = useState([]);
     const navigate = useNavigate();
 
+    const mounted = useRef(true);
+
     function onCloseModal() {
         
         setOpenProjectModal(false);
     }
 
     useEffect(()=> {
-        let mounted = true;
         ( async()=> {
+            mounted.current = true;
             try{
                 const response = await Scout.get('/projects/myProjects',{params:{page: currentPage, limit: resultsPerPage}});
                 console.log(response.data)
@@ -56,7 +58,7 @@ export default function ProjectHome() {
             }
         })();
 
-        return ()=> mounted = false;
+        return ()=> mounted.current = false;
     },[]);
 
 

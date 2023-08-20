@@ -18,6 +18,8 @@ import {
 
 import {
     DeleteSharp,
+    Person,
+    PersonAdd,
 } from '@mui/icons-material'
 
 import { useState, useEffect, useRef } from 'react';
@@ -27,7 +29,7 @@ import EmptyTable from './EmptyTable';
 import { useParams } from 'react-router-dom';
 
 
-export default function ManageInviteTable(){
+export default function ManageInviteTable({newTableData}){
 
     const [currentPage, setCurrentPage] = useState(1);
     const [queryLimit, setQueryLimit] = useState(5);
@@ -44,9 +46,17 @@ export default function ManageInviteTable(){
     useEffect(()=> {
         mounted.current = true;
         fetchInvitations({page: currentPage, limit: queryLimit });
-
         return ()=> mounted.current = false;
     },[]);
+
+
+    useEffect(()=> {
+        if(newTableData.length ===0) return;
+        setInvitations(newTableData);
+        setCurrentPage(1);
+        setQueryLimit(5);
+    },[newTableData]);
+
 
     async function handlePageChange(_, newPage) {
         //handle page change
@@ -60,7 +70,7 @@ export default function ManageInviteTable(){
     async function fetchInvitations(query) {
         try{
             mounted.current = true;
-            const responseData = await Scout.get('/invite/'+projectId,{params:query});
+            const responseData = await Scout.get('/invite/projects/'+projectId,{params:query});
             console.log(responseData.data);
             if(mounted.current === false) return;
             setInvitations(responseData.data.data);
@@ -74,7 +84,7 @@ export default function ManageInviteTable(){
     async function onRemoveInvite(_id){
         try{
             const deletedInvite = invitations.find((invite)=> invite._id === _id)
-            const responseData = await Scout.delete('/invite',{invitation: deletedInvite._id});
+            const responseData = await Scout.delete('/invite',{data:{invitation: deletedInvite._id}});
             if(mounted.current === false) return;
             console.log(responseData.data.data);
             setInvitations(responseData.data.data);
@@ -179,7 +189,14 @@ export default function ManageInviteTable(){
             {
                 invitations.length === 0 && (
                     <EmptyTable
-                        message='Looks like there are no invites'
+                        message='Looks like there are no pending invites.'
+                        Icon={
+                            ()=> (
+                                <PersonAdd
+                                    sx={{color:'gray', fontSize: '5rem'}}
+                                />
+                            )
+                        }
                     />
                 )
             }

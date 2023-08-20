@@ -17,7 +17,9 @@ import{
  }from "@mui/material";
  import {
     CheckCircleOutline,
-    FilterAlt
+    FilterAlt,
+    ErrorOutline,
+
  } from '@mui/icons-material'
 import useDebounce from '../../../hooks/useDebounce';
 import "../styles/Members.css";
@@ -40,6 +42,7 @@ export default function Members() {
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
+    const [newTableData, setNewTableData] = useState([]);
 
     const openMenuRef = !!menuRef;
 
@@ -87,16 +90,25 @@ export default function Members() {
     }
 
 
+    //call api from child and pass that to parent
+    //click on button in parent, call function from child
 
     async function onHandleInvite(uid) {
+        let responseData = null;
         try{
             const body ={project: projectId, user: uid};
-            const responseData = await Scout.post('/invite',body);            
+            responseData = await Scout.post('/invite',body);    
+            console.log(responseData)
+            if(mounted.current === false) return;
+            setNewTableData(responseData.data.data);
             onOpenSnackbar("User successully invited","success");
         } catch(error) {
-            onOpenSnackbar("Unable to send invite.","error");
+            console.log(error);
+            onOpenSnackbar("Unable to add user to group","error");
         }
     }
+
+
 
     function onOpenSnackbar(message,severity){
         setSnackbarMessage(message);
@@ -131,8 +143,14 @@ export default function Members() {
             >
                 <Paper elevation={5} sx={{padding:'15px 20px'}}>
                     <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
-                        <Typography marginRight={'1rem'}>Invite has been sent </Typography>
-                        <CheckCircleOutline sx={{fontSize:'1.5rem'}} color="success"/>
+                        <Typography marginRight={'1rem'}>{snackbarMessage} </Typography>
+                        {
+                            snackbarSeverity ==='success'?(
+                            <CheckCircleOutline sx={{fontSize:'1.5rem'}} color={snackbarSeverity}/>
+                            ):(
+                                <ErrorOutline sx={{fontSize:'1.5rem'}} color={snackbarSeverity}/>
+                            )
+                        }
                     </Stack>
                 </Paper>
             </Snackbar>
@@ -207,7 +225,9 @@ export default function Members() {
             <div className="mem-section">
                 <div className="page-title">
                     <p className="text mem-intro">Manage Invites</p>
-                    <ManageInviteTable/>
+                    <ManageInviteTable
+                        newTableData = {newTableData}
+                    />
                 </div>
             </div>
         </div>

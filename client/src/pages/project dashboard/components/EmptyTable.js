@@ -2,8 +2,13 @@ import { Box, Paper, Stack, Typography } from "@mui/material";
 
 import SearchOffIcon from '@mui/icons-material/SearchOff';
 
-
-export default function EmptyTable({message = 'No data available'}) {
+/**
+ * 
+ * @param {()=>React.JSX} Icon
+ * @param {string} message 
+ * 
+ */
+export default function EmptyTable({message = 'No data available', Icon}) {
 
 
     return (
@@ -24,9 +29,7 @@ export default function EmptyTable({message = 'No data available'}) {
                 justifyContent={'center'}
                 alignItems={'center'}
             >
-                <SearchOffIcon
-                    sx={{fontSize:'3rem'}}                    
-                />
+                <Icon/>
                 <Typography>{message}</Typography>
             </Stack>
         </Paper>

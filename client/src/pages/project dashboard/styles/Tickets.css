@@ -1,5 +1,5 @@
 .tickets-main {
-    margin: 75px 25px 0 100px;
+    margin: 75px 25px 50px 100px;
     box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
     position: relative;
 }
@@ -21,6 +21,7 @@
     top: 0;
     left: 0;
     text-align: center;
+    position: relative;
 }
 
 
@@ -37,6 +38,23 @@
     border: none;
     background: none;
     ;
+}
+
+
+.tickets-filter-dropdown {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: all 200ms linear;
+    overflow: hidden;
+}
+
+.ticket-filter-dropdown-content{
+    min-height: 0;
+}
+
+.tickets-filter-dropdown.active-dropdown{
+    grid-template-rows: 1fr;
+    padding: 10px;
 }
 
 

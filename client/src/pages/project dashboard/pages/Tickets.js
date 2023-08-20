@@ -19,57 +19,97 @@ import {
     Box,
     Snackbar,
     Alert,
+    CircularProgress,
+    Checkbox,
+    FormControlLabel,
+    FormControl,
+    FormLabel,
+    RadioGroup,
+    Radio,
+    Input,
+    Autocomplete,
+    TextField,
  } from '@mui/material';
 
 import {
     FilterList,
-    Pageview,
     MoreVert,
-    Label,
-    AddTask,
+    Autorenew,
+    ChevronLeft,
+    ChevronRight,
+    MoodBad,
+    Close,
+
 } from '@mui/icons-material'
 
 import { useNavigate, useParams } from 'react-router-dom'
 
 import "../styles/Tickets.css";
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import CreateTicket from '../components/CreateTicket';
+import { useSelector } from 'react-redux';
+import Scout from '../../../axios/scout';
 
 export default function Tickets() {
 
-    const [menuRef, setMenuRef] = useState(null);
 
+    const project = useSelector((store)=> store.project.currentProject);
+
+    const paperSX = {height:'20vh', flexDirection:'column', justifyContent:'center',display:'flex',alignItems:'center'};
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [limit, setLimit] = useState(10);
+    const [menuRef, setMenuRef] = useState(null);
     /* state for creating a ticket */
     const [openModal, setOpenModal] = useState(false);
-
-
     /* Stateful condition to ask a user if they want to delete ticket */
     const [confirmModal, setConfirmModal] = useState(false);
-
     /* when user submits/creates a new ticket, dipslay success message in snackbar */
     const [openSnackbar, setOpenSnackbar] = useState(false);
-
     const [selectedTicket, setSelectedTicket] = useState(null);
 
     const navigateTo = useNavigate();
-    const params = useParams();
 
     /* Apply search fileters when searching for the tickets. */
-    const [ticketFilters, setTicketFilters] = useState({});
+    const [ticketFilters, setTicketFilters] = useState({
+        ticketProgress:[],
+        createdBy:'',
+        ticketType:[],
+        priority:[],
+        assignedTo:''
+    });
 
-    const [loadingContent, setLoadingContent] = useState(false);
+
+
+    const [loadingContent, setLoadingContent] = useState(true);
     const openMenuRef = Boolean(menuRef);
     const [collapseTable, setCollapseTable] = useState(false);
+    
+    const [ticketList, setTicketList] = useState([]);
+
+    const [totalItems, setTotalItems] = useState(0);
+
+    const [displayFilters, setDisplayFilters] = useState(false);
+
+    const mounted = useRef(true);
+
+    
 
 
     useEffect(()=> {
         //call api to get all the tickets.
+        onFetchTickets({limit: limit, page:currentPage});
+        return ()=> mounted.current = false;
     },[]);
 
     //set the current selected user 
-    function onShowTableMenu(e, entity) {
+    function onShowTableMenu(e, ticketId) {
         setMenuRef(e.currentTarget);
-        setSelectedTicket(entity);
+        setSelectedTicket(ticketId);
+    }
+
+    function onShowFilterMenu(){
+
     }
 
     function handleMenuAction(path) {
@@ -78,9 +118,34 @@ export default function Tickets() {
         return;
     }
 
+    async function onFetchTickets(params) {
+        try {
+            setLoadingContent(true);
+            mounted.current = true;
+            const response = await Scout.get('/projects/myProjects/'+project._id+'/tickets',{params});
+            if(mounted.current === false) return;
+            setTicketList(response.data.data);
+            setTotalItems(response.data.totalItems);
+            console.log(response.data.totalItems)
+        } catch(error) {
+            console.log(error);
+        } finally{
+            setLoadingContent(false);
+        }
+    }
+
     function onCloseMenu() {
         setMenuRef(null);
         setSelectedTicket(null);
+    }
+
+
+    async function togglePage(val) {
+        if(currentPage + val === 0 ||(currentPage-1)*limit >= totalItems) return;
+
+        setCurrentPage(currentPage+val);
+        await onFetchTickets({page: currentPage+val, limit});
+
     }
 
 
@@ -101,6 +166,8 @@ export default function Tickets() {
         }
         setConfirmModal(false);
     }
+
+    console.log(project.members);
 
     return (
         <div className="tickets-main">
@@ -151,16 +218,16 @@ export default function Tickets() {
                 anchorEl={menuRef}
                 onClose={onCloseMenu}
             >
-                <MenuItem onClick={()=>onCloseMenu()}>
+                <MenuItem key='1' onClick={()=>onCloseMenu()}>
                     Re-open ticket
                 </MenuItem>
-                <MenuItem onClick={()=> handleMenuAction(`/projects/${params.projectId}/tickets/${selectedTicket.id}`)}>
+                <MenuItem key='2' onClick={()=> handleMenuAction(`/projects/${project._id}/tickets/${selectedTicket}`)}>
                     View Ticket
                 </MenuItem>
             </Menu>
             <div className="tickets-title">
                 <div className="page-title">
-                    <p className="text tickets-title">Tickets for Ezer</p>
+                    <p className="text tickets-title">Tickets for {project.title}</p>
                 </div>
             </div>
             <div className="tickets-filter-section">
@@ -179,14 +246,112 @@ export default function Tickets() {
                 <div className="tickets-filter-options">
                     <Typography fontSize={'1.2rem'} variant='body1'>Filter Tickets</Typography>
                     <Tooltip title='Apply Filters'>
-                        <IconButton sx={{marginLeft:'10px'}}>
+                        <IconButton onClick={()=> setDisplayFilters(!displayFilters)}  sx={{marginLeft:'10px'}}>
                             <FilterList/>
                         </IconButton>
                     </Tooltip>
-                    <Typography marginLeft={'10px'}>Collapse</Typography>
+                    <Typography marginLeft={'10px'}>Collapse View</Typography>
                     <Switch onChange={(e)=> setCollapseTable((collapsed)=> !collapsed)} color='success'/>
+                    <Tooltip title='Refresh list'>
+                        <IconButton onClick={()=> onFetchTickets({page: currentPage, limit})}>
+                            <Autorenew/>
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title='Previous page'>
+                        <IconButton 
+                            disabled={currentPage === 1}
+                            size='small' onClick={()=> togglePage(-1)}>
+                            <ChevronLeft/>
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Next page">
+                        <IconButton 
+                            disabled={currentPage*limit >= totalItems}
+                            size='small' onClick={()=> togglePage(1)}>
+                            <ChevronRight/>
+                        </IconButton>
+                    </Tooltip>
                 </div>
             </div>
+            <div className={`tickets-filter-dropdown ${displayFilters?'active-dropdown':''}`}>
+                <div className="ticket-filter-dropdown-content">
+                    <Paper sx={{position:'relative'}} elevation={0} >
+                        <Tooltip title={"Close Filters"} sx={{position:'absolute', top:'10px', right:'10px'}}>
+                            <IconButton onClick={()=> setDisplayFilters(false)}>
+                                <Close/>
+                            </IconButton>
+                        </Tooltip>
+                        <Typography variant='h5'>Apply filters</Typography>
+                        <Stack flexWrap={'wrap'} padding={'20px'} gap={5} direction={'row'}>
+                            <Stack  direction='column'>
+                                <FormControl>
+                                    <FormLabel>Ticket Progress</FormLabel>
+                                    <FormControlLabel control={<Checkbox defaultChecked value={"open"} />} label="Open" />
+                                    <FormControlLabel control={<Checkbox value={"in_progress"} />} label="Closed" />
+                                    <FormControlLabel control={<Checkbox value={"closed"} />} label="In Progress" />
+                                </FormControl>
+                            </Stack>
+                            <Stack direction={'column'}>
+                                <FormControl>
+                                    <FormLabel sx={{marginBottom: '15px'}}>Created By</FormLabel>
+                                    <Autocomplete
+                                        size='small'
+                                        id="combo-box-demo"
+                                        options={project.members}
+                                        getOptionLabel={(option)=> option.firstName + " " + option.lastName}
+                                        sx={{ width: 300 }}
+                                        renderInput={(params) => <TextField {...params} label="Choose user" />}
+                                    />
+                                </FormControl>
+                            </Stack>
+                            <Stack direction={'column'}>
+                                <FormControl>
+                                    <FormLabel>Ticket Type</FormLabel>
+                                    <FormControlLabel control={<Checkbox defaultChecked value={"bug"} />} label="Bug" />
+                                    <FormControlLabel control={<Checkbox value={"crash"} />} label="Crash" />
+                                    <FormControlLabel control={<Checkbox value={"change"} />} label="Change" />
+                                </FormControl>
+                            </Stack>
+                            <Stack direction={'column'}>
+                                <FormControl>
+                                    <FormLabel>Priority</FormLabel>
+                                    <FormControlLabel control={<Checkbox defaultChecked value={"low"} />} label="Low" />
+                                    <FormControlLabel control={<Checkbox value={"medium"} />} label="Medium" />
+                                    <FormControlLabel control={<Checkbox value={"high"} />} label="High" />
+                                </FormControl>
+                            </Stack>
+                            <Stack direction={'column'}>
+                                <FormControl>
+                                    <FormLabel sx={{marginBottom: '15px'}}>Assigned To</FormLabel>
+                                    <Autocomplete
+                                        size='small'
+                                        id="combo-box-demo"
+                                        options={project.members}
+                                        getOptionLabel={(option)=> option.firstName + " " + option.lastName}
+                                        sx={{ width: 300 }}
+                                        renderInput={(params) => <TextField {...params} label="Choose user" />}
+                                    />
+                                </FormControl>
+                            </Stack>
+                            <Stack direction={'column'}>
+                                <FormControl>
+                                    <FormLabel id="demo-radio-buttons-group-label">Sort By</FormLabel>
+                                    <RadioGroup
+                                        aria-labelledby="demo-radio-buttons-group-label"
+                                        defaultValue="latest"
+                                        name="radio-buttons-group"
+                                    >
+                                        <FormControlLabel value="female" control={<Radio />} label="Recent" />
+                                        <FormControlLabel value="male" control={<Radio />} label="Oldest" />
+                                    </RadioGroup>
+                                </FormControl>
+                            </Stack>
+                        </Stack>
+                    </Paper>
+                </div>
+            </div>
+            {
+                !loadingContent && ticketList.length !== 0 && (
             <div className="tickets-table-section">
                 <TableContainer component={Paper}>
                     <Table size={collapseTable?'small':'medium'}>
@@ -200,33 +365,58 @@ export default function Tickets() {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            <TableRow>
-                                <TableCell>
-                                    <Typography>Please fix this issue</Typography>
-                                </TableCell>
-                                <TableCell>
-                                    <Typography>Jan Johnson</Typography>
-                                </TableCell>
-                                <TableCell>
-                                    <Chip label='closed' color='default'/>
-                                </TableCell>
-                                <TableCell>
-                                    <Chip label={'high'} color={getPriorityColor('high')}/>
-                                </TableCell>
-                                <TableCell>
-                                    <Stack direction='row' alignItems={'center'}>
-                                        <Tooltip title='options'>
-                                            <IconButton onClick={(e)=>onShowTableMenu(e,'some id')}>
-                                                <MoreVert/>
-                                            </IconButton>
-                                        </Tooltip>
-                                    </Stack>
-                                </TableCell>
-                            </TableRow>
+                        {
+                            ticketList.map((ticket)=>{
+                                return (
+                                    <TableRow key={ticket._id}>
+                                        <TableCell>
+                                            <Typography>{ticket.summary}</Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography>{ticket.assignedTo.firstName + " " +ticket.assignedTo.lastName}</Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Chip label={ticket.progress} color='default'/>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Chip label={'high'} color={getPriorityColor(ticket.priority)}/>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Stack direction='row' alignItems={'center'}>
+                                                <Tooltip title='options'>
+                                                    <IconButton onClick={(e)=>onShowTableMenu(e,ticket._id)}>
+                                                        <MoreVert/>
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </Stack>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })
+                        }
                         </TableBody>
                     </Table>
                 </TableContainer>
             </div>
+                )
+            }
+            {
+                loadingContent === true && (
+                    <Paper sx={paperSX} elevation={0}>
+                        <CircularProgress
+                        />
+                        <Typography>Loading tickets</Typography>
+                    </Paper>
+                )
+            }
+            {
+                loadingContent === false && ticketList.length === 0 && (
+                    <Paper sx={paperSX} elevation={0}>
+                        <MoodBad sx={{fontSize: '4rem', color:'gray', marginBottom:'10px'}}/>
+                        <Typography>Looks like there are no tickets!</Typography>
+                    </Paper>
+                )
+            }
         </div>
     )
 }
