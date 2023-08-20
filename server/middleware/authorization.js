@@ -60,6 +60,8 @@ export function validateDeleteInvite(allowedRoles){
     return async (req,res,next)=> {
         try {
 
+            console.log(req.body);
+
             if((await acceptInviteSchema.isValid(req.body)) === false){
                 return next(
                     new ErrorResponse(

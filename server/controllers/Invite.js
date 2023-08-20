@@ -49,8 +49,18 @@ export const inviteUser = asyncHandler( async (req,res,next)=> {
 
     const createdInvitation = await Invitation.create(req.body);
 
+    const fetchedInvitations = await Invitation.find({
+        project: createdInvitation.project,
+    })
+    .limit(5)
+    .populate('user');
+
+    const totalItems = await Invitation.countDocuments({project: createdInvitation.project});
+
+    //return all invitations related to a project
     res.status(status.CREATED).json({
-        data: createdInvitation
+        data: fetchedInvitations,
+        totalItems
     });
 });
 
@@ -122,7 +132,8 @@ export const deleteInvitation = asyncHandler( async (req,res,next)=> {
     const fetchedInvites = await Invitation.find({
         project: fetchedInvitation.project
     })
-    .limit(5);
+    .limit(5)
+    .populate('user');
 
     const invitationCount = await Invitation.countDocuments({
         project: fetchedInvitation.project

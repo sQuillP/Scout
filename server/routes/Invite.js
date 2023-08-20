@@ -26,7 +26,6 @@ InviteRouter.use(authenticate);
 
 
 InviteRouter.route('/')
-InviteRouter.route('/')
 .get(getMyInvites)
 .post(
     validateCreateInvite(['project_manager','administrator']),
@@ -60,6 +59,7 @@ InviteRouter.route('/projects/:projectId')
     ),
     getProjectInvites
 );
+
 
 
 export default InviteRouter;
