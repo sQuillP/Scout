@@ -69,6 +69,8 @@ export default function Tickets() {
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [selectedTicket, setSelectedTicket] = useState(null);
 
+
+
     const navigateTo = useNavigate();
 
 
@@ -130,14 +132,16 @@ export default function Tickets() {
         setSelectedTicket(ticketId);
     }
 
-    function onShowFilterMenu(){
 
+    /* Child passes data to parent */
+    function _setTicketData(apiResponse){
+        setTicketList(apiResponse.data);
+        setTotalItems(apiResponse.totalItems);
     }
 
     function handleMenuAction(path) {
         navigateTo(path);
         onCloseMenu();
-        return;
     }
 
     async function onFetchTickets(params) {
@@ -190,14 +194,7 @@ export default function Tickets() {
         setConfirmModal(false);
     }
 
-    const displayAutoComplete = (field)=> {
-        console.log(ticketFilters[field])
-        if(ticketFilters[field] === null){
-            return ;
-        }
-        return ticketFilters[field].firstName + " " + ticketFilters[field].lastName;
-    }
-
+    
     return (
         <div className="tickets-main">
             <Modal
@@ -206,6 +203,7 @@ export default function Tickets() {
             >
                 <>
                     <CreateTicket
+                        setTicketData={_setTicketData}
                         onCloseTicketForm={(submitted)=>{ 
                             if(!submitted)
                                 setConfirmModal(true);
@@ -238,7 +236,7 @@ export default function Tickets() {
             <Snackbar
                 open={openSnackbar}
                 onClose={()=> setOpenSnackbar(false)}
-                autoHideDuration={3500}
+                autoHideDuration={2500}
                 anchorOrigin={{horizontal:'center', vertical:'bottom'}}
             >
                 <Alert severity="success" sx={{ width: '100%', display:'flex', alignItems:'center' }}>

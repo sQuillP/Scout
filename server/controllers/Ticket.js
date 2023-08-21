@@ -146,7 +146,8 @@ export const createTicket = asyncHandler( async (req,res,next)=> {
     
 
     const tickets = await Ticket.find()
-    .limit(limit);
+    .limit(limit)
+    .populate('assignedTo');
 
     res.status(status.CREATED).json({
         data: tickets,

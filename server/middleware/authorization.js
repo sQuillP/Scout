@@ -330,7 +330,7 @@ export function validateInvite(roles) {
  * THIS IS WHERE YOU LEFT OFF!
  * @description validate creation of ticket middleware
  */
-function validateCreateTicket(){
+export function validateCreateTicket(){
 
     return async (req,res,next)=> {
         try {

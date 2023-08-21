@@ -15,6 +15,7 @@ export const updateTicketSchema = yup.object().shape({
 });
 
 
+/* Validate incoming POST to create a ticket. */
 export const createTicketSchema = yup.object().shape({
     assignedTo: yup.string().test("Validate objectId", "Invalid objectId",validateObjectId).required(),
     project: yup.string().test("Validate objectId","invalid object id", validateObjectId).required(),

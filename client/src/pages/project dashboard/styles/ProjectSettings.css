@@ -3,6 +3,7 @@
     margin: 75px 25px 0 100px;
     box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
     padding: 20px;
+    position: relative;
 }
 
 .ps-header {
@@ -15,11 +16,16 @@
     outline: none;
     border: none;
     background:#eee;
+    font-size: 1.2rem;
 }
 
 .ps-intro {
     font-size: 1.3rem;
     margin-bottom: 20px;
+}
+
+.ps-label {
+    font-size: 1.4rem;
 }
 
 .ps-description {
@@ -28,6 +34,7 @@
     background: #eee;
     padding: 20px;
     font-family: inherit;
+    font-size: 1.2rem;
     outline: none;
     height: 150px;
     width: 100%;

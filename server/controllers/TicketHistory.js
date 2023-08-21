@@ -89,7 +89,17 @@ export const addToTicketHistory = asyncHandler( async (req,res,next)=> {
 
     await TicketHistory.create(req.body);
 
+    const ticketData = await TicketHistory.find({ 
+        ticket: req.body.ticket
+    }).limit(5)
+    .populate('modifiedBy');
+
+    const totalTickets = await TicketHistory.countDocuments({
+        ticket: req.body.ticket
+    });
+
     res.status(status.OK).json({
-        data:'success'
+        data: ticketData,
+        totalItems: totalTickets
     });
 });

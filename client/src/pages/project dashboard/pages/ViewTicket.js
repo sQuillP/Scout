@@ -210,6 +210,11 @@ export default function ViewTicket() {
         setCanEdit((canEdit)=> !canEdit);
     }
     /***************** */
+
+    /* Ticket history state */
+
+    const [refreshHistoryData, setRefreshHistoryData] = useState({});
+
     /* Revert all ticket changes and disable edit mode and its state features. */
     function onDiscardTicketChanges(){
         setShowConfirmTicketChangesModal(false);
@@ -256,6 +261,7 @@ export default function ViewTicket() {
 
             setTicketInfo(resolvedData[0].data.data);
             setTicketInfoCopy(_.cloneDeep(resolvedData[0].data.data));
+            setRefreshHistoryData(resolvedData[1].data);
             onOpenSnackbar("Successfully updated ticket.","success");
         } catch(error) {
             onOpenSnackbar("Unable to update ticket","error");
@@ -717,6 +723,7 @@ export default function ViewTicket() {
                         <div className="vt-activity-wrapper">
                             <TicketHistoryTable
                                 ticketId={ticketId}
+                                refreshHistoryData={refreshHistoryData}
                             />
                         </div>
                     </div>

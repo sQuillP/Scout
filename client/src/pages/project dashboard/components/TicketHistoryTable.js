@@ -19,7 +19,9 @@ import {
  } from '@mui/material';
 
 import {
-    SignalWifiStatusbarConnectedNoInternet4
+    SignalWifiStatusbarConnectedNoInternet4,
+    MoodBad,
+
 } from '@mui/icons-material';
 
 import Scout from "../../../axios/scout";
@@ -31,7 +33,7 @@ import { useSelector } from "react-redux";
  * 
  * NOTE: Fix state when there is data to display, as in, if there is data, display it?
  */
-export default function TicketHistoryTable({ticketId}) {
+export default function TicketHistoryTable({ticketId,refreshHistoryData}) {
 
     
     const currentProject = useSelector((store)=> store.project.currentProject);
@@ -50,6 +52,16 @@ export default function TicketHistoryTable({ticketId}) {
         fetchTicketHistory({page: currentPage, limit: PAGE_LIMIT});
         return ()=> mountedRef.current = false;
     },[ticketId]);
+
+
+    
+    useEffect(()=> {
+        if(Object.keys(refreshHistoryData).length === 0) return;
+        console.log(refreshHistoryData)
+        setTicketHistory(refreshHistoryData.data);
+        setTicketHistoryCount(refreshHistoryData.totalItems);
+
+    },[refreshHistoryData]);
 
 
     async function fetchTicketHistory(params) {
@@ -78,7 +90,7 @@ export default function TicketHistoryTable({ticketId}) {
         await fetchTicketHistory({page: (page+1), limit: PAGE_LIMIT});
     }
 
-   
+   console.log(ticketHistory);
 
     return (
         <Paper 
@@ -113,7 +125,7 @@ export default function TicketHistoryTable({ticketId}) {
                 )
             }
             {
-                !loadingTicketHistory && !loadingTicketError && (
+                !loadingTicketHistory && !loadingTicketError && ticketHistory.length !== 0&& (
                     <TableContainer>
                         <Table sx={{width:'100%'}}>
                             <TableHead>
@@ -171,6 +183,26 @@ export default function TicketHistoryTable({ticketId}) {
                 )
             }
             {
+                !loadingTicketError && !loadingTicketHistory && ticketHistory.length === 0&&(
+                    <Stack
+                        direction={'column'}
+                        spacing={2}
+                        alignItems={'center'}
+                        justifyContent={'center'}
+                        padding={'30px 0px'}
+                    >
+                        <MoodBad
+                            sx={{
+                                color:'gray',
+                                fontSize:'3rem'
+                            }}
+                        />
+                        <Typography>Looks like no changes have been made to this ticket.</Typography>
+                        
+                    </Stack>
+                )
+            }
+            {
                 loadingTicketError && !loadingTicketHistory && (
                     <Stack
                         direction={'column'}
@@ -198,7 +230,7 @@ export default function TicketHistoryTable({ticketId}) {
                 )
             }
 
-            { !loadingTicketError && !loadingTicketHistory && (
+            { !loadingTicketError && !loadingTicketHistory && ticketHistory.length !== 0 && (
                 <TablePagination
                     rowsPerPageOptions={[5]}
                     component="div"

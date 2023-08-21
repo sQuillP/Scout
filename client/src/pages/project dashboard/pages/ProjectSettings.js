@@ -17,6 +17,7 @@ import {
     DialogTitle,
     DialogContent,
     Button,
+    Switch,
 
 
 } from '@mui/material';
@@ -32,43 +33,85 @@ import {
 
 } from '@mui/icons-material'
 
+import { useSelector } from 'react-redux';
+
+import Scout from '../../../axios/scout';
 
 import "../styles/ProjectSettings.css";
 
 
 export default function ProjectSettings() {
 
-    const [projectDescription, setProjectDescription] = useState('Exercitation non occaecat aliqua est sint do tempor amet tempor duis deserunt velit id aliqua. Commodo non amet commodo deserunt sint id minim sunt sit. Nisi qui culpa ullamco ex reprehenderit excepteur ut sit et. Aliquip nulla in ad labore reprehenderit.');
-    const [projectTitle, setProjectTitle] = useState('This is a demo title');
+    const project = useSelector((store)=> store.project.currentProject);
+
 
     const [copyHoverMessage, setCopyHoverMessage] = useState('Copy to clipboard');
-    const APIKey = 'asdcjasdcpI&)(*&asdc9p8as7ydc)(*&naoslkdcalkJHLKJHCOIUCY7890)(*CX&HlkjHXOL';
+    const [dialogMessage, setDialogMessage] = useState('');
+    const [dialogTitle, setDialogTitle] = useState('');
+
+
 
     const [showSnackbar, setShowSnackbar] = useState(false);
     const [showDialog, setShowDialog] = useState(false);
-
-
+    const [dialogConfirm, setDialogConfirm] = useState(null);
 
     const [viewApiKey, setViewApiKey] = useState(false);
 
 
-    /* Update the project details */
-    function onUpdateProjectDetails(){
+    /* For edit mode */
+    const [editMode, setEditMode] = useState(false);
 
+    const initialSettings = {
+        title: project.title,
+        description: project.description,
+        APIKey: project.APIKey
+    };
+
+    const [projectDetails, setProjectDetails] = useState(initialSettings);
+
+    //for edit mode
+    //show projectDetails
+    //if close edit mode without saving, set project details back to original
+
+    function updateProjectDetails(field, value) {
+        setProjectDetails({...projectDetails, [field]:value});
     }
 
+
+
+
+    /* Update the project details */
+    async function onUpdateProjectDetails(){
+        try{
+
+        } catch(err){
+
+        }
+    }
+
+    function switchEditMode() {
+        if(editMode === true){
+            setProjectDetails(initialSettings);
+        }
+        setEditMode(!editMode);
+    }
+    
+
     function handleClipBoardClick() {
-        navigator.clipboard.writeText(APIKey);
+        navigator.clipboard.writeText(project.APIKey);
         setShowSnackbar(true);
     }
 
 
-    function onConfirmRefreshAPIKey() {
-
+    async function refreshAPIKey() {
 
         setShowDialog(false);
-
     }
+
+    function toggleRefreshKeyDialog() {
+        setDialogConfirm(()=> refresAPIK)
+    }
+
 
     return (
         <div className="ps-container">
@@ -117,7 +160,16 @@ export default function ProjectSettings() {
 
             </Dialog>
             <div className="ps-header">
-                <p className="ps-title text">Project Settings</p>
+                <Stack direction={'row'} justifyContent={'space-between'}>
+                    <p className="ps-title text">Project Settings</p>
+                    <FormControlLabel 
+                        checked={editMode} 
+                        value={editMode} 
+                        onChange={switchEditMode} 
+                        control={<Switch />}
+                        label="Allow Editing"
+                        />
+                </Stack>
             </div>
             <div className="ps-flex-layout">
 
@@ -130,28 +182,40 @@ export default function ProjectSettings() {
                         <tbody>
                         <tr>
                             <th>
-                                <p style={{fontWeight:'normal'}} className="text">Project Title <span className='required'>*</span></p>
+                                <p style={{fontWeight:'normal'}} className="text ps-label">Project Title <span className='required'>* &nbsp;</span></p>
                             </th>
                             <td>
-                                <input 
-                                    type='text' 
-                                    className='ps-input' 
-                                    value={projectTitle}
-                                    onChange={(e)=> setProjectTitle(e.target.value)}
-                                />
+                                {
+                                    editMode === true ? (
+                                        <input 
+                                            type='text' 
+                                            className='ps-input' 
+                                            value={projectDetails.title}
+                                            onChange={(e)=> updateProjectDetails('title',e.target.value)}
+                                        />
+                                    ) : (
+                                        <Typography variant='body2' margin={'20px 0px'} fontSize={'1.3rem'}>{project.title}</Typography>
+                                    )
+                                }
                             </td>
                         </tr>
                         </tbody>
                     </table>
                     <div className="ps-description-wrapper">
-                        <label htmlFor="">
+                        <label className='ps-label' htmlFor="">
                             Description <span className="required">*</span>
                         </label> <br/>
-                        <textarea 
-                            className='ps-description'
-                            value={projectDescription}
-                            onChange={(e)=> setProjectDescription(e.target.value)}
-                        ></textarea>
+                        {
+                            editMode === true ? (
+                                <textarea 
+                                    className='ps-description'
+                                    value={projectDetails.description}
+                                    onChange={(e)=> updateProjectDetails('description',e.target.value)}
+                                ></textarea>
+                            ): (
+                                <Typography fontSize={'1.3rem'} margin={'20px 0px'} variant='body2'>{project.description}</Typography>
+                            )
+                        }
                     </div>
                 </Paper>
                 <div className="project-settings">
@@ -172,7 +236,7 @@ export default function ProjectSettings() {
                                     flexWrap={'wrap'}
                                 >
                                     <Typography className={`${viewApiKey===false?'blur':''}`}>
-                                        {APIKey}
+                                        {project.APIKey}
                                     </Typography>
                                     <Tooltip
                                         title={viewApiKey?"Hide API credentials":"View API credential"}
@@ -211,6 +275,33 @@ export default function ProjectSettings() {
                     </Accordion>
                 </div>
             </div>
+            <div className={`vt-submit-changes-container`}>
+                
+                    <button
+                        className={`vt-submit-changes  ${ showConfirmTicketChangesModal?'vt-submit-disabled':''}`}
+                        onClick={onDisplayConfirmTicketModal}
+                        disabled={showConfirmTicketChangesModal}
+                    >
+                        Publish Changes
+                        <Publish
+                            style={{marginLeft:'10px'}}
+                        />
+                    </button>
+                    {
+                        showConfirmTicketChangesModal && (
+                            <CircularProgress
+                                color="success"
+                                size={'1.5rem'}
+                                sx={{
+                                    position:'absolute',
+                                    top:'-2px',
+                                    left:'40%',
+                                    margin:'10px 0 0 10px',
+                                }}
+                            />
+                        )
+                    }
+                </div>
         </div>
     )
 }

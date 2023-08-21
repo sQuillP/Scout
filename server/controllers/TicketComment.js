@@ -83,8 +83,13 @@ export const createTicketComment = asyncHandler( async (req,res,next)=> {
 
     await TicketComment.create(req.body);
     const totalComments = await TicketComment.countDocuments({ticket: req.params.ticketId});
+    
+    
     const ticketResponse = await TicketComment.find({ticket: req.params.ticketId})
-    .limit(5);
+    .limit(5)
+    .populate('author');
+
+
     res.status(status.CREATED).json({
         data: ticketResponse,
         itemCount: totalComments,

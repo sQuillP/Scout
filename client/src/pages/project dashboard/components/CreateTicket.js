@@ -7,30 +7,10 @@ import {
 
 import "../styles/CreateTicket.css";
 import { useState } from "react";
+import { useSelector } from "react-redux";
+import Scout from "../../../axios/scout";
 
 
-const dummy_data = [
-    {
-        email:'will.m.pattison@gmail.com',
-        username: 'william',
-        id:1,
-    },
-    {
-        email:'bob@gmail.com',
-        username: 'william',
-        id:12,
-    },
-    {
-        email:'samuel@example.com',
-        username: 'william',
-        id:13,
-    },
-    {
-        email:'person@yahoo.com',
-        username: 'william',
-        id:14,
-    },
-];
 
 const MAX_SUMMARY_CHAR_COUNT = 75;
 
@@ -39,14 +19,19 @@ const MAX_SUMMARY_CHAR_COUNT = 75;
  * @param {()=> void} onCloseTicketForm - function that accepts a boolean, tells parent whether or not form was successfully submitted.
  */
 
-export default function CreateTicket({onCloseTicketForm}) {
+export default function CreateTicket({onCloseTicketForm, setTicketData, notifyStatus}) {
+
+    const project = useSelector((store)=> store.project.currentProject);
+
 
     const emptyForm = {
         ticketType:'',
-        briefDescription:'',
+        description:'',
         summary:'',
         priority:'',
-        assignTo:null,
+        assignedTo:null,
+        project: project._id,
+        progress: 'open',
     };
 
     const [ticketForm, setTicketForm] = useState(emptyForm);
@@ -55,10 +40,10 @@ export default function CreateTicket({onCloseTicketForm}) {
 
     const keyMap = {
         ticketType: 'Ticket Type',
-        briefDescription:'Brief Description',
+        description:'Brief Description',
         summary:'Summary',
         priority:'Priority',
-        assignTo:'Assign To'
+        assignedTo:'Assign To'
     };
 
     function handleTicketChange(field,value) {
@@ -66,7 +51,7 @@ export default function CreateTicket({onCloseTicketForm}) {
         if(field ==='summary' && value.length>=MAX_SUMMARY_CHAR_COUNT+1)
             return;
 
-        if(field === 'assignTo' || value.trim() !== ''){
+        if(field === 'assignedTo' || value.trim() !== ''){
             setFormErrors((oldFormErrors)=> {
                 delete oldFormErrors[field];
                 return {...oldFormErrors};
@@ -88,14 +73,14 @@ export default function CreateTicket({onCloseTicketForm}) {
         let hasNoEmptyFields = false;
         Object.keys(ticketForm).forEach((key)=> {
             //cannot be null or empty
-            if(key ==='assignTo' && ticketForm[key] == null){
+            if(key ==='assignedTo' && ticketForm[key] == null){
                 setFormErrors((formErrors)=> {
                     return {...formErrors,[key]: `${keyMap[key]} cannot be empty`};
                 });
                 hasNoEmptyFields = true;
             }
             //if empty string or only spaces
-            if(key !== 'assignTo' && ticketForm[key].trim() === ''){
+            if(key !== 'assignedTo' && ticketForm[key].trim() === ''){
                 setFormErrors((formErrors)=> {
                     return {...formErrors, [key]: `${keyMap[key]} is required`};
                 });
@@ -106,12 +91,20 @@ export default function CreateTicket({onCloseTicketForm}) {
     }
 
 
-    function onSubmit(e) {
+    async function onSubmit(e) {
 
         if(validateRequiredFields() === true) return;
 
-        console.log('submitting');
-        onCloseTicketForm(true);
+        try {
+            const createTicketResponse = await Scout.post(`/projects/myProjects/${project._id}/tickets`,ticketForm);
+            setTicketData(createTicketResponse.data);
+        } catch(error){
+            //handle errors for creating ticket
+        }finally {
+            onCloseTicketForm(true);//this needs to be fixed
+            // notifyStatus("Ticket has been successfully created","success")
+        }
+        console.log(ticketForm);
     }
 
 
@@ -162,21 +155,21 @@ export default function CreateTicket({onCloseTicketForm}) {
                         >{ticketForm.summary.length}/{MAX_SUMMARY_CHAR_COUNT} characters</p>
                     </div>
                     <div className="ct-input-row">
-                        <label htmlFor="" className="ct-label">Assign to <span className="required">* {formErrors['assignTo']}</span></label>
+                        <label htmlFor="" className="ct-label">Assign to <span className="required">* {formErrors['assignedTo']}</span></label>
                         <Autocomplete
-                            onChange={(e,value)=> handleTicketChange('assignTo',value)}
+                            onChange={(e,value)=> handleTicketChange('assignedTo',value)}
                             size="small"
-                            value={ticketForm.assignTo}
-                            getOptionLabel={(option)=> option.email}
-                            options={dummy_data}
+                            value={ticketForm.assignedTo}
+                            getOptionLabel={(option)=> option.firstName + " " + option.lastName}
+                            options={project.members}
                             renderInput={(options)=> <TextField {...options} variant="standard" />}
                         />
                     </div>
                     <div className="ct-input-row">
-                        <label htmlFor="_ct-description" className="ct-label">Description <span className="required">* {formErrors['briefDescription']}</span></label>
+                        <label htmlFor="_ct-description" className="ct-label">Description <span className="required">* {formErrors['description']}</span></label>
                         <textarea 
-                            value={ticketForm.briefDescription}
-                            onChange={(e)=> handleTicketChange('briefDescription',e.target.value)}
+                            value={ticketForm.description}
+                            onChange={(e)=> handleTicketChange('description',e.target.value)}
                             id="_ct-description" 
                             name="ct-description" 
                             className="ct-textarea"
