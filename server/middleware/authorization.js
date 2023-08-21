@@ -3,6 +3,7 @@ import ErrorResponse from "../utility/ErrorResponse.js";
 import status from "../utility/status.js";
 import Invitation from "../schema/Invite.js";
 import { validateCreateInviteSchema, acceptInviteSchema } from "../controllers/validators/Invite.js";
+import {createTicketSchema} from '../controllers/validators/Ticket.js';
 import User from "../schema/User.js";
 import Project from "../schema/Project.js";
 
@@ -320,5 +321,38 @@ export function validateInvite(roles) {
             next();
         }
         
+    }
+}
+
+
+
+/**
+ * THIS IS WHERE YOU LEFT OFF!
+ * @description validate creation of ticket middleware
+ */
+function validateCreateTicket(){
+
+    return async (req,res,next)=> {
+        try {
+            console.log('validate create ticket@@@',req.body);
+            if((await createTicketSchema.isValid(req.body)) === false){
+                return next(
+                    new ErrorResponse(
+                        status.BAD_REQUEST,
+                        "Invalid body"
+                    )
+                )
+            }
+
+        } catch(error){
+            return next(
+                new ErrorResponse(
+                    status.INTERNAL_SERVER_ERROR,
+                    "Backend error. Pls contact dev team =("
+                )
+            );
+        } finally {
+            return next();
+        }
     }
 }

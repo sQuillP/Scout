@@ -44,7 +44,7 @@
 .tickets-filter-dropdown {
     display: grid;
     grid-template-rows: 0fr;
-    transition: all 200ms linear;
+    transition: all 200ms ease-out;
     overflow: hidden;
 }
 

@@ -26,7 +26,6 @@ import {
     FormLabel,
     RadioGroup,
     Radio,
-    Input,
     Autocomplete,
     TextField,
  } from '@mui/material';
@@ -50,6 +49,8 @@ import CreateTicket from '../components/CreateTicket';
 import { useSelector } from 'react-redux';
 import Scout from '../../../axios/scout';
 
+
+
 export default function Tickets() {
 
 
@@ -70,14 +71,18 @@ export default function Tickets() {
 
     const navigateTo = useNavigate();
 
-    /* Apply search fileters when searching for the tickets. */
-    const [ticketFilters, setTicketFilters] = useState({
-        ticketProgress:[],
-        createdBy:'',
+
+    const defaultFilters = {
+        progress:[],
+        createdBy:null,
         ticketType:[],
         priority:[],
-        assignedTo:''
-    });
+        assignedTo:null,
+        sortBy: null
+    }
+
+    /* Apply search fileters when searching for the tickets. */
+    const [ticketFilters, setTicketFilters] = useState(defaultFilters);
 
 
 
@@ -93,12 +98,29 @@ export default function Tickets() {
 
     const mounted = useRef(true);
 
-    
+    function handleTicketFilterChange(filter,value){
+        const filterCopy = {...ticketFilters};
+        console.log(filterCopy);
+        if(Array.isArray(ticketFilters[filter]) === true){
+            const index = ticketFilters[filter].indexOf(value);
+            if(index !== -1){
+                filterCopy[filter].splice(index,1);
+            }
+            else {
+                filterCopy[filter].push(value);
+            }
+        }
+        else {
+            filterCopy[filter] = value;
+        }
+        console.log(filterCopy)
+        setTicketFilters(filterCopy);
+    }
 
 
     useEffect(()=> {
         //call api to get all the tickets.
-        onFetchTickets({limit: limit, page:currentPage});
+        onFetchTickets({limit: limit, page:currentPage, filters:ticketFilters});
         return ()=> mounted.current = false;
     },[]);
 
@@ -121,6 +143,7 @@ export default function Tickets() {
     async function onFetchTickets(params) {
         try {
             setLoadingContent(true);
+            console.log(ticketFilters)
             mounted.current = true;
             const response = await Scout.get('/projects/myProjects/'+project._id+'/tickets',{params});
             if(mounted.current === false) return;
@@ -144,7 +167,7 @@ export default function Tickets() {
         if(currentPage + val === 0 ||(currentPage-1)*limit >= totalItems) return;
 
         setCurrentPage(currentPage+val);
-        await onFetchTickets({page: currentPage+val, limit});
+        await onFetchTickets({page: currentPage+val, limit, filters: ticketFilters});
 
     }
 
@@ -167,7 +190,13 @@ export default function Tickets() {
         setConfirmModal(false);
     }
 
-    console.log(project.members);
+    const displayAutoComplete = (field)=> {
+        console.log(ticketFilters[field])
+        if(ticketFilters[field] === null){
+            return ;
+        }
+        return ticketFilters[field].firstName + " " + ticketFilters[field].lastName;
+    }
 
     return (
         <div className="tickets-main">
@@ -197,7 +226,10 @@ export default function Tickets() {
                         <Typography align='center' sx={{fontSize:'2rem', paddingBottom:'10px', marginBottom:'10px', borderBottom:'1px solid lightgray'}}>Delete this ticket?</Typography>
                         <Typography align='center' variant="body1">All ticket information cannot be recovered.</Typography>
                         <Stack direction={'row'} marginTop={'20px'} justifyContent={'center'} spacing={1}>
-                            <Button sx={{textTransform:'unset'}} onClick={()=> onCancelTicket(false)} variant='outlined' color="error">Cancel</Button>
+                            <Button 
+                                sx={{textTransform:'unset'}} 
+                                onClick={()=> onCancelTicket(false)} 
+                                variant='outlined' color="error">Cancel</Button>
                             <Button sx={{textTransform:'unset'}} onClick={()=> onCancelTicket(true)} variant="outlined">Delete ticket</Button>
                         </Stack>
                     </Paper>
@@ -253,7 +285,7 @@ export default function Tickets() {
                     <Typography marginLeft={'10px'}>Collapse View</Typography>
                     <Switch onChange={(e)=> setCollapseTable((collapsed)=> !collapsed)} color='success'/>
                     <Tooltip title='Refresh list'>
-                        <IconButton onClick={()=> onFetchTickets({page: currentPage, limit})}>
+                        <IconButton onClick={()=> onFetchTickets({page: currentPage, limit, filters: ticketFilters})}>
                             <Autorenew/>
                         </IconButton>
                     </Tooltip>
@@ -286,9 +318,28 @@ export default function Tickets() {
                             <Stack  direction='column'>
                                 <FormControl>
                                     <FormLabel>Ticket Progress</FormLabel>
-                                    <FormControlLabel control={<Checkbox defaultChecked value={"open"} />} label="Open" />
-                                    <FormControlLabel control={<Checkbox value={"in_progress"} />} label="Closed" />
-                                    <FormControlLabel control={<Checkbox value={"closed"} />} label="In Progress" />
+                                    <FormControlLabel 
+                                        control={
+                                            <Checkbox 
+                                                onChange={(e)=> handleTicketFilterChange("progress",e.target.value)} 
+                                                value={"open"} 
+                                            />
+                                        } 
+                                        checked={ticketFilters.progress.includes('open')} 
+                                        label="Open" 
+                                    />
+                                    <FormControlLabel 
+                                        control={<Checkbox onChange={(e)=> handleTicketFilterChange("progress",e.target.value)} 
+                                        value={"in_progress"} />} 
+                                        label="In Progress" 
+                                        checked={ticketFilters.progress.includes('in_progress')}
+                                        />
+                                    <FormControlLabel 
+                                        control={<Checkbox onChange={(e)=> handleTicketFilterChange("progress",e.target.value)} 
+                                        value={"closed"} />} 
+                                        label="Closed" 
+                                        checked={ticketFilters.progress.includes('closed')}
+                                        />
                                 </FormControl>
                             </Stack>
                             <Stack direction={'column'}>
@@ -300,24 +351,55 @@ export default function Tickets() {
                                         options={project.members}
                                         getOptionLabel={(option)=> option.firstName + " " + option.lastName}
                                         sx={{ width: 300 }}
+                                        onChange={(e,newVal)=> handleTicketFilterChange("createdBy",newVal)}
                                         renderInput={(params) => <TextField {...params} label="Choose user" />}
+                                        value={ticketFilters.createdBy}
                                     />
                                 </FormControl>
                             </Stack>
                             <Stack direction={'column'}>
                                 <FormControl>
                                     <FormLabel>Ticket Type</FormLabel>
-                                    <FormControlLabel control={<Checkbox defaultChecked value={"bug"} />} label="Bug" />
-                                    <FormControlLabel control={<Checkbox value={"crash"} />} label="Crash" />
-                                    <FormControlLabel control={<Checkbox value={"change"} />} label="Change" />
+                                    <FormControlLabel 
+                                        onChange={(e)=> handleTicketFilterChange("ticketType",e.target.value)} control={<Checkbox value={"bug"} />} 
+                                        label="Bug" 
+                                        checked={ticketFilters.ticketType.includes('bug')}
+                                    />
+                                    <FormControlLabel 
+                                        onChange={(e)=> handleTicketFilterChange("ticketType",e.target.value)} 
+                                        control={<Checkbox value={"crash"} />} label="Crash" 
+                                        checked={ticketFilters.ticketType.includes('crash')}
+                                    />
+                                    <FormControlLabel 
+                                        onChange={(e)=> handleTicketFilterChange("ticketType",e.target.value)} 
+                                        control={<Checkbox value={"change"} />} 
+                                        label="Change"
+                                        checked={ticketFilters.ticketType.includes('change')}
+                                    />
                                 </FormControl>
                             </Stack>
                             <Stack direction={'column'}>
                                 <FormControl>
                                     <FormLabel>Priority</FormLabel>
-                                    <FormControlLabel control={<Checkbox defaultChecked value={"low"} />} label="Low" />
-                                    <FormControlLabel control={<Checkbox value={"medium"} />} label="Medium" />
-                                    <FormControlLabel control={<Checkbox value={"high"} />} label="High" />
+                                    <FormControlLabel 
+                                        onChange={(e)=> handleTicketFilterChange("priority",e.target.value)} 
+                                        control={<Checkbox value={"low"} />} 
+                                        label="Low" 
+                                        checked={ticketFilters.priority.includes('low')}
+                                    />
+                                    <FormControlLabel 
+                                        onChange={(e)=> handleTicketFilterChange("priority",e.target.value)} 
+                                        control={<Checkbox value={"medium"} />} 
+                                        label="Medium" 
+                                        checked={ticketFilters.priority.includes('medium')}
+
+                                        />
+                                    <FormControlLabel 
+                                        onChange={(e)=> handleTicketFilterChange("priority",e.target.value)} 
+                                        control={<Checkbox value={"high"} />} 
+                                        label="High" 
+                                        checked={ticketFilters.priority.includes('high')}
+                                    />
                                 </FormControl>
                             </Stack>
                             <Stack direction={'column'}>
@@ -329,6 +411,8 @@ export default function Tickets() {
                                         options={project.members}
                                         getOptionLabel={(option)=> option.firstName + " " + option.lastName}
                                         sx={{ width: 300 }}
+                                        onChange={(e,newVal)=> handleTicketFilterChange("assignedTo",newVal)}
+                                        value={ticketFilters.assignedTo}
                                         renderInput={(params) => <TextField {...params} label="Choose user" />}
                                     />
                                 </FormControl>
@@ -341,13 +425,56 @@ export default function Tickets() {
                                         defaultValue="latest"
                                         name="radio-buttons-group"
                                     >
-                                        <FormControlLabel value="female" control={<Radio />} label="Recent" />
-                                        <FormControlLabel value="male" control={<Radio />} label="Oldest" />
+                                        <FormControlLabel 
+                                            checked={ticketFilters.sortBy===1} 
+                                            onChange={(e)=> handleTicketFilterChange("sortBy",1)} 
+                                            value={1} 
+                                            control={<Radio />} 
+                                            label="Recent" />
+                                        <FormControlLabel 
+                                            checked={ticketFilters.sortBy ===-1} 
+                                            onChange={(e)=> handleTicketFilterChange("sortBy",-1)} 
+                                            value={-1} control={<Radio />} 
+                                            label="Oldest" />
                                     </RadioGroup>
                                 </FormControl>
                             </Stack>
                         </Stack>
                     </Paper>
+                    <Stack 
+                        padding={'0 0 20px 0'} 
+                        direction={'row'} 
+                        justifyContent={'flex-end'} 
+                        alignItems={'center'}
+                        gap={1}
+                    >
+                        <Button
+                            variant='contained'
+                            color='success'
+                            size='small'
+                            sx={{
+                                padding:'5px 10px', 
+                                textTransform:'unset',
+                                fontWeight:'bold'
+                            }}
+                            onClick={()=> {
+                                setDisplayFilters(false);
+                                onFetchTickets({page: currentPage, limit, filters:ticketFilters});
+                            }}
+                        >
+                            Run
+                        </Button>
+                        <Button 
+                            size='small'
+                            variant='contained'
+                            onClick={()=> setTicketFilters(defaultFilters)}
+                            sx={{
+                                padding:'5px 10px', 
+                                textTransform:'unset', 
+                                background:'var(--darkest-blue)',
+                                fontWeight:'bold'
+                            }}>Clear fields</Button>
+                    </Stack>
                 </div>
             </div>
             {
@@ -358,7 +485,7 @@ export default function Tickets() {
                         <TableHead>
                             <TableRow>
                                 <TableCell>Title</TableCell>
-                                <TableCell>Created By</TableCell>
+                                <TableCell>Assigned To</TableCell>
                                 <TableCell>Status</TableCell>
                                 <TableCell>Priority</TableCell>
                                 <TableCell>Actions</TableCell>

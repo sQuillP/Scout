@@ -2,7 +2,22 @@ import Ticket from "../schema/Ticket.js";
 import ErrorResponse from "../utility/ErrorResponse.js";
 import asyncHandler from "../utility/asyncHandler.js";
 import status from "../utility/status.js";
-import { updateTicketSchema } from "./validators/Ticket.js";
+import { updateTicketSchema, createTicketSchema } from "./validators/Ticket.js";
+
+function buildTicketQuery(query, filters){
+    if(filters === undefined) return query;
+    Object.keys(filters).forEach((filter)=> {
+        if(Array.isArray(filters[filter]) === true){
+            query[filter] = {
+                $in: filters[filter]
+            };
+        }
+        else {
+            query[filter] = filters[filter]._id
+        }
+    });
+    return query;
+}
 
 
 
@@ -15,18 +30,40 @@ export const getTickets = asyncHandler( async (req,res,next)=> {
     console.log('in gettickets')
     const page = req.query.page || 1;
     const limit = req.query.limit || 5;
+    const filters = req.query.filters;
+
+    const query = {project: req.params.projectId};
+
+    if(filters !== undefined){
+        Object.keys(filters).forEach((filter)=> {
+            if(Array.isArray(filters[filter]) === true){
+                query[filter] = {
+                    $in: filters[filter]
+                };
+            }
+            else {
+                query[filter] = filters[filter]._id
+            }
+        });
+        
+    }
+
+
 
     //Remember to add filters
 
-    const totalTickets = await Ticket.find({project:req.params.projectId}).countDocuments();
+    const totalTickets = await Ticket.find(query).countDocuments();
 
-    const tickets =  await Ticket.find({
-        project: req.params.projectId,
-    })
+    let tickets = Ticket.find(query)
     .populate('assignedTo')
     .skip((page-1)*limit)
     .limit(limit);
 
+    if(filters?.sortBy !== undefined){
+        tickets.sort({createdAt: Number(filters.sortBy)});
+    }
+
+    tickets = await tickets;
 
     res.status(status.OK).json( {
         data: tickets,
@@ -90,4 +127,31 @@ export const updateTicketById = asyncHandler( async (req,res,next)=> {
     res.status(status.OK).json({
         data: updatedTicket
     });
+});
+
+
+
+/**
+ * @description - create a new ticket instance
+ * 
+ */
+export const createTicket = asyncHandler( async (req,res,next)=> {
+
+    const limit = req.query.limit || 10;
+
+    const createdTicket = await Ticket.create(req.body);
+
+
+    const totalItems = await Ticket.countDocuments();
+    
+
+    const tickets = await Ticket.find()
+    .limit(limit);
+
+    res.status(status.CREATED).json({
+        data: tickets,
+        totalItems
+    });
+
+
 });

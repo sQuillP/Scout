@@ -3,7 +3,8 @@ import express from 'express';
 import {
     getTickets, 
     getTicketById,
-    updateTicketById
+    updateTicketById,
+    createTicket,
 } from '../controllers/Ticket.js';
 
 import { validateProjectPermission } from '../middleware/authorization.js';
@@ -17,10 +18,14 @@ import TicketCommentRouter from './TicketComment.js';
 
 const TicketRouter = express.Router({mergeParams: true});
 
+
 TicketRouter.route('/')
 .get(//make sure that tickets are restricted to members of the group to view
     validateProjectPermission(['developer','project_manager','administrator']),
     getTickets
+)
+.post(
+    createTicket
 );
 
 TicketRouter.route("/:ticketId")
