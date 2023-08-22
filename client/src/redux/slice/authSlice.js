@@ -9,18 +9,24 @@ const initialState = {
 };
 
 
+
+
 const authSlice = createSlice({
     name:'auth',
     initialState,
     reducers: {
+        //fetch stored token, if not expired, set the authToken to the fetched token.
+        //
         loginFromStoredToken(state,action) {
             let fetchedToken = localStorage.getItem('token');
             
             if(fetchedToken !== null) {
                 const decodedToken = decode(fetchedToken);
+                console.log(decodedToken);
                 const expDate = new Date(decodedToken.exp*1000).getTime();
                 if(expDate <  Date.now())//if expDate had already happened
                     fetchedToken = null;
+                state.user = decodedToken;
             }
             state.authToken = fetchedToken;
         },
@@ -35,6 +41,7 @@ const authSlice = createSlice({
         builder.addCase(login.fulfilled,(state,{payload})=> {
             state.authToken = payload;
             localStorage.setItem('token',payload);
+            state.user = decode(payload);
         });
 
 
@@ -42,6 +49,7 @@ const authSlice = createSlice({
         builder.addCase(signup.fulfilled,(state,{payload})=> {
             state.authToken = payload;
             localStorage.setItem('token',payload);
+            state.user = decode(payload)
         });
     }
 });

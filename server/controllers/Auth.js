@@ -26,7 +26,7 @@ export const login = asyncHandler( async (req,res,next)=> {
         );
     }
 
-    const fetchedUser = await User.findOne({email}).select('+password');
+    const fetchedUser = await User.findOne({email}).select('+password').lean();
 
     /* if user does not exist */
     if(fetchedUser === null) {
@@ -51,11 +51,11 @@ export const login = asyncHandler( async (req,res,next)=> {
     }
 
     //create user payload without password
-    const userPayload = {...fetchedUser._doc};
-    delete userPayload.password;
+    // const userPayload = {...fetchedUser._doc};
+    delete fetchedUser.password;
 
     //Issue a new jwt token
-    const token = jsonwebtoken.sign(userPayload, process.env.JWT_SECRET,{
+    const token = jsonwebtoken.sign(fetchedUser, process.env.JWT_SECRET,{
         expiresIn: process.env.JWT_EXPIRE
     });
 
@@ -111,3 +111,6 @@ export const signUp = asyncHandler( async (req,res,next)=> {
         token
     });
 });
+
+
+

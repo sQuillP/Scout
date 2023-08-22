@@ -48,6 +48,7 @@ import NewComment from "../components/NewComment";
 import TicketHistoryTable from "../components/TicketHistoryTable";
 import Scout from "../../../axios/scout";
 import { useSelector, useDispatch } from "react-redux";
+import SubmitChangesButton from "../../../components/SubmitChangesButton";
 
 
 
@@ -373,7 +374,7 @@ export default function ViewTicket() {
 
     return (
         <div className="vt-container">
-            {
+            {/* {
                 canEdit && displayPublishChangesButton && (
                 <div className={`vt-submit-changes-container`}>
                 
@@ -403,7 +404,13 @@ export default function ViewTicket() {
                     }
                 </div>
                 )
-            }
+            } */}
+            <SubmitChangesButton
+                onClick={onDisplayConfirmTicketModal}
+                disabled={showConfirmTicketChangesModal}
+                showProgress={showConfirmTicketChangesModal}
+                showButton={canEdit && displayPublishChangesButton}
+            />
             <Snackbar
                 open={openSnackbar}
                 autoHideDuration={3500}

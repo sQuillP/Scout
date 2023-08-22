@@ -18,6 +18,7 @@ import {
     DialogContent,
     Button,
     Switch,
+    CircularProgress,
 
 
 } from '@mui/material';
@@ -29,22 +30,25 @@ import {
  Visibility, 
  VisibilityOff,
  Autorenew,
- Key
+ Key,
+ Publish
 
 } from '@mui/icons-material'
 
 import { useSelector } from 'react-redux';
 
+import {isEqual} from 'lodash';
+
 import Scout from '../../../axios/scout';
 
 import "../styles/ProjectSettings.css";
+import SubmitChangesButton from '../../../components/SubmitChangesButton';
 
 
 export default function ProjectSettings() {
 
     const project = useSelector((store)=> store.project.currentProject);
-
-
+    const user = useSelector((store)=> store.auth.user);
     const [copyHoverMessage, setCopyHoverMessage] = useState('Copy to clipboard');
     const [dialogMessage, setDialogMessage] = useState('');
     const [dialogTitle, setDialogTitle] = useState('');
@@ -54,6 +58,8 @@ export default function ProjectSettings() {
     const [showSnackbar, setShowSnackbar] = useState(false);
     const [showDialog, setShowDialog] = useState(false);
     const [dialogConfirm, setDialogConfirm] = useState(null);
+
+    const [didModify, setDidModify] = useState(false);
 
     const [viewApiKey, setViewApiKey] = useState(false);
 
@@ -74,25 +80,43 @@ export default function ProjectSettings() {
     //if close edit mode without saving, set project details back to original
 
     function updateProjectDetails(field, value) {
-        setProjectDetails({...projectDetails, [field]:value});
+        const updatedValue = {...projectDetails, [field]:value};
+        if( isEqual(updatedValue,initialSettings) === false){
+            setDidModify(true);
+        }
+        else{
+            setDidModify(false);
+        }
+        setProjectDetails(updatedValue);
     }
 
 
 
 
     /* Update the project details */
-    async function onUpdateProjectDetails(){
+    async function fetchProjectUpdate(){
         try{
 
         } catch(err){
 
+        } finally {
+            onCloseDialog();
         }
     }
 
     function switchEditMode() {
+
+        const foundMember= project.members.find(member=> {
+            return member._id === user._id
+        });
+
+        console.log(foundMember)
+        if(foundMember.role !=='administrator') return;
+
         if(editMode === true){
             setProjectDetails(initialSettings);
         }
+        setDidModify(false);
         setEditMode(!editMode);
     }
     
@@ -104,14 +128,28 @@ export default function ProjectSettings() {
 
 
     async function refreshAPIKey() {
-
         setShowDialog(false);
     }
 
     function toggleRefreshKeyDialog() {
-        setDialogConfirm(()=> refresAPIK)
+
+        setDialogConfirm(()=> refreshAPIKey);
+        setDialogTitle('Generate new API key for this project?');
+        setDialogMessage('Please note that after performing these actions, you must update to the latest API key instance in your project.');
+        setShowDialog(true);
     }
 
+    function onCloseDialog(){
+        setShowDialog(false);
+        setEditMode(false);
+    }
+
+    function toggleSaveChangesDialog() {
+        setDialogConfirm(()=> fetchProjectUpdate);
+        setDialogTitle('Save Changes?');
+        setDialogMessage("By clicking accept you will overwrite with newest changes.");
+        setShowDialog(true);
+    }
 
     return (
         <div className="ps-container">
@@ -131,11 +169,11 @@ export default function ProjectSettings() {
 
             >
                 <DialogTitle>
-                    <p  className="text settings-dialog-title">Generate new API key for this project?</p>
+                    <p  className="text settings-dialog-title">{dialogTitle}</p>
                 </DialogTitle>
                 <DialogContent>
                     <Typography>
-                        Please note that after performing these actions, you must update to the latest API key instance in your project.
+                       {dialogMessage}
                     </Typography>
                 </DialogContent>
                 <DialogActions>
@@ -152,7 +190,7 @@ export default function ProjectSettings() {
                         sx={{
                             textTransform:'none'
                         }}
-                        onClick={onConfirmRefreshAPIKey}
+                        onClick={dialogConfirm}
                     >
                         Confirm
                     </Button>
@@ -167,7 +205,7 @@ export default function ProjectSettings() {
                         value={editMode} 
                         onChange={switchEditMode} 
                         control={<Switch />}
-                        label="Allow Editing"
+                        label="Enable Editing"
                         />
                 </Stack>
             </div>
@@ -264,7 +302,7 @@ export default function ProjectSettings() {
                                         title={'Generate new API key'}
                                     >
                                         <IconButton
-                                            onClick={()=>setShowDialog(true)}
+                                            onClick={toggleRefreshKeyDialog}
                                         >
                                             <Autorenew/>
                                         </IconButton>
@@ -275,33 +313,44 @@ export default function ProjectSettings() {
                     </Accordion>
                 </div>
             </div>
-            <div className={`vt-submit-changes-container`}>
-                
-                    <button
-                        className={`vt-submit-changes  ${ showConfirmTicketChangesModal?'vt-submit-disabled':''}`}
-                        onClick={onDisplayConfirmTicketModal}
-                        disabled={showConfirmTicketChangesModal}
-                    >
-                        Publish Changes
-                        <Publish
-                            style={{marginLeft:'10px'}}
-                        />
-                    </button>
-                    {
-                        showConfirmTicketChangesModal && (
-                            <CircularProgress
-                                color="success"
-                                size={'1.5rem'}
-                                sx={{
-                                    position:'absolute',
-                                    top:'-2px',
-                                    left:'40%',
-                                    margin:'10px 0 0 10px',
-                                }}
-                            />
-                        )
-                    }
-                </div>
+            <SubmitChangesButton
+                showButton={editMode}
+                onClick={toggleSaveChangesDialog}
+                disabled={didModify === false || showDialog === true}
+                showProgress={showDialog}
+            />
+           
         </div>
     )
 }
+
+ {/* {
+                editMode === true && (
+            <div className={`vt-submit-changes-container`}>
+                <button
+                    className={`vt-submit-changes  ${ didModify===false||showDialog===true ?'vt-submit-disabled':''}`}
+                    onClick={toggleSaveChangesDialog}
+                    disabled={didModify === false || showDialog === true}
+                >
+                    Publish Changes
+                    <Publish
+                        style={{marginLeft:'10px'}}
+                    />
+                </button>
+                {
+                    showDialog && (
+                        <CircularProgress
+                            color="success"
+                            size={'1.5rem'}
+                            sx={{
+                                position:'absolute',
+                                top:'-2px',
+                                left:'40%',
+                                margin:'10px 0 0 10px',
+                            }}
+                        />
+                    )
+                }
+            </div>
+                )
+            } */}
