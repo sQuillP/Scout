@@ -219,6 +219,7 @@ export const createProject = asyncHandler( async (req,res,next)=> {
 
 
 /**
+ * @description - NOTE this only updates the PERMISSIONS of each user.
  * @method PUT /api/v1/projects/myProjects/:projectId/members
  * @param {{
  *  members: [{
@@ -303,6 +304,58 @@ export const updateProjectMembers = asyncHandler( async (req,res,next)=> {
  * @method DELETE /api/v1/projects/:projectId/members
  * @access project_manager+
  */
-export const deleteMember = asyncHandler((req,res,next)=> {
+export const deleteMember = asyncHandler( async(req,res,next)=> {
 
+    //find project
+    const updatedProject = await Project.findById(req.params.projectId);
+
+    //remove the members in the request body
+    req.body.members.forEach((member)=> {
+        updatedProject.members.splice(
+            updatedProject.members.indexOf(member),
+            1
+        )
+    });
+
+    //save changes and send back to user.
+    await updatedProject.save();
+
+    res.status(status.OK).json({
+        data: updatedProject
+    })
+});
+
+
+
+/**
+ * @description - refresh a project API key
+ * @access - authenticated, administrator only
+ * @method PUT
+ */
+export const refreshProjectKey = asyncHandler( async (req,res,next)=> {
+
+    const newAPIKey = crypto.randomUUID();
+
+    const updatedProject = await Project.findByIdAndUpdate(req.params.projectId,{APIKey: newAPIKey}, {new: true});
+
+
+    res.status(status.OK).json({
+        data: updatedProject
+    })
+});
+
+
+
+/**
+ * @description - Update an existing project
+ * @access - authenticated, administrator only
+ * @method PUT /api/v1/projects/:projectId
+ */
+export const updateProject = asyncHandler( async (req,res,next)=> {
+
+    const project = await Project.findByIdAndUpdate(req.params.projectId,req.body,{new: true});
+
+    res.status(status.OK).json({
+        data: project
+    });
 });

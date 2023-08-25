@@ -1,6 +1,7 @@
 import User from "../../schema/User.js";
 import status from "../../utility/status.js";
-
+import mongoose from "mongoose";
+import * as Yup from 'yup';
 
 /**
  * 
@@ -114,3 +115,23 @@ export function validateUpdateProjectMembers(req, project) {
 
     return [true,''];
 }
+
+
+
+
+export const updateProjectSchema = Yup.object().shape({
+    title: Yup.string().notRequired(),
+    description: Yup.string().notRequired(),
+    members: Yup.array().test('is-string-array','please use array of strings',(value)=> {
+        if(!value || value.length === 0) return true;
+        return Array.isArray(value) && value.every((v)=> typeof v === 'string')
+    }).notRequired(),
+});
+
+
+export const deleteProjectMemberSchema = Yup.object().shape({
+    members: Yup.array().test('valid-objectId-array','use proper objectIds',(value)=> {
+        if(value.length === 0) return false;
+        return value.every(objectId => mongoose.Types.ObjectId.isValid(objectId));
+    })
+});

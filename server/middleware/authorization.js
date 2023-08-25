@@ -3,9 +3,11 @@ import ErrorResponse from "../utility/ErrorResponse.js";
 import status from "../utility/status.js";
 import Invitation from "../schema/Invite.js";
 import { validateCreateInviteSchema, acceptInviteSchema } from "../controllers/validators/Invite.js";
+import { updateProjectSchema, deleteProjectMemberSchema } from "../controllers/validators/ProjectValidators.js";
 import {createTicketSchema} from '../controllers/validators/Ticket.js';
 import User from "../schema/User.js";
 import Project from "../schema/Project.js";
+import crypto from 'crypto';
 
 /**
  * @description - Ensure that a user has proper permissions to do modifications on a project.
@@ -349,6 +351,97 @@ export function validateCreateTicket(){
                 new ErrorResponse(
                     status.INTERNAL_SERVER_ERROR,
                     "Backend error. Pls contact dev team =("
+                )
+            );
+        } finally {
+            return next();
+        }
+    }
+}
+
+
+/**
+ * -user auth is already handled. just validate the request body
+ * 
+ */
+export function validateUpdateProject(){
+    return async (req,res,next)=> {
+
+        const expectedBodyKeys = ['title','description','members'];
+
+        try {
+            if( (await updateTick.isValid(req.body)) === false ){
+                return next(
+                    new ErrorResponse(
+                        "Invalid Request Body",
+                        status.BAD_REQUEST
+                    )
+                );
+            }
+
+            //if updating project has some random key
+            Object.keys(req.body).forEach(key=> {
+                if(expectedBodyKeys.includes(key) === false){
+                    return next(
+                        new ErrorResponse(
+                            status.BAD_REQUEST,
+                            "invalid request body"
+                        )
+                    );
+                }
+            });
+
+            
+        } catch(error) {
+            return next(
+                new ErrorResponse(
+                    "Backend error, please contact dev team",
+                    status.INTERNAL_SERVER_ERROR
+                )
+            );
+        } finally{
+            return next();
+        }
+    }
+}
+
+
+export function validateDeleteMember(){
+    return async (req,res,next)=> {
+        try {
+            if((await deleteProjectMemberSchema.isValid(req.body)) === false){
+                return next(
+                    new ErrorResponse(
+                        status.BAD_REQUEST,
+                        "Invalid request body"
+                    )
+                );
+            }
+
+            
+            const project = await Project.findById(req.params.projectId);
+
+            const projectMembers = new Set([...project.members]);
+
+            //make sure membership exists in the project.
+            for(const member of req.body.members){
+                if(projectMembers.has(member) === false){
+                    return next(
+                        new ErrorResponse(
+                            status.NOT_FOUND,
+                            "User " + member + " does not exist"
+                        )
+                    );
+                }
+            }
+
+
+
+        } catch(error){
+            return next(
+                new ErrorResponse(
+                    status.INTERNAL_SERVER_ERROR,
+                    "backend error, please contact dev team"
                 )
             );
         } finally {

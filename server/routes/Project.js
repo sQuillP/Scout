@@ -4,9 +4,13 @@ import {
     getMyProjects,
     createProject,
     getProjectById,
-    updateProjectMembers
+    updateProjectMembers,
+    updateProject,
+    refreshProjectKey,
+    deleteMember
+
 } from '../controllers/Project.js';
-import { validateProjectPermission } from '../middleware/authorization.js'
+import { validateProjectPermission, validateUpdateProject } from '../middleware/authorization.js'
 import authenticate from '../middleware/authenticate.js';
 import TicketRouter from './Ticket.js';
 
@@ -32,13 +36,27 @@ ProjectRouter.route('/myProjects/:projectId')
 .get(//ensure all members have access to getting project information
     validateProjectPermission(['developer','project_manager','administrator']),
     getProjectById
-);
+)
+.put(
+    validateProjectPermission(['administrator']),
+    validateUpdateProject(),
+    updateProject
+)
 
+ProjectRouter.route("/myProjects/:projectId/refreshAPIKey")
+.put(
+    validateProjectPermission(['administrator']),
+    refreshProjectKey
+);
 
 ProjectRouter.route('/myProjects/:projectId/members')
 .put(
     validateProjectPermission(['administrator']),
     updateProjectMembers
+)
+.delete(
+    validateProjectPermission(['administrator','project_manager']),
+    deleteMember
 );
 
 
