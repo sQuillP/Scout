@@ -15,8 +15,9 @@ const projectSlice = createSlice({
     initialState,
 
     reducers: {
+
+        //use this method for synchronous updates, usually aftera response object dealing with project properties
         updateProjectSync(state, {payload}){
-            console.log(payload)
             state.currentProject = payload;
             state.role = payload.userPermission.role;
         },

@@ -129,6 +129,8 @@ export const updateProjectSchema = Yup.object().shape({
 });
 
 
+
+//check if each string or member is a valid object id
 export const deleteProjectMemberSchema = Yup.object().shape({
     members: Yup.array().test('valid-objectId-array','use proper objectIds',(value)=> {
         if(value.length === 0) return false;

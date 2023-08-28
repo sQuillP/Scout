@@ -10,7 +10,7 @@ import {
     deleteMember
 
 } from '../controllers/Project.js';
-import { validateProjectPermission, validateUpdateProject } from '../middleware/authorization.js'
+import { validateDeleteMember, validateProjectPermission, validateUpdateProject } from '../middleware/authorization.js'
 import authenticate from '../middleware/authenticate.js';
 import TicketRouter from './Ticket.js';
 
@@ -56,6 +56,7 @@ ProjectRouter.route('/myProjects/:projectId/members')
 )
 .delete(
     validateProjectPermission(['administrator','project_manager']),
+    validateDeleteMember(),
     deleteMember
 );
 

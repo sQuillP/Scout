@@ -16,7 +16,8 @@ import {
     Button,
     Tooltip,
     Snackbar,
-    Alert
+    Alert,
+
 } from "@mui/material";
 
 import {
@@ -70,7 +71,9 @@ export default function ProjectMembersTable({showActions = false, containerSX = 
 
     /* menu config */
     const [anchorEl, setAnchorEl] = useState(null);
-    const [selectedRow, setSelectedRow] = useState(-1);
+
+    /*  */
+    const [selectedId, setSelectedId] = useState(null);
 
 
     useEffect(()=> {
@@ -112,24 +115,31 @@ export default function ProjectMembersTable({showActions = false, containerSX = 
     }
 
     //open menu, set the index of the row that was selected
-    function onHandleOpenMenu(e, index) {
+    function onHandleOpenMenu(e, id) {
         setAnchorEl(e.currentTarget);
-        setSelectedRow(index);
+        setSelectedId(id);
     }
 
     //close menu and handle any data changes if necessary
-    function handleCloseMenu(clickedOption) {
-        if(clickedOption === "Remove") {//remove the selected member to be removed.
-            // const updatedMembers = members.filter((row,i)=> i !== selectedRow);
-            // setMembers(updatedMembers);
-        }
+    function handleCloseMenu() {
         setAnchorEl(null);   
-        setSelectedRow(-1);
+        setSelectedId(null);
     }
 
 
     async function onRemoveMember() {
-
+        try{
+            handleCloseMenu();
+            const updatedProject = await Scout.delete('/projects/myProjects/'+project._id+'/members',{data:{
+                members: [selectedId]
+            }});
+            dispatch(updateProjectSync(updatedProject.data.data));
+            console.log(updatedProject.data.data);
+            onOpenSnackbar("Successfully removed member from group","success");
+        } catch(error) {
+            console.log(error, error.message);
+            onOpenSnackbar("Unable to delete member from group","error");
+        } 
     }
 
 
@@ -180,7 +190,20 @@ export default function ProjectMembersTable({showActions = false, containerSX = 
                     {snackbarMessage}
                 </Alert>
             </Snackbar>
-            {showActions && <MenuList onClose={handleCloseMenu} anchorEl={anchorEl} menuItems={['Remove']}/>}
+            {/* {showActions && <MenuList onClose={handleCloseMenu} anchorEl={anchorEl} menuItems={['Remove']}/>} */}
+            {
+                showActions && (
+                    <Menu
+                        open={Boolean(anchorEl)}
+                        onClose={handleCloseMenu}
+                        anchorEl={anchorEl}
+                    >
+                        <MenuItem onClick={onRemoveMember}>
+                            Remove
+                        </MenuItem>
+                    </Menu>
+                )
+            }
             {
                 project !== null && project.members.length !== 0 &&(
                 <TableContainer sx={{borderRadius:'0 0 5px 5px'}} component={Paper}>
@@ -238,7 +261,7 @@ export default function ProjectMembersTable({showActions = false, containerSX = 
                                         </TableCell>
                                         {showActions === true && (
                                             <TableCell align="right">
-                                                <IconButton onClick={(e)=>onHandleOpenMenu(e,index)}>
+                                                <IconButton onClick={(e)=>onHandleOpenMenu(e,member._id)}>
                                                     <MoreVertIcon/>
                                                 </IconButton>
                                             </TableCell>)}

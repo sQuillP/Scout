@@ -107,7 +107,7 @@ export const getProjectById = asyncHandler(async (req,res,next)=> {
         return next(
             new ErrorResponse(
                 status.NOT_FOUND,
-                "Project does not exist"
+                "Getprojectbyid Project does not exist"
             )
         );
     }
@@ -301,18 +301,19 @@ export const updateProjectMembers = asyncHandler( async (req,res,next)=> {
 
 
 /**
+ * @description - delete member and rebuild the response object.
  * @method DELETE /api/v1/projects/:projectId/members
  * @access project_manager+
  */
 export const deleteMember = asyncHandler( async(req,res,next)=> {
 
     //find project
-    const updatedProject = await Project.findById(req.params.projectId);
+    const updatedProject = await Project.findById(req.params.projectId).populate('members');
 
     //remove the members in the request body
     req.body.members.forEach((member)=> {
         updatedProject.members.splice(
-            updatedProject.members.indexOf(member),
+            updatedProject.members.findIndex(projectMember => projectMember._id.toString() === member),
             1
         )
     });
@@ -320,9 +321,28 @@ export const deleteMember = asyncHandler( async(req,res,next)=> {
     //save changes and send back to user.
     await updatedProject.save();
 
+
+    const response = updatedProject.toJSON();
+
+    for(let i = 0; i<response.members.length; i++){
+        const memberPermission = await Permission.findOne({
+            user: response.members[i],
+            project: req.params.projectId,
+        });
+
+        response.members[i]['role'] = memberPermission.role;
+    }
+
+    const fetchedPermission = await Permission.findOne({
+        user: req.user._id,
+        project: req.params.projectId
+    }).lean();
+
+    response['userPermission'] = fetchedPermission;
+
     res.status(status.OK).json({
-        data: updatedProject
-    })
+        data: response,
+    });
 });
 
 

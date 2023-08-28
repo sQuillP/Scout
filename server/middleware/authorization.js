@@ -160,7 +160,7 @@ export function validateCreateInvite(roles){
                 return next(
                     new ErrorResponse(
                         status.NOT_FOUND,
-                        "Project does not exist"
+                        "Middleware Project does not exist"
                     )
                 );
             }
@@ -406,6 +406,11 @@ export function validateUpdateProject(){
 }
 
 
+
+/**
+ * @description - validate request body, then make sure that each member to be deleted belongs to the project.
+ * @returns next() middleware function.
+ */
 export function validateDeleteMember(){
     return async (req,res,next)=> {
         try {
@@ -421,7 +426,9 @@ export function validateDeleteMember(){
             
             const project = await Project.findById(req.params.projectId);
 
-            const projectMembers = new Set([...project.members]);
+            
+            const formattedMembers = project.members.map(member => member._id.toString());
+            const projectMembers = new Set([...formattedMembers]);
 
             //make sure membership exists in the project.
             for(const member of req.body.members){
@@ -434,9 +441,6 @@ export function validateDeleteMember(){
                     );
                 }
             }
-
-
-
         } catch(error){
             return next(
                 new ErrorResponse(

@@ -4,7 +4,7 @@ const ProjectSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
-        maxLength: [20,'Title has maximum of 20 characters.']
+        maxLength: [40,'Title has maximum of 40 characters.']
     },
     description: {
         type: String, 

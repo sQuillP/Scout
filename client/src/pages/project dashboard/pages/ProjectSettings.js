@@ -20,7 +20,6 @@ import {
     Switch,
     CircularProgress,
 
-
 } from '@mui/material';
 
 import {
@@ -35,7 +34,7 @@ import {
 
 } from '@mui/icons-material'
 
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 
 import {isEqual} from 'lodash';
 
@@ -43,12 +42,14 @@ import Scout from '../../../axios/scout';
 
 import "../styles/ProjectSettings.css";
 import SubmitChangesButton from '../../../components/SubmitChangesButton';
-
+import { updateProjectSync } from '../../../redux/slice/projectSlice';
 
 export default function ProjectSettings() {
 
     const project = useSelector((store)=> store.project.currentProject);
     const user = useSelector((store)=> store.auth.user);
+    const dispatch = useDispatch();
+
     const [copyHoverMessage, setCopyHoverMessage] = useState('Copy to clipboard');
     const [dialogMessage, setDialogMessage] = useState('');
     const [dialogTitle, setDialogTitle] = useState('');
@@ -96,7 +97,7 @@ export default function ProjectSettings() {
     /* Update the project details */
     async function fetchProjectUpdate(){
         try{
-
+            
         } catch(err){
 
         } finally {
@@ -127,7 +128,14 @@ export default function ProjectSettings() {
     }
 
 
+
     async function refreshAPIKey() {
+        try {
+            const response = await Scout.post('/myProjects/'+project._id+'/refreshAPIKey');
+            // dispatch(updateProjectSync(response.data.data));
+        } catch(error) {
+            
+        }
         setShowDialog(false);
     }
 
