@@ -151,7 +151,7 @@ export const getProjectById = asyncHandler(async (req,res,next)=> {
     res.status(status.OK).json({
         data: retrievedProject
     });
-})
+});
 
 
 
@@ -175,22 +175,26 @@ export const createProject = asyncHandler( async (req,res,next)=> {
     //new project id
     const projectId = new mongoose.Types.ObjectId();
 
+    const mapRolesToUser = new Map();
+
     //create new permissions for each member
     for(const member of req.body.members) {
-        await Permission.create({
+        const createdPermission = await Permission.create({
             project: projectId,
             user: member._id,
             role:member.role
         });
+        mapRolesToUser.set(member._id, member.role);
     }
 
     //create admin permission for creator
-    await Permission.create({
+    const creatorPermission = await Permission.create({
         project: projectId,
         user: req.user._id,
         role: 'administrator'
     });
 
+    mapRolesToUser.set(req.user._id, 'administrator');
 
 
     //generate an api key
@@ -201,17 +205,29 @@ export const createProject = asyncHandler( async (req,res,next)=> {
     membersArr.push(req.user._id);
 
     //create the project
-    const createdProject = await Project.create({
+    let createdProject = await Project.create({
+        _id: projectId,
         title: req.body.title,
         description: req.body.description,
         members: membersArr,
         APIKey: generatedAPIKey
     });
 
+    createdProject = (await createdProject.populate('members')).toObject();
 
-    //return teh created project.
+    console.log(mapRolesToUser)
+    for(const member of createdProject.members ) {
+        member['role'] = mapRolesToUser.get(member._id.toString());
+        console.log(member);
+    }
+
+
+
+    createdProject['userPermission'] = creatorPermission.toObject();
+
+    //return the created project.
     res.status(status.CREATED).json({
-        data: createdProject.toJSON()
+        data: createdProject
     });
 });
 
@@ -321,30 +337,14 @@ export const deleteMember = asyncHandler( async(req,res,next)=> {
     //save changes and send back to user.
     await updatedProject.save();
 
+    const response = await populateUpdatedProjectResponse(updatedProject.toJSON(), req);
 
-    const response = updatedProject.toJSON();
-
-    for(let i = 0; i<response.members.length; i++){
-        const memberPermission = await Permission.findOne({
-            user: response.members[i],
-            project: req.params.projectId,
-        });
-
-        response.members[i]['role'] = memberPermission.role;
-    }
-
-    const fetchedPermission = await Permission.findOne({
-        user: req.user._id,
-        project: req.params.projectId
-    }).lean();
-
-    response['userPermission'] = fetchedPermission;
+    console.log(response);
 
     res.status(status.OK).json({
         data: response,
     });
 });
-
 
 
 /**
@@ -356,8 +356,10 @@ export const refreshProjectKey = asyncHandler( async (req,res,next)=> {
 
     const newAPIKey = crypto.randomUUID();
 
-    const updatedProject = await Project.findByIdAndUpdate(req.params.projectId,{APIKey: newAPIKey}, {new: true});
+    let updatedProject = await Project.findByIdAndUpdate(req.params.projectId,{APIKey: newAPIKey}, {new: true})
+    .populate('members').lean();
 
+    updatedProject = await populateUpdatedProjectResponse(updatedProject,req);
 
     res.status(status.OK).json({
         data: updatedProject
@@ -373,9 +375,44 @@ export const refreshProjectKey = asyncHandler( async (req,res,next)=> {
  */
 export const updateProject = asyncHandler( async (req,res,next)=> {
 
-    const project = await Project.findByIdAndUpdate(req.params.projectId,req.body,{new: true});
+    let project = await Project.findByIdAndUpdate(req.params.projectId,req.body,{new: true})
+    .populate('members')
+    .lean();
+
+    project = await populateUpdatedProjectResponse(project,req);
 
     res.status(status.OK).json({
         data: project
     });
 });
+
+
+
+
+/**
+ * @description - MUST pass in a project object and a request object with projectId in the params.
+ * Members must also be populated. This can be implemented anywhere that returns a updated project instance.
+ * @param {Object} project - project object from db
+ * @param {Object} req - request object sent out to the user
+ * @returns {Object} Project with populated role fields
+ */
+async function populateUpdatedProjectResponse(project,req){
+    
+    for(let i = 0; i<project.members.length; i++){
+        const memberPermission = await Permission.findOne({
+            user: project.members[i],
+            project: req.params.projectId,
+        });
+
+        project.members[i]['role'] = memberPermission.role;
+    }
+
+    const fetchedPermission = await Permission.findOne({
+        user: req.user._id,
+        project: req.params.projectId
+    }).lean();
+
+    project['userPermission'] = fetchedPermission;
+
+    return project;
+}

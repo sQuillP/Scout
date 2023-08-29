@@ -122,10 +122,6 @@ export function validateUpdateProjectMembers(req, project) {
 export const updateProjectSchema = Yup.object().shape({
     title: Yup.string().notRequired(),
     description: Yup.string().notRequired(),
-    members: Yup.array().test('is-string-array','please use array of strings',(value)=> {
-        if(!value || value.length === 0) return true;
-        return Array.isArray(value) && value.every((v)=> typeof v === 'string')
-    }).notRequired(),
 });
 
 

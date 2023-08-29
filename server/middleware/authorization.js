@@ -370,7 +370,18 @@ export function validateUpdateProject(){
         const expectedBodyKeys = ['title','description','members'];
 
         try {
-            if( (await updateTick.isValid(req.body)) === false ){
+
+            console.log(req.body);
+
+            console.log('isvalid: ',await updateProjectSchema.isValid(req.body));
+
+            delete req.body.APIKey;
+
+            
+            console.log('isvalid: ',await updateProjectSchema.isValid(req.body));
+
+
+            if( (await updateProjectSchema.isValid(req.body)) === false ){
                 return next(
                     new ErrorResponse(
                         "Invalid Request Body",

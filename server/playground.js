@@ -31,18 +31,30 @@ import mongoose from 'mongoose';
 export const updateProjectSchema = Yup.object().shape({
     title: Yup.string().notRequired(),
     description: Yup.string().notRequired(),
-    members: Yup.array().test('is-string-array','please use array of strings',(value)=> {
-        if(!value || value.length === 0) return true;
-        return Array.isArray(value) && value.every((v)=> typeof v === 'string')
-    }).notRequired(),
-    APIKey: Yup.string().notRequired(),
+    // members: Yup.array().test('is-string-array','please use array of strings',(value)=> {
+    //     if(!value || value.length === 0) return true;
+    //     return Array.isArray(value) && value.every((v)=> typeof v === 'string')
+    // }).notRequired(),
 });
 
 const test = {
     members: ['some value','value']
 };
 
-const isvalid = updateProjectSchema.isValidSync(test);
+
+let t2 = {
+    title: 'some title',
+    description: 'this is a description',
+    APIKey:'as;dlfkjas;dlfkj'
+};
+
+let t3 = {
+    // title: 'Project title 9',
+    // description: 'project description this should be long 99',
+    // APIKey: '675a44a3-f3b9-4a04-991f-ae8879137a76'
+  }
+
+const isvalid = updateProjectSchema.isValidSync(t2);
 
 
 console.log(isvalid);

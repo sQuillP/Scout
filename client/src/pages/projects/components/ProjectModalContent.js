@@ -15,6 +15,7 @@ import MembersTable from './MembersTable';
 import Scout from '../../../axios/scout';
 import { updateProjectSync } from '../../../redux/slice/projectSlice';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 
 const MAX_CHAR_COUNT = 1500;
 
@@ -22,6 +23,7 @@ export default function ProjectModalContent({onCloseModal}){
 
 
     const navigation = useNavigate();
+    const dispatch = useDispatch();
 
     /* State for searching DB using API */
     const [searchUserTerm, setSearchUserTerm] = useState('');
@@ -46,6 +48,7 @@ export default function ProjectModalContent({onCloseModal}){
     const searchResultsRef = useRef();
 
     const mountedDebounce = useRef(false);
+
 
     useEffect(()=> {
         if(!!debouncedTerm.trim() === false) return;
@@ -82,10 +85,10 @@ export default function ProjectModalContent({onCloseModal}){
     }
 
     function handleSearchResultClick(newMember) {
-
-        const updatedMembers = [...projectMembers, newMember];
+        const updatedMembers = [...projectMembers, {...newMember, role: 'developer'}];
         setProjectMembers(updatedMembers);
         setShowSearchResults(false);
+        setSearchUserTerm('');
     }
 
     function handleSubmit(e) {
@@ -121,19 +124,21 @@ export default function ProjectModalContent({onCloseModal}){
 
 
     async function createProject(){
+        const requestBody = {
+            title: projectName,
+            description: projectDescription,
+            members: projectMembers.map(member =>{ return {_id: member._id, role: member.role}})
+        };
+
         try {
-            const requestBody = {
-                title: projectName,
-                description: projectDescription,
-                members: projectMembers
-            };
             console.log('submitting', requestBody);
-            // const responseData = await Scout.post('/projects',requestBody);
-            // updateProjectSync(responseData.data);
-            // navigation('/projects/'+responseData.data._id);
+            const responseData = await Scout.post('/projects',requestBody);
+            // console.log(responseData.data.data);
+            dispatch(updateProjectSync(responseData.data.data));
+            navigation('/projects/'+responseData.data.data._id);
         } catch(error) {
-            console.log(error.message);
-        }
+            console.log(error, error.message);
+        } 
     }
 
     /**
@@ -194,7 +199,7 @@ export default function ProjectModalContent({onCloseModal}){
                                 {userResults.map((result)=> {
                                     return (
                                         <div
-                                            key={result.id}
+                                            key={result._id}
                                             onClick={()=> handleSearchResultClick(result)}
                                         >
                                             <SearchResult

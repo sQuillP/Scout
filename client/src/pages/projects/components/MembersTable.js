@@ -47,6 +47,9 @@ export default function MembersTable({ members, onDeleteRow, onUpdateMemberRole}
         onDeleteRow(removeUser);
     }
 
+
+    // function onChangeUserRole()
+
     return (
         <>
             <Modal

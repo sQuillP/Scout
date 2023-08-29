@@ -30,7 +30,9 @@ import {
  VisibilityOff,
  Autorenew,
  Key,
- Publish
+ Publish,
+ Error,
+ Done,
 
 } from '@mui/icons-material'
 
@@ -64,6 +66,9 @@ export default function ProjectSettings() {
 
     const [viewApiKey, setViewApiKey] = useState(false);
 
+    const [snackbarMessage, setSnackbarMessage] = useState("Project details successfully saved");
+    const [snackbarSeverity, setSnackbarSeverity] = useState('error');
+
 
     /* For edit mode */
     const [editMode, setEditMode] = useState(false);
@@ -92,17 +97,24 @@ export default function ProjectSettings() {
     }
 
 
+    function onOpenSnackbar(message,severity) {
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setShowSnackbar(true);
+    }
 
 
     /* Update the project details */
     async function fetchProjectUpdate(){
+        onCloseDialog();
         try{
-            
+            const response = await Scout.put('/projects/myProjects/'+project._id,projectDetails);
+            dispatch(updateProjectSync(response.data.data));
+            onOpenSnackbar("Successfully updated project details","success");
         } catch(err){
-
-        } finally {
-            onCloseDialog();
-        }
+            console.log(err, err.message);
+            onOpenSnackbar("Unable to update project details", "error");
+        } 
     }
 
     function switchEditMode() {
@@ -124,19 +136,24 @@ export default function ProjectSettings() {
 
     function handleClipBoardClick() {
         navigator.clipboard.writeText(project.APIKey);
-        setShowSnackbar(true);
+        onOpenSnackbar('API key copied to clipboard!','success');
     }
 
 
 
+    /**
+     * 
+     */
     async function refreshAPIKey() {
-        try {
-            const response = await Scout.post('/myProjects/'+project._id+'/refreshAPIKey');
-            // dispatch(updateProjectSync(response.data.data));
-        } catch(error) {
-            
-        }
         setShowDialog(false);
+        try {
+            const response = await Scout.put('/projects/myProjects/'+project._id+'/refreshAPIKey');
+            dispatch(updateProjectSync(response.data.data));
+            onOpenSnackbar("A new API key has been generated","success");
+        } catch(error) {
+            console.log(error, error.message);
+            onOpenSnackbar("Unable to refresh API key. Check your network.","error");
+        }
     }
 
     function toggleRefreshKeyDialog() {
@@ -167,8 +184,15 @@ export default function ProjectSettings() {
                 autoHideDuration={2000}
                 anchorOrigin={{horizontal:'center', vertical:'bottom'}}
             >
-                <Paper sx={{padding: '15px'}} elevation={3}>
-                    <Typography>API key copied to clipboard!</Typography>
+                <Paper sx={{padding: '15px', display:'flex', justifyContent:'space-between'}} elevation={3}>
+                    <Typography>{snackbarMessage}&nbsp;&nbsp;</Typography>
+                    {
+                        snackbarSeverity ==='success'?(
+                            <Done sx={{color:'green'}}/>
+                        ):(
+                            <Error sx={{color:'red'}}/>
+                        )
+                    }
                 </Paper>
             </Snackbar>
             <Dialog
@@ -281,7 +305,7 @@ export default function ProjectSettings() {
                                     gap={1}
                                     flexWrap={'wrap'}
                                 >
-                                    <Typography className={`${viewApiKey===false?'blur':''}`}>
+                                    <Typography fontWeight={'bold'} className={`${viewApiKey===false?'blur':''}`}>
                                         {project.APIKey}
                                     </Typography>
                                     <Tooltip
