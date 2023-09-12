@@ -7,7 +7,8 @@ import { updateProjectSchema, deleteProjectMemberSchema } from "../controllers/v
 import {createTicketSchema} from '../controllers/validators/Ticket.js';
 import User from "../schema/User.js";
 import Project from "../schema/Project.js";
-import crypto from 'crypto';
+import bcrypt from 'bcrypt';
+import { validateUpdatePassword, validateUpdateUserDetails } from "../controllers/validators/User.js";
 
 /**
  * @description - Ensure that a user has proper permissions to do modifications on a project.
@@ -477,3 +478,87 @@ export function validateDeleteMember(){
 }
 
 
+/**
+ * @description - make sure the updated password is not equal to the current password
+ * also make sure that there are only two items in the request object.
+ * 
+ */
+export function validateUpdateUserPassword() {
+    return async (req,res,next)=> {
+        try {
+            if(validateUpdatePassword.isValidSync(req.body) === false || Object.keys(req.body).length !== 2){
+                return next(
+                    new ErrorResponse(
+                        status.BAD_REQUEST,
+                        "Invalid request body"
+                    )
+                );
+            }
+
+            const fetchedUser = await User.findById(req.user._id)
+            .select('+password');
+
+            const isValidPassword = await bcrypt.compare(req.body.password, fetchedUser.password);
+            console.log(isValidPassword);
+            if(isValidPassword === false) {
+                return next(
+                    new ErrorResponse(
+                        status.BAD_REQUEST,
+                        "Invalid password"
+                    )
+                );
+            }
+        } catch(error) {
+            return next(
+                new ErrorResponse(
+                    status.INTERNAL_SERVER_ERROR,
+                    "Internal server error validating request body"
+                )
+            );
+        } finally {
+            return next();
+        }
+    }
+}
+
+
+/**
+ * @description - validates types for request body and makes sure
+ * user does not send unnecessary request object values.
+ * @returns 
+ */
+export function validateUpdateUser() {
+    return async (req,res,next)=> {
+        const expectedKeys = ['firstName','lastName','email','profileImage'];
+        try {
+            if(validateUpdateUserDetails.isValidSync(req.body) === false){
+                return next(
+                    new ErrorResponse(
+                        status.BAD_REQUEST,
+                        "Invalid request body"
+                    )
+                )
+            }
+
+            Object.keys(req.body).forEach((key)=> {
+                if(expectedKeys.includes(key) === false) {
+                    return next(
+                        new ErrorResponse(
+                            status.BAD_REQUEST,
+                            "Unexpected key/value pair in request body"
+                        )
+                    );
+                }
+            });
+        } catch(error) {
+            return next(
+                new ErrorResponse(
+                    status.INTERNAL_SERVER_ERROR,
+                    "Server error for updating user middleware"
+                )
+            );
+        } finally {
+            return next();
+        }
+    }
+}

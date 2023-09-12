@@ -6,16 +6,25 @@ import {
     Button,
     Snackbar,
     Alert,
+    IconButton,
+    Tooltip,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
 } from "@mui/material";
 import "./ViewProfile.css";
-import { AccountCircle } from "@mui/icons-material";
+import "./styles/ProfileField.css";
+
+import { AccountCircle, LockResetSharp, ArrowBackSharp, Visibility, VisibilityOff } from "@mui/icons-material";
 import { Form, Formik } from "formik";
 import { userSchema, initialValues } from "./validation";
 import ProfileField from "./components/ProfileField";
 import { useEffect, useState } from "react";
 import Scout from "../../axios/scout";
 import {isEqual} from 'lodash';
-
+import HorizontalNavigation from '../../components/HorizontalNavigation';
+import { useNavigate } from "react-router-dom";
 
 const fieldKeys = ['firstName','lastName','profileImage','password','email'];
 
@@ -30,6 +39,18 @@ export default function ViewProfile() {
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+
+    const [openDialog, setOpenDialog] = useState(false);
+
+    const [password, setPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+
+    const [viewPassword, setViewPassword] = useState(false);
+    const [viewNewPassword, setViewNewPassword] = useState(false);
+
+
+    const navigation = useNavigate();
+
 
     useEffect(()=> {
         if(profile !== null) {
@@ -47,8 +68,6 @@ export default function ViewProfile() {
             password: "",
             newPassword:''
         }
-        console.log('clicked')
-        console.log(form);
         if(isEqual(form, original)){
             onOpenSnackbar("error", "Profile details have not been modified");
             return;
@@ -84,9 +103,109 @@ export default function ViewProfile() {
         setSnackbarOpen(true);
     }
 
+    function onChangePassword() {
+        console.log('changing password');
+        setOpenDialog(true);
+    }
+
+
+    function onCloseDialog() {
+        //more actions
+        setOpenDialog(false);
+        setNewPassword('');
+        setPassword('');
+    }
+
+
+    async function requestPasswordChange() {
+        try {
+            // const response =
+            // make server request
+        } catch(error) {
+
+        }
+    }
+
+    function enablePasswordChange() {
+        console.log(password, newPassword)
+        return password === newPassword || newPassword === '' || password === '' 
+    }
+
+
     console.log(profile);
     return (
         <>
+        <HorizontalNavigation/>
+        <Dialog
+            open={openDialog}
+            onClose={onCloseDialog}
+        >
+            <DialogTitle padding={0}>
+                Change Password
+            </DialogTitle>
+            <DialogContent>
+                <div className="vp-input-container">
+                    <label htmlFor="_cur_password">Enter Password</label>
+                    <input 
+                        type={viewPassword?'text':'password'} 
+                        onChange={(val)=> setPassword(val.target.value)} 
+                        value={password}
+                        className="vp-pf-input"
+                        id="_cur_password"
+                    />
+                    <IconButton 
+                        sx={{
+                            position:'absolute',
+                            right:'10px',
+                            top:'25px'
+                        }}
+                    onClick={()=> setViewPassword(!viewPassword)} size="small">
+                        {
+                            viewPassword ? <VisibilityOff/> : <Visibility/>
+                        }
+                    </IconButton>
+                </div>
+                <div className="vp-input-container">
+                    <label htmlFor="_new_password">Enter New Password</label>
+                    <input 
+                        type={viewNewPassword?'text':'password'} 
+                        onChange={(val)=> setNewPassword(val.target.value)} 
+                        className="vp-pf-input" 
+                        value={newPassword}
+                        id="_new_password"
+                    />
+                    <IconButton 
+                        sx={{
+                            position:'absolute',
+                            right:'10px',
+                            top:'25px'
+                        }}
+                        onClick={()=> setViewNewPassword(!viewNewPassword)} size="small">
+                        {
+                            viewNewPassword ? <VisibilityOff/> : <Visibility/>
+                        }
+                    </IconButton>
+                </div>
+            </DialogContent>
+            <DialogActions>
+                <Button 
+                    sx={{
+                        textTransform:'initial'
+                    }} 
+                    variant="outlined"
+                    color="error"
+                    onClick={onCloseDialog}>Cancel</Button>
+                <Button 
+                    sx={{
+                        textTransform:'initial'
+                    }} 
+                    variant="outlined" 
+                    onClick={onChangePassword}
+                    color='success'
+                    disabled={enablePasswordChange()}
+                >Change password</Button>
+            </DialogActions>
+        </Dialog>
         <Snackbar
             open={snackbarOpen}
             autoHideDuration={2000}
@@ -100,6 +219,21 @@ export default function ViewProfile() {
         {
             showPageDetail === true ? (
                 <div className="vp-container">
+                    <Stack
+                        sx={{
+                            position: 'absolute',
+                            top: '120px',
+                            left: '20px',
+                        }}
+                        direction={'row'}
+                        alignItems={'center'}
+                        gap={1}
+                    >
+                        <IconButton size="small">
+                            <ArrowBackSharp sx={{fontSize:'1.8rem'}} color="lightgray"/>
+                        </IconButton>
+                        <Typography fontSize={'1.3rem'} color={'gray'} variant="body2">Back</Typography>
+                    </Stack>
                     <div className="vp-color-header">
                         <Typography color={'white'} variant="h3" textAlign={'center'}>My Profile</Typography>
                     </div>
@@ -118,7 +252,7 @@ export default function ViewProfile() {
                                     } else {
                                         return (
                                                 <AccountCircle 
-                                                    sx={{height: '175px', width: '175px', color:'gray'}} 
+                                                    sx={{height: '200px', width: '200px', color:'gray'}} 
                                                 />
                                         )
                                     }
@@ -140,9 +274,6 @@ export default function ViewProfile() {
                                     newPassword:''
                                 }}
                                 onSubmit={onUpdateUser}
-                                
-                                // validateOnMount
-                                // validationSchema={userSchema}
                             >
                             {
                                 (formik)=>{
@@ -150,8 +281,8 @@ export default function ViewProfile() {
                                     return (
                                         <Form>
                                             <div className="vp-form-container">
-                                                <Stack direction={'row'} justifyContent={'space-around'} flexWrap={'wrap'}>
-                                                    <div className="vp-form-col">
+                                                <Stack direction={'column'} justifyContent={'center'} alignItems={'center'} flexWrap={'wrap'}>
+                                                    {/* <div className="vp-form-col"> */}
                                                         <ProfileField
                                                             formik={formik} 
                                                             label={"First Name"} 
@@ -165,8 +296,6 @@ export default function ViewProfile() {
                                                             initialToggle={initialToggle}
 
                                                         />
-                                                    </div>
-                                                    <div className="vp-form-col">
                                                         <ProfileField 
                                                             formik={formik} 
                                                             label={"Email"} 
@@ -174,33 +303,21 @@ export default function ViewProfile() {
                                                             initialToggle={initialToggle}
 
                                                         />
-                                                        <ProfileField 
-                                                            formik={formik} 
-                                                            label={"Password"} 
-                                                            fieldLabel={"password"}
+                                                        <ProfileField
+                                                            label={'Profile Image'}
+                                                            fieldLabel={'profileImage'}
+                                                            formik={formik}
                                                             initialToggle={initialToggle}
-
                                                         />
-                                                        <ProfileField 
-                                                            formik={formik} 
-                                                            label={"New Password"} 
-                                                            fieldLabel={"newPassword"}
-                                                            initialToggle={initialToggle}
-
-                                                        />
-                                                    </div>
+                                                       <button type="button" onClick={onChangePassword} className="vp-change-password">Change Password &nbsp;&nbsp;<LockResetSharp style={{fontSize:'2rem'}}/></button>
+                                                        
+                                                    {/* </div> */}
                                                 </Stack>
-                                                <div className="vp-form-bottom">
-                                                    <ProfileField
-                                                        label={'Profile Image'}
-                                                        fieldLabel={'profileImage'}
-                                                        formik={formik}
-                                                        initialToggle={initialToggle}
-                                                    />
-                                                </div>
-                                                <Stack direction={'row'} justifyContent={'center'} paddingTop={'15px'} gap={1}>
+                                                
+                                                <Stack marginTop={'30px'} direction={'row'} justifyContent={'center'} paddingTop={'15px'} gap={1}>
                                                     <button className="vp-btn vp-update" type='submit'>Update</button>
-                                                    <button className="vp-btn vp-cancel" onClick={()=> handleReset(setFieldValue)}>Clear Changes</button>
+                                                    <button type="button" className="vp-btn vp-cancel" onClick={()=> handleReset(setFieldValue)}>Clear Changes</button>
+                                                    {/* <button type="button" onClick={()=> console.log(password, newPassword)}>debug</button> */}
                                                 </Stack>
                                             </div>
                                         </Form>

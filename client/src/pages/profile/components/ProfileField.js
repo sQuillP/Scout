@@ -51,12 +51,15 @@ export default function ProfileField({
         if(fieldLabel === 'password') return '●'.repeat(val.length);
         if(val.length >85) return val.substring(0,85) + "...";
 
+        if(Boolean(val) === false){
+            return "None specified"
+        }
         return val;
     }
 //●
     return (
         <div style={{...style}} className="vp-pf-container">
-                <label htmlFor={fieldLabel}>{label}</label>
+                <label className="pf-label" htmlFor={fieldLabel}>{label}</label>
                 {
                     edit === true ? (
                         <Stack gap={2} alignItems={'center'}  direction={'row'}>
@@ -66,26 +69,12 @@ export default function ProfileField({
                                     ref={inputRef}
                                     id={fieldLabel} 
                                     onChange={handleChange} 
-                                    type={fieldLabel === 'password' ? 'password':'text'} 
+                                    type="text"
                                     onBlur={handleBlur}
-                                    value={fieldLabel === 'password'? values['password']: values[fieldLabel]}
+                                    value={values[fieldLabel]}
                                     className="vp-pf-input"
                                 />
-                                {/* {
-                                    fieldLabel==='password' && (
-                                        <>
-                                            <label htmlFor="_newpassword">New password</label>
-                                            <input
-                                                type="password"
-                                                onChange={handleChange}
-                                                id={'_newpassword'}
-                                                onBlur={handleBlur}
-                                                className="vp-pf-input"
-                                                value={values['newPassword']}
-                                            />
-                                        </>
-                                    )
-                                } */}
+                                
                             </Stack>
 
                             <Tooltip title='Cancel Edit'>
@@ -96,7 +85,7 @@ export default function ProfileField({
                         </Stack>
                         ):(
                             <Stack gap={1}  direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
-                                <Typography variant="body2">{formatValue(values[fieldLabel])}</Typography>
+                                <Typography color={!values[fieldLabel]?'gray':'black'} fontSize={'1.3rem'} variant="body2">{formatValue(values[fieldLabel])}</Typography>
                                 <Tooltip title='Edit Field'>
                                     <IconButton size="small" onClick={onEnableEdit}>
                                         <Edit color="gray"/>

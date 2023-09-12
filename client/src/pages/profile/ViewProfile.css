@@ -1,14 +1,16 @@
 .vp-container {
     box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
     width: 90vw;
-    margin: 20px auto;
+    margin: 90px auto;
     box-sizing: border-box;
     max-width: 2000px;
+    position: relative;
+    ;
 }
 
 .vp-image{
-    height: 175px;
-    width: 175px;
+    height: 200px;
+    width: 200px;
     border-radius: 50%;
     border: 1px solid black;
     object-fit: cover;
@@ -16,7 +18,7 @@
 
 .vp-color-header {
     background: var(--darkest-blue);
-    padding: 10px;
+    padding: 20px;
 }
 
 
@@ -24,8 +26,8 @@
     padding: 20px;
 }
 
-.vp-section:nth-child(2) {
-    border-bottom: 1px solid lightgray;
+.vp-section:nth-child(3) {
+    border-bottom: 2px solid lightgray;
 }
 
 .vp-loading {
@@ -52,7 +54,7 @@
 
 
 .vp-btn {
-    padding: 7px 30px;
+    padding: 10px 30px;
     border: none;
     cursor: pointer;
     color: white;;
@@ -69,4 +71,31 @@
 }
 .vp-update:hover {
     background: #2878ff;
+}
+
+.vp-change-password {
+    padding: 10px 30px;
+    background: #0f9d58;
+    font-weight: bold;
+    font-size: 1.3rem;
+    display: flex;
+    color: white;
+    align-items: center;
+    border: none;
+    border-radius: 50px;
+    margin: 10px 0;
+    cursor: pointer;
+    transition: background 100ms linear;
+}
+
+.vp-change-password:hover {
+    background: darkgreen;
+}
+
+.vp-input-container {
+    position: relative;
+}
+
+.vp-input-container:nth-child(1) {
+    margin-bottom: 40px;
 }

@@ -51,12 +51,46 @@ export const searchUsers = asyncHandler( async (req,res,next)=> {
 });
 
 
-
+/**
+ * @description updates user profile from request body
+ * @method PUT
+ * @access authenticated
+ */
 export const updateProfile = asyncHandler( async (req,res,next)=> {
+
     const updatedUser = await User.findByIdAndUpdate(req.user._id,req.body,{new: true, runValidators: true});
 
+    res.status(status.OK).json({
+        data: updatedUser
+    });
+});
+
+
+
+/**
+ * @description updates a users password for them
+ * @method PUT
+ * @access authenticated
+ */
+export const updatePassword = asyncHandler( async (req,res,next)=> {
+
+    const fetchedUser = await User.findById(req.user._id);
+    const salt = await bcrypt.genSalt();
+    const hash = await bcrypt.hash(req.body.newPassword,salt);
+
+    fetchedUser.password = hash;
+
+    await fetchedUser.save()
+
+    const responseUser = fetchedUser.toObject();
+
+    delete responseUser.password;
     
 
-
+    res.status(status.OK).json({
+        data: responseUser
+    });
 
 });
+
+
