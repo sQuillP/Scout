@@ -1,5 +1,4 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { login, signup } from '../thunk/auth';
 import decode from 'jwt-decode';
 
 const initialState = {
@@ -37,20 +36,7 @@ const authSlice = createSlice({
     },
     extraReducers: (builder)=> {
 
-        //for signing in
-        builder.addCase(login.fulfilled,(state,{payload})=> {
-            state.authToken = payload;
-            localStorage.setItem('token',payload);
-            state.user = decode(payload);
-        });
-
-
-        //for signing up
-        builder.addCase(signup.fulfilled,(state,{payload})=> {
-            state.authToken = payload;
-            localStorage.setItem('token',payload);
-            state.user = decode(payload)
-        });
+       
     }
 });
 

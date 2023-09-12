@@ -18,6 +18,7 @@ import ProtectRoute from './components/ProtectRoute';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { loginFromStoredToken } from './redux/slice/authSlice';
+import ViewProfile from './pages/profile/ViewProfile';
 
 function App() {
 
@@ -46,6 +47,7 @@ function App() {
         <Route path='tickets/:ticketId' element={<ViewTicket/>}/>
         <Route path='settings' element={<ProjectSettings/>}/>
       </Route>
+      <Route path='/profile-details' element={<ProtectRoute> <ViewProfile/> </ProtectRoute>}/>
       <Route path='*' Component={()=> <Navigate to='/auth/login'/>}/>
     </Routes>
   );

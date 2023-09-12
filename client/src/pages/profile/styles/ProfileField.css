@@ -1,0 +1,19 @@
+.vp-pf-container {
+    box-sizing: border-box;;
+    box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+    border-radius: 5px;
+    margin: 10px 0;
+    padding: 10px;
+    width: 100%;
+}
+
+.vp-pf-input {
+    background: lightgray;
+    border: none;
+    outline: none;
+    transition: 100ms linear box-shadow;
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    box-sizing: border-box;
+}

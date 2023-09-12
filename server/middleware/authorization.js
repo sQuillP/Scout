@@ -329,7 +329,6 @@ export function validateInvite(roles) {
 
 
 /**
- * THIS IS WHERE YOU LEFT OFF!
  * @description validate creation of ticket middleware
  */
 export function validateCreateTicket(){
@@ -337,13 +336,25 @@ export function validateCreateTicket(){
     return async (req,res,next)=> {
         try {
             console.log('validate create ticket@@@',req.body);
-            if((await createTicketSchema.isValid(req.body)) === false){
+            let validBody = await createTicketSchema.isValid(req.body);
+            const project = await Project.findById(req.params.projectId);
+
+            if(validBody === false || project === null || project._id.toString() !== req.body.project){
                 return next(
                     new ErrorResponse(
                         status.BAD_REQUEST,
-                        "Invalid body"
+                        "Invalid request body"
                     )
                 )
+            }
+
+            if(project.members.includes(req.body.assignedTo) === false){
+                return next(
+                    new ErrorResponse(
+                        status.NOT_FOUND,
+                        "User " + req.body.assignedTo + " does not belong to project"
+                    )
+                );
             }
 
         } catch(error){
@@ -464,3 +475,5 @@ export function validateDeleteMember(){
         }
     }
 }
+
+

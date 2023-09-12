@@ -95,14 +95,13 @@ export default function CreateTicket({onCloseTicketForm, setTicketData, notifySt
 
         if(validateRequiredFields() === true) return;
 
-        try {
+        try { 
             const createTicketResponse = await Scout.post(`/projects/myProjects/${project._id}/tickets`,ticketForm);
             setTicketData(createTicketResponse.data);
         } catch(error){
             //handle errors for creating ticket
         }finally {
             onCloseTicketForm(true);//this needs to be fixed
-            // notifyStatus("Ticket has been successfully created","success")
         }
         console.log(ticketForm);
     }

@@ -33,6 +33,7 @@ import {
  Publish,
  Error,
  Done,
+ AccountCircle,
 
 } from '@mui/icons-material'
 
@@ -50,6 +51,8 @@ export default function ProjectSettings() {
 
     const project = useSelector((store)=> store.project.currentProject);
     const user = useSelector((store)=> store.auth.user);
+    console.log(user);
+    console.log(project);
     const dispatch = useDispatch();
 
     const [copyHoverMessage, setCopyHoverMessage] = useState('Copy to clipboard');
@@ -238,6 +241,7 @@ export default function ProjectSettings() {
                         onChange={switchEditMode} 
                         control={<Switch />}
                         label="Enable Editing"
+                        disabled={project.userPermission.role !== 'administrator'}
                         />
                 </Stack>
             </div>
@@ -355,34 +359,3 @@ export default function ProjectSettings() {
         </div>
     )
 }
-
- {/* {
-                editMode === true && (
-            <div className={`vt-submit-changes-container`}>
-                <button
-                    className={`vt-submit-changes  ${ didModify===false||showDialog===true ?'vt-submit-disabled':''}`}
-                    onClick={toggleSaveChangesDialog}
-                    disabled={didModify === false || showDialog === true}
-                >
-                    Publish Changes
-                    <Publish
-                        style={{marginLeft:'10px'}}
-                    />
-                </button>
-                {
-                    showDialog && (
-                        <CircularProgress
-                            color="success"
-                            size={'1.5rem'}
-                            sx={{
-                                position:'absolute',
-                                top:'-2px',
-                                left:'40%',
-                                margin:'10px 0 0 10px',
-                            }}
-                        />
-                    )
-                }
-            </div>
-                )
-            } */}

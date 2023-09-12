@@ -1,12 +1,12 @@
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Badge from './Badge'
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { Popover } from '@mui/material';
 import AlertItem from '../pages/projects/components/AlertItem';
-
+import { logout } from '../redux/slice/authSlice';
 
 import "./styles/HorizontalNavigation.css";
 
@@ -60,6 +60,11 @@ export default function HorizontalNavigation() {
     const [anchorEl, updateAnchorEl] = useState(null); 
     const [popoverEl, updatePopoverEl] = useState(null);
 
+    const dispatch = useDispatch();
+
+    const navigate = useNavigate()
+
+
 
     const open = Boolean(anchorEl);
     const openNotification = Boolean(popoverEl);
@@ -79,13 +84,18 @@ export default function HorizontalNavigation() {
     }
 
 
-    function handleCloseUserMenu(e) {
-        console.log(e.target.value)
+    function handleCloseUserMenu() {
         updateAnchorEl(null);
     }
 
     function onDismissNotification() {
          
+    }
+
+    function onLogoutUser() {
+        dispatch(logout());
+        handleCloseUserMenu();
+        navigate('/auth/login');
     }
 
 
@@ -106,7 +116,6 @@ export default function HorizontalNavigation() {
                         <Popover
                             anchorEl={popoverEl}
                             open={openNotification}
-                            // sx={{maxHeight: '500px', overflowY:'hidden'}}
                             onClose={handleCloseNotificationMenu}
                             anchorOrigin={{
                                 vertical: 'bottom',
@@ -143,7 +152,8 @@ export default function HorizontalNavigation() {
                         open={open}
                         onClose={handleCloseUserMenu}
                     >
-                    <MenuItem onClick={handleCloseUserMenu}>Logout</MenuItem>
+                    <MenuItem onClick={onLogoutUser}>Logout</MenuItem>
+                    <MenuItem onClick={()=> navigate('/profile-details')}>Profile Details</MenuItem>
                 </Menu>
                 </li>
             </ul>

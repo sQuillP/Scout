@@ -4,6 +4,11 @@ import { Navigate } from "react-router-dom";
 import decode from 'jwt-decode'
 import { useMemo } from "react";
 
+
+/**
+ * @description - protect a route from being accessed from a non-authenticated user.
+ * @returns 
+ */
 export default function ProtectRoute({children}) {
 
     const { authToken, loading} = useSelector((store)=> store.auth);

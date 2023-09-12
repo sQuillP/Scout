@@ -32,12 +32,13 @@ export default function Project() {
 
     },[loadCurrentProjectFailure]);
 
+    //improve outlet because of page flickering.
     return (
         <>
             <HorizontalNavigation/>
             <VerticalNavigation/>
             {
-                (loadingCurrentProject || currentProject===null)? (<LoadingProject/>):(<Outlet/>)
+                ((loadingCurrentProject || currentProject===null))? (<LoadingProject/>):(<Outlet/>)
             }
         </>
     )

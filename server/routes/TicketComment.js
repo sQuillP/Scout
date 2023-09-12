@@ -5,19 +5,13 @@ import {
     createTicketComment
 } from '../controllers/TicketComment.js';
 
-import {
-    validateProjectPermission
-} from '../middleware/authorization.js';
+
 
 const TicketCommentRouter = Router({mergeParams: true});
 
 //Authorization already provided from parent router.
+//authentication already provided from parent.
 
-TicketCommentRouter.use(
-    validateProjectPermission(
-        ["administrator","project_manager","developer"]
-    )
-);
 
 TicketCommentRouter.route('/')
 .get(getTicketComments)

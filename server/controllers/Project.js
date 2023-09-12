@@ -213,6 +213,7 @@ export const createProject = asyncHandler( async (req,res,next)=> {
         APIKey: generatedAPIKey
     });
 
+    console.log(membersArr);
     createdProject = (await createdProject.populate('members')).toObject();
 
     console.log(mapRolesToUser)
@@ -222,7 +223,19 @@ export const createProject = asyncHandler( async (req,res,next)=> {
     }
 
 
+    const openTickets = await Ticket.find({
+        progress:'open',
+        project:req.params.projectId,
+    }).countDocuments();
 
+    const assignedTickets = await Ticket.find({
+        assignedTo: req.user._id,
+        project: req.params.projectId,
+        $or:[{progress:'open'},{progress:'in_progress'}]
+    }).countDocuments();
+
+    createdProject['openTickets'] = openTickets;
+    createdProject['assignedTickets'] = assignedTickets;
     createdProject['userPermission'] = creatorPermission.toObject();
 
     //return the created project.
@@ -412,7 +425,21 @@ async function populateUpdatedProjectResponse(project,req){
         project: req.params.projectId
     }).lean();
 
-    project['userPermission'] = fetchedPermission;
+    const assignedTickets = await Ticket.find({
+        assignedTo: req.user._id,
+        project: req.params.projectId,
+        $or:[{progress:'open'},{progress:'in_progress'}]
+    }).countDocuments();
 
+
+    //find all open tickets in project.
+    const openTickets = await Ticket.find({
+        progress:'open',
+        project:req.params.projectId,
+    }).countDocuments();
+
+    project['assignedTickets'] = assignedTickets;
+    project['openTickets'] = openTickets;
+    project['userPermission'] = fetchedPermission;
     return project;
 }

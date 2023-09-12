@@ -1,7 +1,7 @@
 import User from "../schema/User.js";
 import asyncHandler from "../utility/asyncHandler.js";
 import status from "../utility/status.js";
-
+import bcrypt from 'bcrypt';
 
 /**
  * @description - for development purposes only.
@@ -36,7 +36,7 @@ export const searchUsers = asyncHandler( async (req,res,next)=> {
         $or: [
             {firstName:{'$regex': term, '$options': 'i'}},
             {lastName: {"$regex": term, '$options': 'i'}},
-            {email: {"$regex": term, "$options":'i'}}
+            {email: {"$regex": term, "$options": 'i'}}
         ]
     };
 
@@ -48,4 +48,15 @@ export const searchUsers = asyncHandler( async (req,res,next)=> {
     res.status(status.OK).json({
         data: searchResult
     });
+});
+
+
+
+export const updateProfile = asyncHandler( async (req,res,next)=> {
+    const updatedUser = await User.findByIdAndUpdate(req.user._id,req.body,{new: true, runValidators: true});
+
+    
+
+
+
 });

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Formik, Form } from 'formik';
+import { Formik, Form, ErrorMessage } from 'formik';
 
 import {useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -26,6 +26,9 @@ export default function Login() {
 
 
     const [viewPassword,updateViewPassword] = useState(false);
+
+    const [loginError, setLoginError] = useState('');
+
     const navigate = useNavigate();
 
     const dispatch = useDispatch();
@@ -39,6 +42,13 @@ export default function Login() {
             navigate('/projects');
         } catch(error) {
             console.log('error has occurred',error.message);
+            console.log(error);
+            if(error?.response?.status === 404){
+                setLoginError('User not found');
+            }
+            else if(error?.response?.status === 401){
+                setLoginError("Invalid login credentials");
+            }
         }
     }
 
@@ -86,6 +96,7 @@ export default function Login() {
                             </div>
                             {errors.password && touched.password && <p className='auth-error required text'>{errors.password}</p>}
                             <div className='submit-container'>
+                                {loginError !== '' && <p className='auth-error required text'>{loginError}</p>}
                                 <Link className='auth-redirect' to='/auth/signup'>Not a user yet? Click here to sign up!</Link>
                                 <button 
                                     className={'submit-btn '+ (!!Object.keys(errors).length?'disabled':'')} 

@@ -7,7 +7,7 @@ import {
     createTicket,
 } from '../controllers/Ticket.js';
 
-import { validateProjectPermission } from '../middleware/authorization.js';
+import { validateCreateTicket, validateProjectPermission } from '../middleware/authorization.js';
 import TicketHistoryRouter from './TicketHistory.js';
 import TicketCommentRouter from './TicketComment.js';
 
@@ -18,24 +18,25 @@ import TicketCommentRouter from './TicketComment.js';
 
 const TicketRouter = express.Router({mergeParams: true});
 
+TicketRouter.use(
+    validateProjectPermission(['developer','project_manager','administrator'])
+);
+
 
 TicketRouter.route('/')
 .get(//make sure that tickets are restricted to members of the group to view
-    validateProjectPermission(['developer','project_manager','administrator']),
     getTickets
 )
 .post(
+    validateCreateTicket(),
     createTicket
 );
 
 TicketRouter.route("/:ticketId")
 .get(
-    //all members
-    validateProjectPermission(['developer','project_manager','administrator']),
     getTicketById
 )
-.put(//all members
-    validateProjectPermission(['developer','project_manager','administrator']),
+.put(
     updateTicketById
 );
 

@@ -137,6 +137,7 @@ export const updateTicketById = asyncHandler( async (req,res,next)=> {
  */
 export const createTicket = asyncHandler( async (req,res,next)=> {
 
+
     const limit = req.query.limit || 10;
 
     const createdTicket = await Ticket.create(req.body);
