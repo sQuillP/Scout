@@ -5,6 +5,7 @@ const initialState = {
     authToken: null,
     loading: false,
     user: null,
+    tokenExp: null,
 };
 
 
@@ -18,20 +19,27 @@ const authSlice = createSlice({
         //
         loginFromStoredToken(state,action) {
             let fetchedToken = localStorage.getItem('token');
-            
-            if(fetchedToken !== null) {
-                const decodedToken = decode(fetchedToken);
-                console.log(decodedToken);
-                const expDate = new Date(decodedToken.exp*1000).getTime();
-                if(expDate <  Date.now())//if expDate had already happened
-                    fetchedToken = null;
-                state.user = decodedToken;
+            try {
+                if(fetchedToken !== null) {
+                    const decodedToken = decode(fetchedToken);
+                    const expDate = new Date(decodedToken.exp*1000).getTime();
+                    state.tokenExp = expDate;
+                    if(expDate <  Date.now())//if expDate had already happened
+                        fetchedToken = null;
+                }
+            } catch(error) {//error parsing the token
+                localStorage.removeItem('token');
             }
             state.authToken = fetchedToken;
         },
+
         logout(state,action) {
             state.authToken = null;
             localStorage.removeItem('token');
+        },
+        updateUserSync(state,action) {
+            console.log('updating user sync')
+            state.user = {...state.user, ...action.payload};
         }
     },
     extraReducers: (builder)=> {
@@ -43,4 +51,4 @@ const authSlice = createSlice({
 
 
 export default authSlice.reducer;
-export const {loginFromStoredToken, logout }  = authSlice.actions;
+export const {loginFromStoredToken, logout, updateUserSync }  = authSlice.actions;

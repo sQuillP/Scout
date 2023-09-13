@@ -27,6 +27,7 @@ import UserSearchResult from "../components/UserSearchResult";
 import { useEffect, useRef, useState } from "react";
 import Scout from "../../../axios/scout";
 import { useSelector } from "react-redux";
+import axios from "axios";
 
 
 export default function Members() {
@@ -53,10 +54,12 @@ export default function Members() {
 
     /* add loading animation when user types into the keyboard. */
     useEffect(()=> {
+        mounted.current = true;
         if(debouncedTerm.trim() === ''){
             setLoadingUsers(false);
             return;
         } 
+        let source = new AbortController();
         ( async ()=> {
             mounted.current = true;
             const queryParams = {
@@ -64,20 +67,25 @@ export default function Members() {
                     term: debouncedTerm,
                     limit: 10,
                     page:1
-                }
+                },
+                signal: source.signal
             };
             try {
                 const response = await Scout.get('/users/search',queryParams);
                 if(mounted.current === false) return;
                 console.log(response.data);
                 setUserSearchResults(response.data.data);
-                setLoadingUsers(false);
             } catch(error) {
                 //handle api error
+            } finally {
+                setLoadingUsers(false);
             }
         })();
 
-        return ()=> mounted.current = false;
+        return ()=>{ 
+            mounted.current = false
+            source.abort();
+        };
 
     },[debouncedTerm])
 

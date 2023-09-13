@@ -3,7 +3,7 @@ import { Formik, Form } from 'formik';
 import * as yup from 'yup';
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { loginFromStoredToken } from '../../redux/slice/authSlice';
+import { loginFromStoredToken, updateUserSync } from '../../redux/slice/authSlice';
 import Scout from '../../axios/scout';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -73,6 +73,10 @@ export default function Signup(){
             const response = await Scout.post('/auth/signup',form);
             localStorage.setItem('token',response.data.token);
             dispatch(loginFromStoredToken());
+
+            const response2 = await Scout.get('/users/myDetails');
+            dispatch(updateUserSync(response2.data.data));
+
             navigate('/projects');
         } catch(error) {
             console.log('unable to sign in...',error.message);

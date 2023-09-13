@@ -7,24 +7,24 @@ import {
     Snackbar,
     Alert,
     IconButton,
-    Tooltip,
     Dialog,
     DialogTitle,
     DialogContent,
     DialogActions,
+    Paper,
 } from "@mui/material";
 import "./ViewProfile.css";
 import "./styles/ProfileField.css";
 
-import { AccountCircle, LockResetSharp, ArrowBackSharp, Visibility, VisibilityOff } from "@mui/icons-material";
+import { AccountCircle, LockResetSharp, ArrowBackSharp, Visibility, VisibilityOff, Elderly, ChildCare } from "@mui/icons-material";
 import { Form, Formik } from "formik";
-import { userSchema, initialValues } from "./validation";
 import ProfileField from "./components/ProfileField";
 import { useEffect, useState } from "react";
 import Scout from "../../axios/scout";
 import {isEqual} from 'lodash';
 import HorizontalNavigation from '../../components/HorizontalNavigation';
 import { useNavigate } from "react-router-dom";
+import { updateUserSync } from "../../redux/slice/authSlice";
 
 const fieldKeys = ['firstName','lastName','profileImage','password','email'];
 
@@ -32,6 +32,8 @@ const fieldKeys = ['firstName','lastName','profileImage','password','email'];
 export default function ViewProfile() {
 
     const profile = useSelector((store)=> store.auth.user)
+    const dispatch = useDispatch();
+
     const [showPageDetail, setShowPageDetail] = useState(false);
     const [initialToggle, setInitialToggle] = useState(false);
     const [disableSubmit, setDisableSubmit] = useState(false); 
@@ -47,9 +49,12 @@ export default function ViewProfile() {
 
     const [viewPassword, setViewPassword] = useState(false);
     const [viewNewPassword, setViewNewPassword] = useState(false);
+    const [loadingPasswordUpdate, setLoadingPasswordUpdate] = useState(false);
+
 
 
     const navigation = useNavigate();
+
 
 
     useEffect(()=> {
@@ -59,29 +64,29 @@ export default function ViewProfile() {
     },[profile]);
 
     async function onUpdateUser(form) {
-        setInitialToggle((t)=> !t);
         const original = {
             firstName: profile.firstName,
             lastName: profile.lastName,
             email: profile.email,
             profileImage: profile.profileImage || "",
-            password: "",
-            newPassword:''
         }
+        setDisableSubmit(true);
         if(isEqual(form, original)){
             onOpenSnackbar("error", "Profile details have not been modified");
             return;
         }
 
         try {
-            //async request.
-            return;
+            const response = await Scout.put('/users/updateDetails',form);
+            dispatch(updateUserSync(response.data.data));
+            onOpenSnackbar("success","Profile has been successfully updated");
         } catch(error) {
             console.log(error, error.message);
             onOpenSnackbar("error","Unable to update profile details");
+        } finally {
+            setInitialToggle((t)=> !t);
+            setDisableSubmit(false);
         }
-
-        console.log(form);
     }
 
     function onClearEditModes(setEditMode) {
@@ -103,11 +108,6 @@ export default function ViewProfile() {
         setSnackbarOpen(true);
     }
 
-    function onChangePassword() {
-        console.log('changing password');
-        setOpenDialog(true);
-    }
-
 
     function onCloseDialog() {
         //more actions
@@ -117,22 +117,31 @@ export default function ViewProfile() {
     }
 
 
+    function onChangePassword() {
+        setOpenDialog(true);
+    }
+
     async function requestPasswordChange() {
         try {
-            // const response =
             // make server request
+            setLoadingPasswordUpdate(true);
+            const response = await Scout.put("/users/changePassword",{password, newPassword});
+            onOpenSnackbar("success","Password successfully updated");
         } catch(error) {
-
+            onOpenSnackbar("error","Unable to update password");
+        } finally {
+            onCloseDialog();
+            setTimeout(()=> {
+                setLoadingPasswordUpdate(false);
+            },500);
         }
     }
 
     function enablePasswordChange() {
-        console.log(password, newPassword)
         return password === newPassword || newPassword === '' || password === '' 
     }
 
 
-    console.log(profile);
     return (
         <>
         <HorizontalNavigation/>
@@ -140,70 +149,117 @@ export default function ViewProfile() {
             open={openDialog}
             onClose={onCloseDialog}
         >
-            <DialogTitle padding={0}>
+            <DialogTitle sx={{wordBreak:'break-all'}} padding={0}>
                 Change Password
             </DialogTitle>
             <DialogContent>
-                <div className="vp-input-container">
-                    <label htmlFor="_cur_password">Enter Password</label>
-                    <input 
-                        type={viewPassword?'text':'password'} 
-                        onChange={(val)=> setPassword(val.target.value)} 
-                        value={password}
-                        className="vp-pf-input"
-                        id="_cur_password"
-                    />
-                    <IconButton 
-                        sx={{
-                            position:'absolute',
-                            right:'10px',
-                            top:'25px'
-                        }}
-                    onClick={()=> setViewPassword(!viewPassword)} size="small">
-                        {
-                            viewPassword ? <VisibilityOff/> : <Visibility/>
-                        }
-                    </IconButton>
-                </div>
-                <div className="vp-input-container">
-                    <label htmlFor="_new_password">Enter New Password</label>
-                    <input 
-                        type={viewNewPassword?'text':'password'} 
-                        onChange={(val)=> setNewPassword(val.target.value)} 
-                        className="vp-pf-input" 
-                        value={newPassword}
-                        id="_new_password"
-                    />
-                    <IconButton 
-                        sx={{
-                            position:'absolute',
-                            right:'10px',
-                            top:'25px'
-                        }}
-                        onClick={()=> setViewNewPassword(!viewNewPassword)} size="small">
-                        {
-                            viewNewPassword ? <VisibilityOff/> : <Visibility/>
-                        }
-                    </IconButton>
-                </div>
+            {
+                (()=> {
+                    if(loadingPasswordUpdate === true) {
+                        return (
+                            <Paper sx={{
+                                height:'200px',
+                                width: '300px'
+
+                            }} elevation={0}>
+                                <Stack height={'100%'} direction={'column'} justifyContent={'center'} alignItems={'center'}>
+                                    <CircularProgress />
+                                    <Typography variant="body2">Updating...</Typography>
+                                </Stack>
+                            </Paper>
+                        )
+                    }
+
+                    return (
+                        <>
+                        <div className="vp-input-container">
+                            <label htmlFor="_cur_password">Enter Old Password</label>
+                            <br/>
+                            <input 
+                                type={viewPassword?'text':'password'} 
+                                onChange={(val)=> setPassword(val.target.value)} 
+                                value={password}
+                                className="vp-pf-input pf-password"
+                                autoComplete="off"
+                                id="_cur_password"
+                            />
+                            <IconButton 
+                                sx={{
+                                    position:'absolute',
+                                    right:'10px',
+                                    top:'25px'
+                                }}
+                            onClick={()=> setViewPassword(!viewPassword)} size="small">
+                                {
+                                    viewPassword ? <VisibilityOff/> : <Visibility/>
+                                }
+                            </IconButton>
+                            <Elderly
+                                sx={{
+                                    position:'absolute',
+                                    top:'31px',
+                                    left:'10px',
+                                }}
+                            />
+                        </div>
+                        <div className="vp-input-container">
+                            <label htmlFor="_new_password">Enter New Password</label> <br/>
+                            <input 
+                                type={viewNewPassword?'text':'password'} 
+                                onChange={(val)=> setNewPassword(val.target.value)} 
+                                autoComplete="off"
+                                className="vp-pf-input pf-password" 
+                                value={newPassword}
+                                id="_new_password"
+                            />
+                            <IconButton 
+                                sx={{
+                                    position:'absolute',
+                                    right:'10px',
+                                    top:'25px'
+                                }}
+                                onClick={()=> setViewNewPassword(!viewNewPassword)} size="small">
+                                {
+                                    viewNewPassword ? <VisibilityOff/> : <Visibility/>
+                                }
+                            </IconButton>
+                            <ChildCare
+                                sx={{
+                                    position:'absolute',
+                                    top:'31px',
+                                    left:'10px',
+                                }}
+                            />
+                        </div>
+                        </>
+                    )
+                })()
+                
+            }
             </DialogContent>
             <DialogActions>
-                <Button 
-                    sx={{
-                        textTransform:'initial'
-                    }} 
-                    variant="outlined"
-                    color="error"
-                    onClick={onCloseDialog}>Cancel</Button>
-                <Button 
-                    sx={{
-                        textTransform:'initial'
-                    }} 
-                    variant="outlined" 
-                    onClick={onChangePassword}
-                    color='success'
-                    disabled={enablePasswordChange()}
-                >Change password</Button>
+            {
+                loadingPasswordUpdate === false && (
+                    <>
+                        <Button 
+                            sx={{
+                                textTransform:'initial'
+                            }} 
+                            variant="outlined"
+                            color="error"
+                            onClick={onCloseDialog}>Cancel</Button>
+                        <Button 
+                            sx={{
+                                textTransform:'initial',
+                            }} 
+                            variant="outlined" 
+                            onClick={requestPasswordChange}
+                            color='success'
+                            disabled={enablePasswordChange()}
+                        >Change password</Button>
+                    </>
+                )
+            }
             </DialogActions>
         </Dialog>
         <Snackbar
@@ -229,7 +285,7 @@ export default function ViewProfile() {
                         alignItems={'center'}
                         gap={1}
                     >
-                        <IconButton size="small">
+                        <IconButton onClick={()=> navigation('/projects')} size="small">
                             <ArrowBackSharp sx={{fontSize:'1.8rem'}} color="lightgray"/>
                         </IconButton>
                         <Typography fontSize={'1.3rem'} color={'gray'} variant="body2">Back</Typography>
@@ -245,7 +301,7 @@ export default function ViewProfile() {
                         >
                             {
                                 (()=> {
-                                    if(profile.profileImage !== null){
+                                    if(!!profile.profileImage){
                                         return (
                                             <img className="vp-image" src={profile.profileImage}/>
                                         )
@@ -270,8 +326,6 @@ export default function ViewProfile() {
                                     lastName: profile.lastName,
                                     email: profile.email,
                                     profileImage: profile.profileImage || "",
-                                    password: profile.password || "",
-                                    newPassword:''
                                 }}
                                 onSubmit={onUpdateUser}
                             >
@@ -315,7 +369,10 @@ export default function ViewProfile() {
                                                 </Stack>
                                                 
                                                 <Stack marginTop={'30px'} direction={'row'} justifyContent={'center'} paddingTop={'15px'} gap={1}>
-                                                    <button className="vp-btn vp-update" type='submit'>Update</button>
+                                                    <button style={{
+                                                        cursor:disableSubmit?'not-allowed':'pointer',
+                                                        opacity:disableSubmit?0.5:1
+                                                        }} disabled={disableSubmit} className="vp-btn vp-update" type='submit'>Update</button>
                                                     <button type="button" className="vp-btn vp-cancel" onClick={()=> handleReset(setFieldValue)}>Clear Changes</button>
                                                     {/* <button type="button" onClick={()=> console.log(password, newPassword)}>debug</button> */}
                                                 </Stack>

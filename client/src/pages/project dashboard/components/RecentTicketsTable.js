@@ -14,16 +14,41 @@ import {
     Tooltip,
     Menu,
     MenuItem,
+    Stack,
+    CircularProgress,
+
 } from "@mui/material";
 
 import { activityRows } from "../dev/dummy_data";
 import { useEffect, useRef, useState, useCallback } from "react";
-import { MoreVert } from "@mui/icons-material";
+import { MoreVert, DataObjectSharp } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import Scout from "../../../axios/scout";
 import { useSelector } from "react-redux";
 
 
+function TicketStatusScreen({children}) {
+    return (
+        <Paper
+            elevation={2}
+            sx={{
+                height:'300px',
+
+            }}
+        >
+            <Stack
+                sx={{height:'100%'}}
+                direction={'column'}
+                justifyContent={'center'}
+                alignItems={'center'}
+
+            >
+               {children}
+            </Stack>
+        </Paper>
+    )
+
+}
 
 
 
@@ -47,10 +72,13 @@ export default function RecentTicketsTable({onSetCardContent}) {
     const openMenu = Boolean(menuRef);
     const {currentProject} = useSelector((store)=> store.project);
 
+
+    const [loadingTickets, setLoadingTickets] = useState(false);
+
     useEffect(()=> {
         if(currentProject === null) return;
-        console.log(currentProject);
-        fetchTicketData({});
+        // console.log(currentProject);
+        // fetchTicketData({});
 
         return ()=> mounted.current = false;
     },[currentProject]);
@@ -96,6 +124,7 @@ export default function RecentTicketsTable({onSetCardContent}) {
         const ticket_url = `projects/myProjects/${currentProject._id}/tickets`;
         mounted.current = true;
         try{
+            setLoadingTickets(true);
             const response = await Scout.get(ticket_url, {params:queryParams});
             if(mounted.current === false) return;
             console.log(response)
@@ -104,6 +133,8 @@ export default function RecentTicketsTable({onSetCardContent}) {
             
         } catch(error) {
             console.log(error, error.message);
+        } finally{
+            setLoadingTickets(false);
         }
     }
 
@@ -125,56 +156,82 @@ export default function RecentTicketsTable({onSetCardContent}) {
                     View Ticket
                 </MenuItem>
             </Menu>
-            <TableContainer component={Paper}>
-                <Table sx={{margin:'0 auto'}}>
-                    <TableHead>
-                        <TableRow>
-                            {activityHeaders.map((activityHeader)=><TableCell key={activityHeader}>{activityHeader}</TableCell>)}
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {ticketData.map((ticket)=> {
-                            return (
-                                <TableRow
-                                    key={ticket._id}
-                                >
-                                    <TableCell>
-                                        {ticket.summary}
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="avatar-wrapper">
-                                            <Avatar sx={avatarSX}>
-                                                {ticket.assignedTo[0]}
-                                            </Avatar>
-                                            {ticket.assignedTo.firstName + " " + ticket.assignedTo.lastName}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        {ticket.progress}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Chip size="small" label={ticket.priority} color={getPriorityColor(ticket.priority)}/>
-                                    </TableCell>
-                                    <TableCell>
-                                        <IconButton onClick={(e)=>onOpenMenu(e,ticket._id)}>
-                                            <MoreVert/>
-                                        </IconButton>
-                                    </TableCell>
-                                </TableRow>
-                            )
-                        })}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-            <TablePagination
-                rowsPerPageOptions={[5, 10, 25]}
-                component="div"
-                count={totalTicketCount}
-                rowsPerPage={limit}
-                page={currentPage-1}
-                onPageChange={onHandlePageChange}
-                onRowsPerPageChange={onHandleRowChange}
-            />
+            {
+                (()=> {
+
+                    if(loadingTickets === true) {
+                        return (
+                            <TicketStatusScreen>
+                                <CircularProgress/>
+                                <Typography variant="body2">Loading tickets</Typography>
+                            </TicketStatusScreen>
+                        )
+                    }
+                    else if(totalTicketCount === 0){
+                        return (
+                            <TicketStatusScreen>
+                                <DataObjectSharp  sx={{fontSize: '5rem', color:'gray'}}/>
+                                <Typography fontSize={'1.3rem'} variant="body2">No Data Available</Typography>
+                            </TicketStatusScreen>
+                        )
+                    }
+                    else return (
+                        <>
+                            <TableContainer component={Paper}>
+                                <Table sx={{margin:'0 auto'}}>
+                                    <TableHead>
+                                        <TableRow>
+                                            {activityHeaders.map((activityHeader)=><TableCell key={activityHeader}>{activityHeader}</TableCell>)}
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {ticketData.map((ticket)=> {
+                                            return (
+                                                <TableRow
+                                                    key={ticket._id}
+                                                >
+                                                    <TableCell>
+                                                        {ticket.summary}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="avatar-wrapper">
+                                                            <Avatar sx={avatarSX}>
+                                                                {ticket.assignedTo[0]}
+                                                            </Avatar>
+                                                            {ticket.assignedTo.firstName + " " + ticket.assignedTo.lastName}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {ticket.progress}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Chip size="small" label={ticket.priority} color={getPriorityColor(ticket.priority)}/>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <IconButton onClick={(e)=>onOpenMenu(e,ticket._id)}>
+                                                            <MoreVert/>
+                                                        </IconButton>
+                                                    </TableCell>
+                                                </TableRow>
+                                            )
+                                        })}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                            <TablePagination
+                                rowsPerPageOptions={[5, 10, 25]}
+                                component="div"
+                                count={totalTicketCount}
+                                rowsPerPage={limit}
+                                page={currentPage-1}
+                                onPageChange={onHandlePageChange}
+                                onRowsPerPageChange={onHandleRowChange}
+                            />
+                        </>
+                    )
+                })()
+           
+            }
         </>
     )
 } 

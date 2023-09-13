@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
 import decode from 'jwt-decode'
-import { useMemo } from "react";
 
 
 /**
@@ -11,29 +10,37 @@ import { useMemo } from "react";
  */
 export default function ProtectRoute({children}) {
 
-    const { authToken, loading} = useSelector((store)=> store.auth);
+    const {tokenExp} = useSelector((store)=> store.auth);
 
-    console.log('protect route ',authToken)
     
     //this needs to be run on the initial render since redux does not have a valid token
-    const validToken = useMemo(()=> _validateToken(),[]);
 
+    console.log('route')
 
+    //run a validation of the token before redux is able to do anything
     function _validateToken() {
-        console.log('valid token called')
         const fetchedToken = localStorage.getItem('token');
+        console.log(fetchedToken)
         if(fetchedToken === null) return false;
-        const decodedToken= decode(fetchedToken);
-        if(new Date(decodedToken.exp*1000).getTime() < Date.now())
+
+        console.log("IN HERE", fetchedToken)
+        try {
+            const decodedToken= decode(fetchedToken);
+            if(new Date(decodedToken.exp*1000).getTime() < Date.now()){
+                localStorage.removeItem('token');
+                return false;
+            }
+            return true;
+
+        } catch(error) {
             return false;
-        
-        return true;
+        }
     }
 
-    console.log(authToken,validToken);
 
     return (
-        authToken !== null || validToken !== false? (
+        //check if token is expired
+        (tokenExp !== null && Date.now() < tokenExp) ||  _validateToken() === true? (
             <>
                 {children}
             </>

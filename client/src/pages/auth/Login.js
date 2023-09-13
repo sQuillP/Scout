@@ -4,7 +4,7 @@ import { Formik, Form, ErrorMessage } from 'formik';
 import {useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Scout from '../../axios/scout';
-import { loginFromStoredToken } from '../../redux/slice/authSlice';
+import { loginFromStoredToken, updateUserSync } from '../../redux/slice/authSlice';
 import * as yup from 'yup';
 
 import "./styles/Login.css";
@@ -39,6 +39,9 @@ export default function Login() {
             const response = await Scout.post('/auth/login',values);
             localStorage.setItem('token',response.data.token);
             dispatch(loginFromStoredToken());//store token in redux
+            const response2 = await Scout.get('/users/myDetails');
+            dispatch(updateUserSync(response2.data.data));
+
             navigate('/projects');
         } catch(error) {
             console.log('error has occurred',error.message);

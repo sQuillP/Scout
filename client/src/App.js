@@ -16,16 +16,28 @@ import ViewTicket from './pages/project dashboard/pages/ViewTicket';
 import ProjectSettings from './pages/project dashboard/pages/ProjectSettings';
 import ProtectRoute from './components/ProtectRoute';
 import { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { loginFromStoredToken } from './redux/slice/authSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginFromStoredToken, updateUserSync } from './redux/slice/authSlice';
 import ViewProfile from './pages/profile/ViewProfile';
-
+import Scout from './axios/scout';
 function App() {
 
   const dispatch = useDispatch();
+  const user = useSelector((store)=> store.auth.user);
 
   useEffect(()=> {
     dispatch(loginFromStoredToken());
+
+    if(user === null) {
+      (async ()=> {
+        try {
+          const responseUser = await Scout.get('/users/myDetails');
+          dispatch(updateUserSync(responseUser.data.data));
+        } catch(error) {
+          console.log(error, error.message);
+        }
+      })();
+    }
   },[]);
 
 

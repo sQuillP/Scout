@@ -3,7 +3,8 @@ import {
     getUsers,
     searchUsers,
     updatePassword,
-    updateProfile
+    updateProfile,
+    getMyDetails,
  } from '../controllers/User.js';
 
 import { validateUpdateUserPassword, validateUpdateUser } from '../middleware/authorization.js';
@@ -23,6 +24,8 @@ UserRouter.route('/updateDetails').put(
     validateUpdateUser(),
     updateProfile
 );
+
+UserRouter.route('/myDetails').get(getMyDetails)
 
 UserRouter.route('/changePassword').put(
     validateUpdateUserPassword(),

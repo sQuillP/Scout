@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import Badge from './Badge'
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import { Popover } from '@mui/material';
+import { Avatar, Popover } from '@mui/material';
 import AlertItem from '../pages/projects/components/AlertItem';
 import { logout } from '../redux/slice/authSlice';
 
@@ -61,8 +61,9 @@ export default function HorizontalNavigation() {
     const [popoverEl, updatePopoverEl] = useState(null);
 
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
-    const navigate = useNavigate()
+    const user = useSelector((store)=> store.auth.user);
 
 
 
@@ -97,7 +98,6 @@ export default function HorizontalNavigation() {
         handleCloseUserMenu();
         navigate('/auth/login');
     }
-
 
 
 
@@ -140,22 +140,33 @@ export default function HorizontalNavigation() {
                         </Popover>
                     </div>
                 </li>
-                <li className="horizontal-nav-item">
-                    <Link className='horizontal-nav-profile-link'>
-                        <p className="text nav-user-text">William Pattison</p>
-                        <img className='horizontal-user-profile' src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxtDZAvImObxjDKS11-n0-BwpvuEEZbiIYC3qbUAorUHLBf7yz8THOXt5v67PNtv6anpE&usqp=CAU'/>
-                    </Link>
-                    <i onClick={onOpenUserMenu} className="nav-down-icon fa-solid fa-sort-down"></i>
-                    <Menu
-                        id="basic-menu"
-                        anchorEl={anchorEl}
-                        open={open}
-                        onClose={handleCloseUserMenu}
-                    >
-                    <MenuItem onClick={onLogoutUser}>Logout</MenuItem>
-                    <MenuItem onClick={()=> navigate('/profile-details')}>Profile Details</MenuItem>
-                </Menu>
-                </li>
+                {
+                    user !== null && (
+                        <>
+                            <li className="horizontal-nav-item">
+                            <Link className='horizontal-nav-profile-link'>
+                                <p className="text nav-user-text">{user.firstName + " " +user.lastName}</p>
+                                {
+                                    !!user.profileImage ? <img className='horizontal-user-profile' src={user.profileImage}/> : (
+                                        <Avatar>{user.firstName[0].toUpperCase() + user.lastName[0].toUpperCase()}</Avatar>
+                                    )
+                                }
+                            </Link>
+                            <i onClick={onOpenUserMenu} className="nav-down-icon fa-solid fa-sort-down"></i>
+                            <Menu
+                                id="basic-menu"
+                                anchorEl={anchorEl}
+                                open={open}
+                                onClose={handleCloseUserMenu}
+                            >
+                                <MenuItem onClick={onLogoutUser}>Logout</MenuItem>
+                                <MenuItem onClick={()=> navigate('/profile-details')}>Profile Details</MenuItem>
+                            </Menu>
+                            </li>
+                        </>
+                    )
+               
+                }
             </ul>
         </div>
     )

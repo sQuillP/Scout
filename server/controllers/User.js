@@ -94,3 +94,18 @@ export const updatePassword = asyncHandler( async (req,res,next)=> {
 });
 
 
+
+
+/**
+ * @description - Send user profile to client
+ * @access - authenticated
+ * @method GET
+ */
+export const getMyDetails = asyncHandler( async (req,res,next)=> {
+
+    const fetchedUser = await User.findById(req.user._id);
+
+    res.status(status.OK).json({
+        data: fetchedUser
+    });
+});

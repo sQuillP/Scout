@@ -1,5 +1,5 @@
 
-import { Alert, Chip, Paper, Snackbar } from "@mui/material";
+import { Alert, Chip, CircularProgress, Paper, Snackbar, Typography, Stack, Button } from "@mui/material";
 import HorizontalNavigation from "../../components/HorizontalNavigation";
 import "./styles/ProjectHome.css";
 import Tooltip from "@mui/material/Tooltip";
@@ -13,7 +13,31 @@ import Modal from "@mui/material/Modal";
 import ProjectModalContent from "./components/ProjectModalContent";
 import { useNavigate } from "react-router-dom";
 import Scout from "../../axios/scout";
+import { Check, Close, DataObjectSharp } from "@mui/icons-material";
 //make a request to get a list of projects for a user.
+
+function TableStatus({children}) {
+    return (
+        <Paper
+            elevation={3}
+            sx={{
+                height:'475px',
+                width:'90vw',
+                margin:'0 auto'
+            }}
+        >
+            <Stack
+                gap={2}
+                direction={'column'}
+                justifyContent={'center'}
+                alignItems={'center'}
+                sx={{height:'100%'}}
+            >
+                {children}
+            </Stack>
+        </Paper>
+    )
+}
 
 
 
@@ -27,6 +51,14 @@ export default function ProjectHome() {
     const [resultsPerPage, setResultsPerPage] = useState(5);
     const [openProjectModal, setOpenProjectModal] = useState(false);
     const [totalProjects, setTotalProjects] = useState(0);
+
+    const [loadingProjects, setLoadingProjects] = useState(false);
+
+    //managing invites
+    const [inviteList, setInviteList] = useState([]);
+    const [totalInvites, setTotalInvites] = useState(0);
+
+
 
 
     /* for error display */
@@ -42,9 +74,11 @@ export default function ProjectHome() {
         setOpenProjectModal(false);
     }
 
+
     useEffect(()=> {
         ( async()=> {
             mounted.current = true;
+            setLoadingProjects(true);
             try{
                 const response = await Scout.get('/projects/myProjects',{params:{page: currentPage, limit: resultsPerPage}});
                 console.log(response.data)
@@ -52,9 +86,13 @@ export default function ProjectHome() {
                     setProjectList(response.data.data);
                     setTotalProjects(response.data.totalItems);
                 }
+
+                //async request to get invites
             } catch(error) {
                 console.log('error');
                 setOpenSnackbar(true);//display error to user
+            } finally{
+                setLoadingProjects(false);
             }
         })();
 
@@ -124,10 +162,7 @@ export default function ProjectHome() {
             >
                 <Alert severity="error">Unable to get projects. Check your connection.</Alert>
             </Snackbar>
-
-            {/* section */}
             <div className="section">
-
                 <div className="project-navigation">
                     <div className="project-nav">
                         <p className="project-welcome text">Project List</p>
@@ -143,111 +178,189 @@ export default function ProjectHome() {
                         >Create New Project <i className="add-icon fas fa-plus"></i></button>
                     </div>
                 </div>
+                {
+                    (()=> {
+                        if(loadingProjects === true) {
+                            return (
+                                <TableStatus>
+                                        <CircularProgress/>
+                                        <Typography fontSize={'1.3rem'} variant="body2">Loading Project Info...</Typography>
+                                </TableStatus>
+                            )
+                        }
 
-                <div className="project-content-wrapper">
-                    <div className="projects-container">
-                        {
-                            projectList.length !== 0 && (
-                                <table cellSpacing={0} className="project-table">
-                                    <thead className="project-table-header">
-                                        <tr className="pt-row-header">
-                                            <th className="pt-item">Project Name</th>
-                                            <th className="pt-item">Member Count</th>
-                                            <th className="pt-item">Open Tickets</th>
-                                            <th className="pt-item">Bug Reports</th>
-                                            <th className="pt-item">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="project-table-body">
-                                        {
-                                            projectList.map(row => {
-                                                return (
-                                                    <tr
-                                                        key={row._id}
-                                                        className="pt-row"
-                                                    >
-                                                        <td className="pt-item">{row.title}</td>
-                                                        <td className="pt-item">
-                                                            <Chip color="info" label={row.members.length}/>
-                                                        </td>
-                                                        <td className="pt-item">
-                                                            <Chip color='warning' label={row.openTickets}/>
-                                                        </td>
-                                                        <td className="pt-item">
-                                                            <Chip color='error' label={row.bugReports}/>
-                                                        </td>
-                                                        <td className="pt-item">
-                                                            <Tooltip title='Options'>
-                                                                <IconButton>
-                                                                    <MoreVertIcon/>
-                                                                </IconButton>
-                                                            </Tooltip>
-                                                            <Tooltip title='View Project'>
-                                                                <IconButton
-                                                                    onClick={()=> onViewProject(row._id)}
-                                                                >
-                                                                    <DoubleArrowIcon/>
-                                                                </IconButton>
-                                                            </Tooltip>
-                                                        </td>
+                        else if(totalProjects === 0) {
+                            return (
+                                <TableStatus>
+                                    <DataObjectSharp sx={{fontSize:'4rem', color:'gray'}}/>
+                                    <Typography fontSize={'2rem'} color={'gray'} variant="body2">No project data available.</Typography>
+                                    <Typography variant="body2" color={'gray'} fontSize={'1.3rem'}>Look for invites or create a new project by clicking the button below.</Typography>
+                                    <Button variant='outlined' onClick={(()=> setOpenProjectModal(true))}>Create New Project</Button>
+                                </TableStatus>
+                            )
+                        }
+                        return (
+                            <div className="project-content-wrapper">
+                                <div className="projects-container">
+                                    {
+                                        projectList.length !== 0 && (
+                                            <table cellSpacing={0} className="project-table">
+                                                <thead className="project-table-header">
+                                                    <tr className="pt-row-header">
+                                                        <th className="pt-item">Project Name</th>
+                                                        <th className="pt-item">Member Count</th>
+                                                        <th className="pt-item">Open Tickets</th>
+                                                        <th className="pt-item">Bug Reports</th>
+                                                        <th className="pt-item">Actions</th>
                                                     </tr>
-                                                )
-                                            })
-                                        }
-                                    </tbody>
-                                </table>
-                            )
-                        }
-                        {
-                            projectList.length === 0 && (
-                                <Paper elevation={0} sx={{height:'50vh'}}>
-                                </Paper>
-                            )
-                        }
-                    </div>
-                    <div className="pt-pagination">
-                        <div className="pagination-item">
-                            <label htmlFor="_page-selector">Number of items</label>
-                            <select 
-                                onChange={handleResultsPerPage} 
-                                name="pt-selector" 
-                                id="_page-selector"
-                                value={resultsPerPage}
-                            >
-                                <option value="5">5</option>
-                                <option value="10">10</option>
-                                <option value="20">20</option>
-                                <option value="50">50</option>
-                            </select>
-                        </div>
-                        <div className="pagination-item">
-                            <p className="text">{(currentPage-1)*resultsPerPage +1} - {Math.min(currentPage*resultsPerPage, totalProjects)} of {totalProjects} </p>
-                            <div>
-                                <Tooltip title="Previous page">
-                                    <IconButton 
-                                        onClick={()=> handlePaginatedResults(-1)} 
-                                        size='small'
-                                        sx={{ opacity:currentPage === 1 ? 0.5: 1}}
-                                        disabled={currentPage === 1}
-                                    >
-                                        <ArrowBackIosIcon htmlColor="white" fontSize="0.7em"/>
-                                    </IconButton>
-                                </Tooltip>
-                                <Tooltip title='Next Page'>
-                                    <IconButton 
-                                        onClick={()=> handlePaginatedResults(1)} 
-                                        size="small"
-                                        disabled={totalProjects <= currentPage*resultsPerPage}
-                                        sx={{opacity: totalProjects <= currentPage*resultsPerPage? 0.5:1}}
-                                    >
-                                        <ArrowForwardIosIcon htmlColor="white" fontSize="0.7em"/>
-                                    </IconButton>
-                                </Tooltip>
+                                                </thead>
+                                                <tbody className="project-table-body">
+                                                    {
+                                                        projectList.map(row => {
+                                                            return (
+                                                                <tr
+                                                                    key={row._id}
+                                                                    className="pt-row"
+                                                                >
+                                                                    <td className="pt-item">{row.title}</td>
+                                                                    <td className="pt-item">
+                                                                        <Chip color="info" label={row.members.length}/>
+                                                                    </td>
+                                                                    <td className="pt-item">
+                                                                        <Chip color='warning' label={row.openTickets}/>
+                                                                    </td>
+                                                                    <td className="pt-item">
+                                                                        <Chip color='error' label={row.bugReports}/>
+                                                                    </td>
+                                                                    <td className="pt-item">
+                                                                        <Tooltip title='Options'>
+                                                                            <IconButton>
+                                                                                <MoreVertIcon/>
+                                                                            </IconButton>
+                                                                        </Tooltip>
+                                                                        <Tooltip title='View Project'>
+                                                                            <IconButton
+                                                                                onClick={()=> onViewProject(row._id)}
+                                                                            >
+                                                                                <DoubleArrowIcon/>
+                                                                            </IconButton>
+                                                                        </Tooltip>
+                                                                    </td>
+                                                                </tr>
+                                                            )
+                                                        })
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        )
+                                    }
+                                    {
+                                        projectList.length === 0 && (
+                                            <Paper elevation={0} sx={{height:'50vh'}}>
+                                            </Paper>
+                                        )
+                                    }
+                                </div>
+                                <div className="pt-pagination">
+                                    <div className="pagination-item">
+                                        <label htmlFor="_page-selector">Number of items</label>
+                                        <select 
+                                            onChange={handleResultsPerPage} 
+                                            name="pt-selector" 
+                                            id="_page-selector"
+                                            value={resultsPerPage}
+                                        >
+                                            <option value="5">5</option>
+                                            <option value="10">10</option>
+                                            <option value="20">20</option>
+                                            <option value="50">50</option>
+                                        </select>
+                                    </div>
+                                    <div className="pagination-item">
+                                        <p className="text">{(currentPage-1)*resultsPerPage +1} - {Math.min(currentPage*resultsPerPage, totalProjects)} of {totalProjects} </p>
+                                        <div>
+                                            <Tooltip title="Previous page">
+                                                <IconButton 
+                                                    onClick={()=> handlePaginatedResults(-1)} 
+                                                    size='small'
+                                                    sx={{ opacity:currentPage === 1 ? 0.5: 1}}
+                                                    disabled={currentPage === 1}
+                                                >
+                                                    <ArrowBackIosIcon htmlColor="white" fontSize="0.7em"/>
+                                                </IconButton>
+                                            </Tooltip>
+                                            <Tooltip title='Next Page'>
+                                                <IconButton 
+                                                    onClick={()=> handlePaginatedResults(1)} 
+                                                    size="small"
+                                                    disabled={totalProjects <= currentPage*resultsPerPage}
+                                                    sx={{opacity: totalProjects <= currentPage*resultsPerPage? 0.5:1}}
+                                                >
+                                                    <ArrowForwardIosIcon htmlColor="white" fontSize="0.7em"/>
+                                                </IconButton>
+                                            </Tooltip>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
+                        )
+                    })()
+                }
             </div>
+            <Paper
+                sx={{
+                    width:'90vw',
+                    margin:'50px auto',
+                    boxSizing:'border-box',
+                    fontSize:'2.5rem'
+                }}
+                elevation={3}
+            >
+                <div className="ph-intro">
+                    <p className="text">Manage Invitations</p>
+                </div>
+                {
+                    (()=> {
+                        return (
+                            <div className="ph-invitations-container">
+                                {
+                                    [1,2,3,4].map((invite)=> {
+                                        return (
+                                            <div key={invite} className="ph-invite-item">
+                                                <Stack
+                                                    direction={'row'}
+                                                    justifyContent={'space-between'}
+                                                >
+                                                    <Typography variant="body2" fontSize={'1.2rem'}>
+                                                        Ezer Application join today!
+                                                    </Typography>
+                                                    <Stack 
+                                                        alignItems={'center'} 
+                                                        justifyContent={'center'} 
+                                                        direction={'row'} gap={0}
+                                                        sx={{marginRight:'50px'}}
+                                                    >
+                                                        <Tooltip title='Reject Invitation'>
+                                                            <IconButton>
+                                                                <Close/>
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                        <Tooltip title={'Accept Invitation'}>
+                                                            <IconButton>
+                                                                <Check/>
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    </Stack>
+                                                </Stack>
+                                            </div>
+                                        )
+                                    })
+                                }
+                            </div>
+                        )
+                    })()
+                }
+            </Paper>
         </div>
     )
 }

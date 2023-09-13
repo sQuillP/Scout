@@ -157,6 +157,23 @@ tbody.pt-item:last-child{
     align-items: center;
 }
 
+
+.ph-invitations-container {
+
+}
+
+.ph-intro {
+    background: var(--darkest-blue);
+    color: white;
+    padding: 20px;
+}
+
+
+.ph-invite-item {
+    border-bottom: 2px solid lightgray;
+    padding: 10px;
+}
+
 @media screen and (max-width: 880px) {
     .project-content-wrapper {
         width: 100%;
