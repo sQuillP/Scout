@@ -11,6 +11,7 @@
 .project-navigation {
     box-shadow: rgba(14,30,37,0.12) 0px 2px 4px 0px, rgba(14,30,37,0.32) 0px 2px 16px 0px;
     width: 90vw;
+    max-width: 1300px;
     margin: 0 auto;
     box-sizing: border-box;
     padding: 20px;
@@ -72,6 +73,7 @@
 
 .project-content-wrapper {
     width: 90vw;
+    max-width: 1300px;
     margin: 0 auto;
 }
 
@@ -143,12 +145,6 @@ tbody.pt-item:last-child{
     margin-left: 20px;
 }
 
-#_page-selector {
-    outline: none;
-    border: none;
-    padding: 5px;
-    font-size: 1.2em;
-}
 
 .pt-empty {
     height: 50vh;
@@ -157,7 +153,12 @@ tbody.pt-item:last-child{
     align-items: center;
 }
 
-
+.pagination-select {
+    padding: 5px;
+    font-size: 1.2em;
+    outline: none;
+    border: none;
+}
 .ph-invitations-container {
 
 }
@@ -171,11 +172,23 @@ tbody.pt-item:last-child{
 
 .ph-invite-item {
     border-bottom: 2px solid lightgray;
-    padding: 10px;
+    padding: 20px;
+}
+
+
+.ph-invitations-paginator{
+    padding: 20px;
+    background: var(--darkest-blue);
+    color: white;
+    
 }
 
 @media screen and (max-width: 880px) {
     .project-content-wrapper {
+        width: 100%;
+    }
+
+    .project-navigation {
         width: 100%;
     }
 
@@ -192,7 +205,6 @@ tbody.pt-item:last-child{
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        width: 100%;
         padding: 0;
     }
 

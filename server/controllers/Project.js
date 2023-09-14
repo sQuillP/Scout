@@ -210,7 +210,8 @@ export const createProject = asyncHandler( async (req,res,next)=> {
         title: req.body.title,
         description: req.body.description,
         members: membersArr,
-        APIKey: generatedAPIKey
+        APIKey: generatedAPIKey,
+        creator: req.user._id,
     });
 
     console.log(membersArr);
@@ -403,6 +404,25 @@ export const updateProject = asyncHandler( async (req,res,next)=> {
 
 
 /**
+ * @description - Delete an existing project
+ * @access - authenticated, admininistrator only
+ * @method DELETE
+ */
+
+export const deleteProject = asyncHandler( async(req,res,next)=> {
+
+
+    await Project.findByIdAndDelete(req.params.projectId);
+
+    res.status(status.OK).json({
+        data: null,
+        message:"Successfully deleted project"
+    });
+});
+
+
+
+/**
  * @description - MUST pass in a project object and a request object with projectId in the params.
  * Members must also be populated. This can be implemented anywhere that returns a updated project instance.
  * @param {Object} project - project object from db
@@ -443,3 +463,4 @@ async function populateUpdatedProjectResponse(project,req){
     project['userPermission'] = fetchedPermission;
     return project;
 }
+

@@ -7,10 +7,11 @@ import {
     updateProjectMembers,
     updateProject,
     refreshProjectKey,
-    deleteMember
+    deleteMember,
+    deleteProject
 
 } from '../controllers/Project.js';
-import { validateDeleteMember, validateProjectPermission, validateUpdateProject } from '../middleware/authorization.js'
+import { validateDeleteMember, validateProjectPermission, validateUpdateProject, validateDeleteProject } from '../middleware/authorization.js'
 import authenticate from '../middleware/authenticate.js';
 import TicketRouter from './Ticket.js';
 
@@ -41,6 +42,10 @@ ProjectRouter.route('/myProjects/:projectId')
     validateProjectPermission(['administrator']),
     validateUpdateProject(),
     updateProject
+)
+.delete(
+    validateDeleteProject(),
+    deleteProject
 )
 
 ProjectRouter.route("/myProjects/:projectId/refreshAPIKey")

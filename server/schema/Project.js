@@ -1,5 +1,11 @@
 import mongoose from 'mongoose';
 import Ticket from './Ticket.js'
+import Permission from './Permission.js';
+import Invitation from './Invite.js';
+
+
+
+
 const ProjectSchema = new mongoose.Schema({
     title: {
         type: String,
@@ -14,7 +20,6 @@ const ProjectSchema = new mongoose.Schema({
     members: {
        type: [{type: mongoose.Schema.ObjectId, ref:'User'}],
        validate: {
-
             //prevent any duplicate ids from getting into the db.
             validator: function(arr){
                 let uniqueIds = new Set();
@@ -29,6 +34,10 @@ const ProjectSchema = new mongoose.Schema({
             message:"Each user must be unique in the project"
         }
     }, 
+    creator: {
+        type: mongoose.Schema.ObjectId,
+        ref:'User',
+    },
     APIKey: {
         type: String,
         required: true
@@ -43,14 +52,19 @@ const ProjectSchema = new mongoose.Schema({
 //     next();
 // });
 
-
 /* Cascade delete all tickets associated with the project. */
-ProjectSchema.pre('remove',async function(next) {
-    await Ticket.deleteMany({
-        project: this._id
-    });
+// ProjectSchema.pre('remove',async function(next) {
+//     await Ticket.deleteMany({project: this._id});
+//     await Permission.deleteMany({project: this._id});
+//     next();
+// });
 
-    await next();
+ProjectSchema.pre('findOneAndDelete', async function(next) {
+    console.log('fineONeAndDelete',this._conditions)
+    await Ticket.deleteMany({project: this._conditions._id});
+    await Permission.deleteMany({project: this._conditions._id});
+    await Invitation.deleteMany({project: this._conditions._id});
+    next();
 })
 
 const Project = mongoose.model("Project",ProjectSchema);

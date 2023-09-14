@@ -12,7 +12,8 @@ import {
     Paper,
     Button,
     Typography,
-    Box
+    Box,
+    Stack
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useState } from 'react';
@@ -30,7 +31,7 @@ const modalSX = {
  
 
 
-export default function MembersTable({ members, onDeleteRow, onUpdateMemberRole}) {
+export default function MembersTable({ members, onDeleteRow, updateMemberRole}) {
 
     const [openConfirmModal, setOpenConfirmModal] = useState(false);
     const [removeUser, setRemoveUser] = useState(null);
@@ -45,6 +46,7 @@ export default function MembersTable({ members, onDeleteRow, onUpdateMemberRole}
         if(removeUser===null) return;
         console.log('removing user', removeUser);
         onDeleteRow(removeUser);
+        setOpenConfirmModal(false);
     }
 
 
@@ -84,21 +86,27 @@ export default function MembersTable({ members, onDeleteRow, onUpdateMemberRole}
                                 <TableRow
                                     key={member._id}
                                 >
-                                    <TableCell sx={{display:'flex', alignItems:'center'}}>
-                                        <Avatar
-                                            sx={{height:'30px', width:'30px', fontSize:'1em', marginRight:'10px'}}>
-                                            {member.firstName[0].toUpperCase() + member.lastName[0].toUpperCase()}
-                                        </Avatar>
-                                        <p className="text">{member.firstName + " " + member.lastName}</p>
+                                    <TableCell>
+                                        <Stack
+                                            direction={'row'}
+                                            justifyContent={'flex-start'}
+                                            alignItems={'center'}
+                                        >
+                                            <Avatar
+                                                sx={{height:'30px', width:'30px', fontSize:'1em', marginRight:'10px'}}>
+                                                {member.firstName[0].toUpperCase() + member.lastName[0].toUpperCase()}
+                                            </Avatar>
+                                            <p className="text">{member.firstName + " " + member.lastName}</p>
+                                        </Stack>
                                     </TableCell>
                                     <TableCell>{member.email}</TableCell>
                                     <TableCell>
-                                        <select className="pm-role-select">
+                                        <select onChange={(e)=> updateMemberRole(member,e.target.value)} value={member.role} className="pm-role-select">
                                             <option value="developer" className="pm-role-option">Developer</option>
-                                            <option value="pm" className="pm-role-option">
+                                            <option value="project_manager" className="pm-role-option">
                                                 Project Manager
                                             </option>
-                                            <option value="admin" className="pm-role-option">
+                                            <option value="administrator" className="pm-role-option">
                                                 Administrator
                                             </option>
                                         </select>

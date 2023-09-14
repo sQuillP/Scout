@@ -23,10 +23,10 @@ const SignupSchema = yup.object().shape({
 });
 
 const initialValues = {
-    firstName:'will',
-    lastName:'pattison',
-    email:'will@gmail.com',
-    password:'abc123',
+    firstName:'',
+    lastName:'',
+    email:'',
+    password:'',
     profileImage:'',
 };
 
@@ -66,6 +66,7 @@ export default function Signup(){
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [openSnackbar, setOpenSnackbar] = useState(false);
+
 
     async function onSubmit(form) {
 

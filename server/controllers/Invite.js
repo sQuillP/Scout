@@ -1,30 +1,28 @@
 import asyncHandler from "../utility/asyncHandler.js";
 import Invitation from "../schema/Invite.js";
-import ErrorResponse from "../utility/ErrorResponse.js";
 import status from "../utility/status.js";
 import Project from "../schema/Project.js";
 import Permission from "../schema/Permission.js";
-import mongoose from 'mongoose';
 
 
 /**
- * DONE
  * @description - Get all the invites associated with a user
  * @method - GET /api/v1/invite
  * @access authenticated
  */
 export const getMyInvites = asyncHandler( async (req,res,next)=> {
 
-    const limit = req.query.limit || 10;
-    const page = req.query.page || 1;
+    const limit = +req.query.limit || 5;
+    const page = +req.query.page || 1;
 
 
-
+    console.log(req.query)
     const myInvites = await Invitation.find({
         user: req.user._id
     })
     .skip((page-1)*limit)
-    .limit(limit);    
+    .limit(limit)
+    .populate('project');    
 
     const totalInvites = await Invitation.countDocuments({user:req.user._id});
 
@@ -95,8 +93,15 @@ export const acceptInvite = asyncHandler( async (req,res,next)=> {
     //delete the created invitation as user has been added to project
     await fetchedInvitation.deleteOne();
 
+    const updatedInvitations = await Invitation.find({user:req.user._id})
+    .populate('user')
+    .limit(5);
+
+    const totalItems = await Invitation.countDocuments({user:req.user._id});
+
     res.status(status.OK).json({
-        data: fetchedProject
+        data: updatedInvitations,
+        totalItems
     });
 });
 
@@ -105,12 +110,20 @@ export const acceptInvite = asyncHandler( async (req,res,next)=> {
  * @description - when user declines invitation, just delete the current one that exists.
  */
 export const rejectInvite = asyncHandler( async (req,res,next)=> {
-    const fetchedInvitation = await Invitation.findById(req.body);
+    const fetchedInvitation = await Invitation.findById(req.body.invitation);
     
     await fetchedInvitation.deleteOne();
 
+    const updatedInvitations = await Invitation.find({user:req.user._id})
+    .populate('project')
+    .limit(5);
+
+    const totalItems = await Invitation.countDocuments({user:req.user._id});
+
+
     res.status(status.OK).json({
-        data: fetchedInvitation
+        data: updatedInvitations,
+        totalItems
     });
 });
 

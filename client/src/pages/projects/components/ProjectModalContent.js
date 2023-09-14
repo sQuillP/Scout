@@ -29,7 +29,6 @@ export default function ProjectModalContent({onCloseModal}){
     const [searchUserTerm, setSearchUserTerm] = useState('');
     const debouncedTerm = useDebounce(searchUserTerm,1000);
 
-
     /* User data that comes from the api request */
     const [userResults,setUserResults] = useState([]);
 
@@ -54,13 +53,16 @@ export default function ProjectModalContent({onCloseModal}){
         if(!!debouncedTerm.trim() === false) return;
         mountedDebounce.current = true;
 
+        const cancel = new AbortController();
+
         ( async ()=> {
             const requestParams = {
                 params: {
                     page: 1,
                     limit: 10,
                     term: debouncedTerm
-                }
+                },
+                signal: cancel.signal
             };
             try{
                 const searchResponse = await Scout.get('/users/search',requestParams);
@@ -75,7 +77,10 @@ export default function ProjectModalContent({onCloseModal}){
         })();
 
 
-        return ()=> mountedDebounce.current = false;
+        return ()=>{ 
+            mountedDebounce.current = false;
+            cancel.abort();
+        }
     },[debouncedTerm]);
 
 
@@ -96,11 +101,6 @@ export default function ProjectModalContent({onCloseModal}){
     }
 
 
-    //this is where you l eft off.
-    function onUpdateMemberRole() {
-
-    }
-
 
     function handleDescriptionChange(e) {
         if(charCount > MAX_CHAR_COUNT) return;
@@ -117,8 +117,8 @@ export default function ProjectModalContent({onCloseModal}){
     }
 
 
-    function onRemoveAddedMember(id) {
-        const newAddedMemberList = projectMembers.filter(member => member._id !== id);
+    function onRemoveAddedMember(removeMember) {
+        const newAddedMemberList = projectMembers.filter(member => member._id !== removeMember._id);
         setProjectMembers(newAddedMemberList);
     }
 
@@ -138,7 +138,23 @@ export default function ProjectModalContent({onCloseModal}){
             navigation('/projects/'+responseData.data.data._id);
         } catch(error) {
             console.log(error, error.message);
-        } 
+        } finally {
+            onCloseModal()
+        }
+    }
+
+
+    function onUpdateMemberRole(member,updatedRole) {
+        const foundMember = projectMembers.findIndex((memberInArr)=> member._id === memberInArr._id);
+        const membersCpy = [...projectMembers];
+        membersCpy[foundMember].role = updatedRole
+        setProjectMembers(membersCpy)
+    }
+
+
+    function disableSubmit() {
+        return (!projectName || !projectDescription)
+            
     }
 
     /**
@@ -169,6 +185,7 @@ export default function ProjectModalContent({onCloseModal}){
                             className='pm-field pm-input'
                             value={projectName}
                             onChange={(e)=> setProjectName(e.target.value)}
+                            autoComplete='off'
                         />
                         <i className="input-icon pm-name-icon fa-solid fa-heading"></i>
                     </div>
@@ -218,7 +235,10 @@ export default function ProjectModalContent({onCloseModal}){
                     <p className="text">Members List</p>
                 </div>
                 {!!projectMembers.length? 
-                    <MembersTable onDeleteRow={onRemoveAddedMember} members={projectMembers}/> : (
+                    <MembersTable 
+                        onDeleteRow={onRemoveAddedMember} 
+                        updateMemberRole={onUpdateMemberRole} 
+                        members={projectMembers}/> : (
                         <div className="pm-no-members">
                             <p className="text">No Members Added</p>
                         </div>
@@ -245,6 +265,8 @@ export default function ProjectModalContent({onCloseModal}){
                     className="pm-submit-btn"
                     type='submit'
                     onClick={createProject}
+                    disabled={disableSubmit()}
+                    style={{opacity:disableSubmit()?0.5:1, cursor: disableSubmit()?'not-allowed':'pointer' }}
                 >
                     Create project
                     <i 

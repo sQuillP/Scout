@@ -340,7 +340,7 @@ export default function Tickets() {
                                         />
                                 </FormControl>
                             </Stack>
-                            <Stack direction={'column'}>
+                            {/* <Stack direction={'column'}>
                                 <FormControl>
                                     <FormLabel sx={{marginBottom: '15px'}}>Created By</FormLabel>
                                     <Autocomplete
@@ -354,7 +354,7 @@ export default function Tickets() {
                                         value={ticketFilters.createdBy}
                                     />
                                 </FormControl>
-                            </Stack>
+                            </Stack> */}
                             <Stack direction={'column'}>
                                 <FormControl>
                                     <FormLabel>Ticket Type</FormLabel>

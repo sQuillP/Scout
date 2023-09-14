@@ -28,9 +28,10 @@ function App() {
   useEffect(()=> {
     dispatch(loginFromStoredToken());
 
-    if(user === null) {
+    if(user === null && localStorage.getItem('token') !== null) {
       (async ()=> {
         try {
+          console.log('fetching profile')
           const responseUser = await Scout.get('/users/myDetails');
           dispatch(updateUserSync(responseUser.data.data));
         } catch(error) {

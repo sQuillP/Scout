@@ -18,8 +18,6 @@ import {
     DialogContent,
     Button,
     Switch,
-    CircularProgress,
-
 } from '@mui/material';
 
 import {
@@ -30,10 +28,8 @@ import {
  VisibilityOff,
  Autorenew,
  Key,
- Publish,
  Error,
  Done,
- AccountCircle,
 
 } from '@mui/icons-material'
 
@@ -46,32 +42,32 @@ import Scout from '../../../axios/scout';
 import "../styles/ProjectSettings.css";
 import SubmitChangesButton from '../../../components/SubmitChangesButton';
 import { updateProjectSync } from '../../../redux/slice/projectSlice';
+import ConfirmDeleteProject from '../components/ConfirmDeleteProject';
+import {useNavigate}from 'react-router-dom'
 
 export default function ProjectSettings() {
 
     const project = useSelector((store)=> store.project.currentProject);
     const user = useSelector((store)=> store.auth.user);
-    console.log(user);
-    console.log(project);
+    console.log(project.userPermission.role, project.userPermission.role === 'administrator');
     const dispatch = useDispatch();
 
     const [copyHoverMessage, setCopyHoverMessage] = useState('Copy to clipboard');
     const [dialogMessage, setDialogMessage] = useState('');
     const [dialogTitle, setDialogTitle] = useState('');
-
-
-
     const [showSnackbar, setShowSnackbar] = useState(false);
     const [showDialog, setShowDialog] = useState(false);
     const [dialogConfirm, setDialogConfirm] = useState(null);
-
     const [didModify, setDidModify] = useState(false);
-
     const [viewApiKey, setViewApiKey] = useState(false);
-
     const [snackbarMessage, setSnackbarMessage] = useState("Project details successfully saved");
     const [snackbarSeverity, setSnackbarSeverity] = useState('error');
 
+    const [deleteProjectDialog, setOpenDeleteProjectDialog] = useState(false);
+    
+    const navigate = useNavigate();
+
+    console.log(project.userPermission);
 
     /* For edit mode */
     const [editMode, setEditMode] = useState(false);
@@ -126,7 +122,6 @@ export default function ProjectSettings() {
             return member._id === user._id
         });
 
-        console.log(foundMember)
         if(foundMember.role !=='administrator') return;
 
         if(editMode === true){
@@ -179,12 +174,24 @@ export default function ProjectSettings() {
         setShowDialog(true);
     }
 
+
+    async function onDeleteProject() {
+        try {
+            await Scout.delete('/projects/myProjects/'+project._id);
+            navigate('/projects');
+        } catch(error) {
+            console.log(error, error.message);
+            onOpenSnackbar("Unable to delete project","error");
+            setOpenDeleteProjectDialog(false);
+        }
+    }
+
     return (
         <div className="ps-container">
             <Snackbar
                 open={showSnackbar}
                 onClose={()=> setShowSnackbar(false)}
-                autoHideDuration={2000}
+                autoHideDuration={3000}
                 anchorOrigin={{horizontal:'center', vertical:'bottom'}}
             >
                 <Paper sx={{padding: '15px', display:'flex', justifyContent:'space-between'}} elevation={3}>
@@ -198,6 +205,11 @@ export default function ProjectSettings() {
                     }
                 </Paper>
             </Snackbar>
+            <ConfirmDeleteProject
+                open={deleteProjectDialog}
+                onClose={()=> setOpenDeleteProjectDialog(false)}
+                onConfirm={onDeleteProject}
+            />
             <Dialog
                 open={showDialog}
                 onClose={()=> setShowDialog(false)}
@@ -230,7 +242,6 @@ export default function ProjectSettings() {
                         Confirm
                     </Button>
                 </DialogActions>
-
             </Dialog>
             <div className="ps-header">
                 <Stack direction={'row'} justifyContent={'space-between'}>
@@ -348,6 +359,16 @@ export default function ProjectSettings() {
                         </AccordionDetails>
                     </Accordion>
                 </div>
+                <Button
+                    onClick={()=>setOpenDeleteProjectDialog(true)}
+                    color='error'
+                    variant='contained'
+                    sx={{margin: '20px 0'}}
+                    disabled={project.userPermission.role !== 'administrator'}
+                >
+                    Delete this project
+                </Button>
+
             </div>
             <SubmitChangesButton
                 showButton={editMode}

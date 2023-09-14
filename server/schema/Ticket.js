@@ -45,8 +45,15 @@ TicketSchema.pre('remove', async function(next) {
     await TicketHistory.deleteMany({
         ticket: this._id
     });
+    return next();
 });
 
+
+TicketSchema.pre('deleteMany',async function(next) {
+    console.log('ticket delete many', this._conditions)
+    await TicketHistory.deleteMany(this._conditions);    
+    return next();
+})
 
 const Ticket = mongoose.model('Ticket',TicketSchema);
 

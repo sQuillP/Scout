@@ -9,6 +9,7 @@ import * as yup from 'yup';
 
 import "./styles/Login.css";
 import { Link } from 'react-router-dom';
+import { Typography } from '@mui/material';
 
 const LoginSchema = yup.object().shape({
     email: yup.string().email().required("Please provide a valid email"),
@@ -41,7 +42,6 @@ export default function Login() {
             dispatch(loginFromStoredToken());//store token in redux
             const response2 = await Scout.get('/users/myDetails');
             dispatch(updateUserSync(response2.data.data));
-
             navigate('/projects');
         } catch(error) {
             console.log('error has occurred',error.message);
@@ -66,8 +66,10 @@ export default function Login() {
             {(formik)=> {
                 const {errors, touched, isValid, dirty, handleChange, values, handleBlur} = formik;
                 return(
+                    <>
+                    <p>welcome</p>
                     <div className="login-content">
-                        <p className="login-title">Scout Sign In</p>
+                        <p className="text login-title">Scout Sign In</p>
                         <Form>
                             <div className="field">
                                 <label htmlFor="email">Email <span className='required'>*</span></label>
@@ -109,6 +111,7 @@ export default function Login() {
                             </div>
                         </Form>
                     </div>
+                    </>
                 );
             }}
         </Formik>

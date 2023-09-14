@@ -84,6 +84,7 @@ async function seedProjects(uids) {
             description:'project description this should be long '+(i+1),
             members:projectUsers,
             _id: projectId,
+            creator: projectUsers[NUM_USERS-1]._id,
             APIKey: crypto.randomUUID()
         });
 
@@ -179,7 +180,8 @@ async function seedTicketHistory(projectIds) {
                 await TicketHistory.create({
                     ticket: ticket._id,
                     modifiedBy: fetchedProject.members[userIdx],
-                    description: 'ticket history description made by user!!!'
+                    description: 'ticket history description made by user!!!',
+                    project: fetchedProject._id
                 });
                 userIdx = (userIdx+1)%fetchedProject.members.length;//cycle through the project members.
             }

@@ -7,6 +7,9 @@ const TicketHistorySchema = new mongoose.Schema({
         ref: "Ticket",
         required: [true,'please provide a ticket for ticketHistory']
     },
+    project:{
+        type: mongoose.Schema.ObjectId
+    },
     modifiedBy: {
         type: mongoose.Schema.ObjectId,
         ref: 'User',

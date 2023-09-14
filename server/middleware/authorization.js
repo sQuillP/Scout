@@ -46,7 +46,7 @@ export function validateProjectPermission(allowedRoles){
                 )
             )
         } finally{
-            next();
+            return next();
         }
     }
 }
@@ -339,7 +339,7 @@ export function validateCreateTicket(){
             console.log('validate create ticket@@@',req.body);
             let validBody = await createTicketSchema.isValid(req.body);
             const project = await Project.findById(req.params.projectId);
-
+            console.log(validBody, project)
             if(validBody === false || project === null || project._id.toString() !== req.body.project){
                 return next(
                     new ErrorResponse(
@@ -373,8 +373,7 @@ export function validateCreateTicket(){
 
 
 /**
- * -user auth is already handled. just validate the request body
- * 
+ * @description update the project details, whatever the user wants.
  */
 export function validateUpdateProject(){
     return async (req,res,next)=> {
@@ -382,16 +381,10 @@ export function validateUpdateProject(){
         const expectedBodyKeys = ['title','description','members'];
 
         try {
-
             console.log(req.body);
 
-            console.log('isvalid: ',await updateProjectSchema.isValid(req.body));
-
+            //Make sure the API key is not changed.
             delete req.body.APIKey;
-
-            
-            console.log('isvalid: ',await updateProjectSchema.isValid(req.body));
-
 
             if( (await updateProjectSchema.isValid(req.body)) === false ){
                 return next(
@@ -555,6 +548,49 @@ export function validateUpdateUser() {
                 new ErrorResponse(
                     status.INTERNAL_SERVER_ERROR,
                     "Server error for updating user middleware"
+                )
+            );
+        } finally {
+            return next();
+        }
+    }
+}
+
+
+
+/**
+ * @description - makes sure a user is the owner of a project before they 
+ * can delete it.
+ */
+export function validateDeleteProject() {
+    return async (req,res,next)=> {
+
+        try {
+            const fetchedProject = await Project.findById(req.params.projectId);
+            console.log(fetchedProject)
+            if(fetchedProject === null) {
+                return next(
+                    new ErrorResponse(
+                        status.NOT_FOUND,
+                        "Project does not exist"
+                    )
+                )
+            }
+
+            if(fetchedProject.creator.toString() !== req.user._id) {
+                return next(
+                    new ErrorResponse(
+                        status.UNAUTHORIZED,
+                        "Must be owner of the project in order to delete"
+                    )
+                )
+            }
+        } catch(error) {
+            console.log(error.message);
+            return next(
+                new ErrorResponse(
+                    status.INTERNAL_SERVER_ERROR,
+                    "Internal server error in delete project middleware"
                 )
             );
         } finally {

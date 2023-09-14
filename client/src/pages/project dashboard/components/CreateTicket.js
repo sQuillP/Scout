@@ -96,7 +96,8 @@ export default function CreateTicket({onCloseTicketForm, setTicketData, notifySt
         if(validateRequiredFields() === true) return;
 
         try { 
-            const createTicketResponse = await Scout.post(`/projects/myProjects/${project._id}/tickets`,ticketForm);
+            
+            const createTicketResponse = await Scout.post(`/projects/myProjects/${project._id}/tickets`,{...ticketForm, assignedTo:ticketForm.assignedTo._id});
             setTicketData(createTicketResponse.data);
         } catch(error){
             //handle errors for creating ticket

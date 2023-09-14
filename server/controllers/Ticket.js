@@ -4,20 +4,7 @@ import asyncHandler from "../utility/asyncHandler.js";
 import status from "../utility/status.js";
 import { updateTicketSchema, createTicketSchema } from "./validators/Ticket.js";
 
-function buildTicketQuery(query, filters){
-    if(filters === undefined) return query;
-    Object.keys(filters).forEach((filter)=> {
-        if(Array.isArray(filters[filter]) === true){
-            query[filter] = {
-                $in: filters[filter]
-            };
-        }
-        else {
-            query[filter] = filters[filter]._id
-        }
-    });
-    return query;
-}
+
 
 
 
@@ -143,10 +130,10 @@ export const createTicket = asyncHandler( async (req,res,next)=> {
     const createdTicket = await Ticket.create(req.body);
 
 
-    const totalItems = await Ticket.countDocuments();
+    const totalItems = await Ticket.countDocuments({project: req.params.projectId});
     
 
-    const tickets = await Ticket.find()
+    const tickets = await Ticket.find({project: req.params.projectId})
     .limit(limit)
     .populate('assignedTo');
 

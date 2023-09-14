@@ -1,5 +1,19 @@
 
-import { Alert, Chip, CircularProgress, Paper, Snackbar, Typography, Stack, Button } from "@mui/material";
+import { 
+    Alert, 
+    Chip, 
+    CircularProgress, 
+    Paper, 
+    Snackbar, 
+    Typography, 
+    Stack, 
+    Button, 
+    useMediaQuery ,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions
+} from "@mui/material";
 import HorizontalNavigation from "../../components/HorizontalNavigation";
 import "./styles/ProjectHome.css";
 import Tooltip from "@mui/material/Tooltip";
@@ -13,16 +27,18 @@ import Modal from "@mui/material/Modal";
 import ProjectModalContent from "./components/ProjectModalContent";
 import { useNavigate } from "react-router-dom";
 import Scout from "../../axios/scout";
-import { Check, Close, DataObjectSharp } from "@mui/icons-material";
+import { Check, Close, DataObjectSharp, Groups } from "@mui/icons-material";
+import Paginator from "./components/Paginator";
 //make a request to get a list of projects for a user.
 
-function TableStatus({children}) {
+function TableStatus({children, height='475px'}) {
     return (
         <Paper
             elevation={3}
             sx={{
-                height:'475px',
+                height,
                 width:'90vw',
+                maxWidth:'1300px',
                 margin:'0 auto'
             }}
         >
@@ -40,9 +56,18 @@ function TableStatus({children}) {
 }
 
 
-
 export default function ProjectHome() {
 
+
+    const inviteBreakPoint = useMediaQuery('(max-width: 880px)')
+
+    //dialog
+    const [openDialog, setOpenDialog] = useState(false);
+    const [selectedInvite, setSelectedInvite] = useState({});
+
+
+
+    console.log(inviteBreakPoint);
 
     //page
     const [currentPage, setCurrentPage] = useState(1);
@@ -57,10 +82,9 @@ export default function ProjectHome() {
     //managing invites
     const [inviteList, setInviteList] = useState([]);
     const [totalInvites, setTotalInvites] = useState(0);
-
-
-
-
+    const [loadingInvites, setLoadingInvites] = useState(false);
+    const [invitesPerPage, setInvitesPerPage] = useState(5);
+    const [invitePage, setInvitePage] = useState(1);
     /* for error display */
     const [openSnackbar, setOpenSnackbar] = useState(false);
 
@@ -76,26 +100,8 @@ export default function ProjectHome() {
 
 
     useEffect(()=> {
-        ( async()=> {
-            mounted.current = true;
-            setLoadingProjects(true);
-            try{
-                const response = await Scout.get('/projects/myProjects',{params:{page: currentPage, limit: resultsPerPage}});
-                console.log(response.data)
-                if(mounted){
-                    setProjectList(response.data.data);
-                    setTotalProjects(response.data.totalItems);
-                }
-
-                //async request to get invites
-            } catch(error) {
-                console.log('error');
-                setOpenSnackbar(true);//display error to user
-            } finally{
-                setLoadingProjects(false);
-            }
-        })();
-
+        fetchProjects();
+        fetchInvites();
         return ()=> mounted.current = false;
     },[]);
 
@@ -140,6 +146,100 @@ export default function ProjectHome() {
     }
 
 
+    /* Async request to fetch all projects for a user. */
+    async function fetchProjects() {
+        try {
+            setLoadingProjects(true);
+            const response = await Scout.get('/projects/myProjects',{params:{page: currentPage, limit: resultsPerPage}});
+            console.log(response.data)
+            if(mounted){
+                setProjectList(response.data.data);
+                setTotalProjects(response.data.totalItems);
+            }
+
+        } catch(error){
+
+        } finally {
+            setLoadingProjects(false);
+        }
+    }
+
+    /* Async request to find all invites for a user. */
+    async function fetchInvites(params={}) {
+        try {
+            setLoadingInvites(true);
+            const inviteResponse = await Scout.get('/invite',{params});
+            setInviteList(inviteResponse.data.data);
+            setTotalInvites(inviteResponse.data.totalItems);            
+        } catch(error) {
+            console.log(error, error.message);
+        } finally {
+            setLoadingInvites(false);
+        }
+    }
+
+
+    /* Accept an invite and update list of current pending invites */
+    async function onAcceptInvite(invite) {
+        try {
+            setLoadingInvites(true);
+            const response = await Scout.post('/invite/acceptInvite',{invitation:invite._id});
+            setInviteList(response.data.data);
+            setTotalInvites(response.data.totalItems);
+            setInvitesPerPage(5);
+            setInvitePage(1);
+            await fetchProjects();
+        } catch(error) {
+            console.log(error);
+        } finally{
+            setLoadingInvites(false);
+        }
+    }
+
+
+    /* Reject an invite and update list of pending invites. */
+    async function onRejectInvite() {
+        try {
+            const response = await Scout.post('/invite/rejectInvite',{invitation: selectedInvite._id})
+            setInviteList(response.data.data);
+            setTotalInvites(response.data.totalItems);
+            setInvitePage(1);
+            setInvitesPerPage(5);
+            await fetchProjects();
+        } catch(error) {
+            console.log(error);
+        } finally {
+            onCloseDialog();
+            setLoadingInvites(false);
+        }
+    }
+
+
+    function onCloseDialog() {
+        setOpenDialog(false);
+    }
+    
+    function onOpenDialog(invite) {
+        setOpenDialog(true);
+        setSelectedInvite(invite);
+    }
+
+
+    async function handleInvitePagination(val) {
+        const params = {
+            limit: invitesPerPage,
+            page: invitePage + val
+        };
+        console.log(params);
+        setInvitePage((currentValue)=> currentValue + val);
+        await fetchInvites(params);
+    }
+
+    async function handleInviteResultsPerPage(e) {
+        setInvitesPerPage(Number(e.target.value));
+        await fetchInvites({limit: Number(e.target.value), page: 1});
+    }
+
     return (
         <div className="projectHome">
             <HorizontalNavigation/>
@@ -154,6 +254,30 @@ export default function ProjectHome() {
                     />
                 </>
             </Modal> 
+            <Dialog
+                open={openDialog}
+                onClose={onCloseDialog}
+            >
+                <DialogTitle>Reject Invite from  <span style={{fontWeight:'bold'}}>{selectedInvite?.project?.title}</span>?</DialogTitle>
+                <DialogContent>
+                    <Typography variant="body2">You will not be able to join this group again until you receive another invitation.</Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        onClick={onCloseDialog}
+                        color="error"
+                        sx={{textTransform:'none'}}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        sx={{textTransform:'none'}}
+                        onClick={onRejectInvite}
+                    >
+                        Delete Invite
+                    </Button>
+                </DialogActions>
+            </Dialog>
             <Snackbar
                 open={openSnackbar}
                 onClose={()=> setOpenSnackbar(false)}
@@ -261,13 +385,14 @@ export default function ProjectHome() {
                                         )
                                     }
                                 </div>
-                                <div className="pt-pagination">
+                                {/* <div className="pt-pagination">
                                     <div className="pagination-item">
                                         <label htmlFor="_page-selector">Number of items</label>
                                         <select 
                                             onChange={handleResultsPerPage} 
                                             name="pt-selector" 
                                             id="_page-selector"
+                                            className="pagination-select"
                                             value={resultsPerPage}
                                         >
                                             <option value="5">5</option>
@@ -301,7 +426,14 @@ export default function ProjectHome() {
                                             </Tooltip>
                                         </div>
                                     </div>
-                                </div>
+                                </div> */}
+                                <Paginator
+                                    handleResultsPerPage={handleResultsPerPage}
+                                    totalItems={totalProjects}
+                                    resultsPerPage={resultsPerPage}
+                                    currentPage={currentPage}
+                                    handlePaginatedResults={handlePaginatedResults}
+                                />
                             </div>
                         )
                     })()
@@ -309,10 +441,10 @@ export default function ProjectHome() {
             </div>
             <Paper
                 sx={{
-                    width:'90vw',
+                    width:inviteBreakPoint ? '100%' : '90vw',
+                    maxWidth: '1300px',
                     margin:'50px auto',
                     boxSizing:'border-box',
-                    fontSize:'2.5rem'
                 }}
                 elevation={3}
             >
@@ -321,32 +453,55 @@ export default function ProjectHome() {
                 </div>
                 {
                     (()=> {
+
+                        if(loadingInvites === true) {
+                            return (
+                                <TableStatus
+                                    height="200px"
+                                >
+                                    <CircularProgress/>
+                                    <Typography fontSize={'1.3rem'} variant="body2">Loading invites...</Typography>
+                                </TableStatus>
+                            )
+                        }
+
+                        if(totalInvites === 0) {
+                            return (
+                                <TableStatus
+                                    height="200px"
+                                >
+                                    <Groups sx={{color:'gray', fontSize:'3rem'}}/>
+                                    <Typography fontSize={'1.3rem'} variant="body2">No Pending Invites at this time</Typography>
+                                </TableStatus>
+                            )
+                        }
                         return (
                             <div className="ph-invitations-container">
                                 {
-                                    [1,2,3,4].map((invite)=> {
+                                    inviteList.map((invite)=> {
                                         return (
-                                            <div key={invite} className="ph-invite-item">
+                                            <div key={invite._id} className="ph-invite-item">
                                                 <Stack
                                                     direction={'row'}
+                                                    alignItems={'center'}
                                                     justifyContent={'space-between'}
                                                 >
                                                     <Typography variant="body2" fontSize={'1.2rem'}>
-                                                        Ezer Application join today!
+                                                        <span style={{fontWeight:'bold'}}>{invite.project.title}</span> is inviting you to join their project.
                                                     </Typography>
                                                     <Stack 
                                                         alignItems={'center'} 
                                                         justifyContent={'center'} 
-                                                        direction={'row'} gap={0}
+                                                        direction={'row'} gap={1}
                                                         sx={{marginRight:'50px'}}
                                                     >
                                                         <Tooltip title='Reject Invitation'>
-                                                            <IconButton>
+                                                            <IconButton color="error" onClick={()=>onOpenDialog(invite)}>
                                                                 <Close/>
                                                             </IconButton>
                                                         </Tooltip>
                                                         <Tooltip title={'Accept Invitation'}>
-                                                            <IconButton>
+                                                            <IconButton color='success' onClick={()=> onAcceptInvite(invite)}>
                                                                 <Check/>
                                                             </IconButton>
                                                         </Tooltip>
@@ -356,6 +511,13 @@ export default function ProjectHome() {
                                         )
                                     })
                                 }
+                                <Paginator
+                                    handleResultsPerPage={handleInviteResultsPerPage}
+                                    totalItems={totalInvites}
+                                    resultsPerPage={invitesPerPage}
+                                    currentPage={invitePage}
+                                    handlePaginatedResults={handleInvitePagination}
+                                />
                             </div>
                         )
                     })()
