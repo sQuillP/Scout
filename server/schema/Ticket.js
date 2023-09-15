@@ -50,7 +50,6 @@ TicketSchema.pre('remove', async function(next) {
 
 
 TicketSchema.pre('deleteMany',async function(next) {
-    console.log('ticket delete many', this._conditions)
     await TicketHistory.deleteMany(this._conditions);    
     return next();
 })

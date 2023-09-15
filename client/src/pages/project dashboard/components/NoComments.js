@@ -14,6 +14,8 @@ export default function NoComments() {
             justifyContent={'center'} 
             alignItems={'center'}
             marginTop={'30px'}
+            padding={'20px'}
+            width={'500px'}
         >
             <CommentsDisabled 
                 style={{

@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Ticket from './Ticket.js'
 import Permission from './Permission.js';
 import Invitation from './Invite.js';
+import TicketComment from './TicketComment.js';
 
 
 
@@ -45,25 +46,24 @@ const ProjectSchema = new mongoose.Schema({
 });
 
 
-//Generate a new api key for every project created.
-// ProjectSchema.pre('save', function(next) {
-    
-//     this.APIKey = crypto.randomUUID();
-//     next();
-// });
+
 
 /* Cascade delete all tickets associated with the project. */
-// ProjectSchema.pre('remove',async function(next) {
-//     await Ticket.deleteMany({project: this._id});
-//     await Permission.deleteMany({project: this._id});
-//     next();
-// });
+ProjectSchema.pre('remove',async function(next) {
+    await Ticket.deleteMany({project: this._id});
+    await Permission.deleteMany({project: this._id});
+    next();
+});
 
+
+/**
+ * Cascade delete all project db resources
+ */
 ProjectSchema.pre('findOneAndDelete', async function(next) {
-    console.log('fineONeAndDelete',this._conditions)
     await Ticket.deleteMany({project: this._conditions._id});
     await Permission.deleteMany({project: this._conditions._id});
     await Invitation.deleteMany({project: this._conditions._id});
+    await TicketComment.deleteMany({project: this._conditions._id})
     next();
 })
 

@@ -364,7 +364,7 @@ export default function ProjectSettings() {
                     color='error'
                     variant='contained'
                     sx={{margin: '20px 0'}}
-                    disabled={project.userPermission.role !== 'administrator'}
+                    disabled={project.creator !== user._id}
                 >
                     Delete this project
                 </Button>

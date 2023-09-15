@@ -12,40 +12,36 @@ import Ticket from '../schema/Ticket.js';
  * @method GET /api/v1/projects/myProjects/projectId/tickets/:ticketId/comments
  */
 export const getTicketComments = asyncHandler( async (req,res,next)=> {
-
     const limit = +req.query.limit || 5;
     const page = +req.query.page || 1;
     const term = req.query.term;
-
-    console.log(req.query);
-
     const query = {
         ticket: req.params.ticketId,
     };
 
-    console.log('in getTicketComments')
-
+    
     if(Boolean(term) !== false){
         query['content']={"$regex": term, "$options":'i'};
-        console.log('doing the query',term);
     }
-
-
+    if(!!req.query?.filters?.startDate) {
+        query['createdAt'] = {$gte: new Date(req.query.filters.startDate)};
+    }
+    if(!!req.query?.filters?.endDate) {
+        query['createdAt']["$lte"] =  new Date(req.query.filters.endDate);
+    }
+    if(!!req.query?.filters?.user) {
+        query['author'] = req.query?.filters?.user;
+    }
     const ticketComments = await TicketComment.find(query)
     .populate('author')
     .skip((page-1)*limit)
     .limit(limit);
-
     const ticketCommentCount = await TicketComment.find(query)
     .countDocuments();
-
-    console.log('item count: ',ticketComments.length)
-
     res.status(status.OK).json({
         data: ticketComments,
         itemCount: ticketCommentCount
     });
-
 });
 
 

@@ -18,8 +18,6 @@ import {
     CircularProgress,
 
 } from "@mui/material";
-
-import { activityRows } from "../dev/dummy_data";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { MoreVert, DataObjectSharp } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -78,7 +76,7 @@ export default function RecentTicketsTable({onSetCardContent}) {
     useEffect(()=> {
         if(currentProject === null) return;
         // console.log(currentProject);
-        // fetchTicketData({});
+        fetchTicketData({});
 
         return ()=> mounted.current = false;
     },[currentProject]);

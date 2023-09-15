@@ -25,9 +25,9 @@ import {
     DialogContentText,
     DialogActions,
     Button,
-
+    Autocomplete,
+    TextField,
 } from '@mui/material';
-
 import {
     ErrorOutline,
     BugReport,
@@ -49,6 +49,7 @@ import TicketHistoryTable from "../components/TicketHistoryTable";
 import Scout from "../../../axios/scout";
 import { useSelector, useDispatch } from "react-redux";
 import SubmitChangesButton from "../../../components/SubmitChangesButton";
+import CommentFilters from "../components/CommentFilters";
 
 
 
@@ -106,9 +107,12 @@ export default function ViewTicket() {
     /* State for handling comments */
     const [searchComment, setSearchComment] = useState('');
     const debouncedCommentSearch = useDebounce(searchComment,1000);
-    const [commentFilters, setCommentFilters] = useState({});
-    const [commentMenuRef, setCommentMenuRef] = useState(null);
-    const showCommentMenu = Boolean(commentMenuRef);
+    const [commentFilters, setCommentFilters] = useState({
+        startDate: null,
+        endDate: null, 
+        user: null,
+    });
+    const [showCommentFilters, setShowCommentFilters] = useState(false);
     const [createCommentMode, setCreateCommentMode] = useState(false);
 
     /*
@@ -145,7 +149,8 @@ export default function ViewTicket() {
             const query = {
                 page: commentPage+increment,
                 limit: commentLimit,
-                term: debouncedCommentSearch
+                term: debouncedCommentSearch,
+                filters: commentFilters,
             };
 
             await fetchComments(query);
@@ -157,11 +162,10 @@ export default function ViewTicket() {
     }
 
     function onOpenCommentMenu(e) {
-        setCommentMenuRef(e.currentTarget);
+        setShowCommentFilters(true);
     }
 
     function onCloseCommentMenu(){
-        setCommentMenuRef(null);
     }
     /**********END COMMENT STATE *******************/
 
@@ -314,8 +318,9 @@ export default function ViewTicket() {
     useEffect(()=> {
         const params = {
             page: commentPage,
-            limit: 5,
-            term: debouncedCommentSearch
+            limit: commentLimit,
+            term: debouncedCommentSearch,
+            filters: commentFilters
         };
 
         if(debouncedCommentSearch === ''){
@@ -371,40 +376,19 @@ export default function ViewTicket() {
     }
 
 
+    async function getFilterData(filters) {
+        if(filters.user !== null){
+            filters = {...filters, user: filters.user._id};
+        }
+        setCommentFilters(filters);
+        setCommentPage(1);
+        setCommentLimit(5);
+        console.log(filters);
+        await fetchComments({page:1, limit: 5, filters, term: debouncedCommentSearch});
+    }
 
     return (
         <div className="vt-container">
-            {/* {
-                canEdit && displayPublishChangesButton && (
-                <div className={`vt-submit-changes-container`}>
-                
-                    <button
-                        className={`vt-submit-changes  ${ showConfirmTicketChangesModal?'vt-submit-disabled':''}`}
-                        onClick={onDisplayConfirmTicketModal}
-                        disabled={showConfirmTicketChangesModal}
-                    >
-                        Publish Changes
-                        <Publish
-                            style={{marginLeft:'10px'}}
-                        />
-                    </button>
-                    {
-                        showConfirmTicketChangesModal && (
-                            <CircularProgress
-                                color="success"
-                                size={'1.5rem'}
-                                sx={{
-                                    position:'absolute',
-                                    top:'-2px',
-                                    left:'40%',
-                                    margin:'10px 0 0 10px',
-                                }}
-                            />
-                        )
-                    }
-                </div>
-                )
-            } */}
             <SubmitChangesButton
                 onClick={onDisplayConfirmTicketModal}
                 disabled={showConfirmTicketChangesModal}
@@ -421,49 +405,8 @@ export default function ViewTicket() {
                     {snackbarMessage}
                 </Alert>
             </Snackbar>
-            <Menu
-                anchorEl={commentMenuRef}
-                open={showCommentMenu}
-                onClose={onCloseCommentMenu}
-            >
-                <Box sx={{padding:'0 10px 10px 10px'}}>
-                    <Typography fontSize={'0.9rem'}>Apply Search Filters</Typography>
-                </Box>
-                <MenuItem>
-                    <FormControlLabel
-                        label="label 1"
-                        control={
-                            <Checkbox
-                                label='filter 1'
-                                value="Filter 1"
-                                onChange={()=>null}
-                            />
-                        }
-                    />
-                </MenuItem>
-                <MenuItem>
-                    <FormControlLabel
-                        label="label 2"
-                        control={
-                            <Checkbox
-                                value="Filter 2"
-                                onChange={()=>null}
-                            />
-                        }
-                    />
-                </MenuItem>
-                <MenuItem>
-                <FormControlLabel
-                    label='filter 3'
-                    control={
-                        <Checkbox
-                            value="Filter 2"
-                            onChange={()=>null}
-                        />
-                    }
-                />
-                </MenuItem>
-            </Menu>
+            
+            
             {/* Dialog for submitting ticket changes. */}
             <Dialog
                 open={showConfirmTicketChangesModal}
@@ -780,7 +723,7 @@ export default function ViewTicket() {
                                         title='Filter Comments'
                                     >
                                         <IconButton 
-                                            onClick={onOpenCommentMenu} 
+                                            onClick={()=> setShowCommentFilters(!showCommentFilters)} 
                                             size="medium"
                                             disabled={createCommentMode}
                                         >
@@ -816,6 +759,19 @@ export default function ViewTicket() {
                                     </Tooltip>
                                 </Stack>
                             </div>
+                            <div className={`vt-filter-container ${showCommentFilters?'expanded':''}`}>
+                                <div className="vt-filter-expandable">
+                                    <div className="vt-filter-content">
+                                            <CommentFilters
+                                                getFilterData={getFilterData}
+                                                onCollapse={()=> setShowCommentFilters(!showCommentFilters)}
+                                                
+                                                
+
+                                            />
+                                    </div>
+                                </div>
+                            </div>
                             {
                                 createCommentMode && (
                                     <NewComment
@@ -830,7 +786,8 @@ export default function ViewTicket() {
                                         return (
                                             <TicketComment 
                                                 comment={comment}
-                                                key={comment._id}/>
+                                                key={comment._id}
+                                            />
                                         )
                                     })
                                 )

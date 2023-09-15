@@ -67,7 +67,6 @@ export default function Login() {
                 const {errors, touched, isValid, dirty, handleChange, values, handleBlur} = formik;
                 return(
                     <>
-                    <p>welcome</p>
                     <div className="login-content">
                         <p className="text login-title">Scout Sign In</p>
                         <Form>

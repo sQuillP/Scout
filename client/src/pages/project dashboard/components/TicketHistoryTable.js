@@ -57,7 +57,6 @@ export default function TicketHistoryTable({ticketId,refreshHistoryData}) {
     
     useEffect(()=> {
         if(Object.keys(refreshHistoryData).length === 0) return;
-        console.log(refreshHistoryData)
         setTicketHistory(refreshHistoryData.data);
         setTicketHistoryCount(refreshHistoryData.totalItems);
 
@@ -71,12 +70,10 @@ export default function TicketHistoryTable({ticketId,refreshHistoryData}) {
             const historyResponse = await Scout.get('/projects/myProjects/'+currentProject._id+'/tickets/'+ticketId+'/ticketHistory',{params});
             if(mountedRef.current === false) return;
             setTicketHistory(historyResponse.data.data);
-            console.log(historyResponse.data);
             setTicketHistoryCount(historyResponse.data.itemCount || 0);
             setLoadingTicketHistory(false);
         } catch(error) {
             setShowSnackbar(true);
-            console.log(error, error.message);
         }
     }
 
@@ -90,7 +87,6 @@ export default function TicketHistoryTable({ticketId,refreshHistoryData}) {
         await fetchTicketHistory({page: (page+1), limit: PAGE_LIMIT});
     }
 
-   console.log(ticketHistory);
 
     return (
         <Paper 

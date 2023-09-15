@@ -55,6 +55,7 @@ export default function NewComment({onCreateNewComment, onDiscard}) {
             </div>
             <textarea
                 value={comment}
+                placeholder="Your comment here."
                 onChange={(e)=> setComment(e.target.value)}
                 className="nc-comment-textarea"
             >

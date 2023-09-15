@@ -14,7 +14,6 @@ import { updateTicketSchema, createTicketSchema } from "./validators/Ticket.js";
  * @access authenticated, developer+
  */
 export const getTickets = asyncHandler( async (req,res,next)=> {
-    console.log('in gettickets')
     const page = req.query.page || 1;
     const limit = req.query.limit || 5;
     const filters = req.query.filters;
@@ -35,9 +34,13 @@ export const getTickets = asyncHandler( async (req,res,next)=> {
         
     }
 
+    if(req.query.assignedTo) {
+        query['assignedTo'] = req.query.assignedTo;
+    }
 
-
-    //Remember to add filters
+    if(req.query.progress) {
+        query['progress'] = 'open';
+    }
 
     const totalTickets = await Ticket.find(query).countDocuments();
 
@@ -45,6 +48,8 @@ export const getTickets = asyncHandler( async (req,res,next)=> {
     .populate('assignedTo')
     .skip((page-1)*limit)
     .limit(limit);
+
+    console.log(filters)
 
     if(filters?.sortBy !== undefined){
         tickets.sort({createdAt: Number(filters.sortBy)});

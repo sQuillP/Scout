@@ -16,6 +16,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import "../styles/DashboardPanel.css";
+import { useSelector } from "react-redux";
 
 
 
@@ -28,15 +29,17 @@ import "../styles/DashboardPanel.css";
  * }} 
  * 
  */
-export default function DashboardPanel({title,content,PanelIcon, navigationFilters=""}) {
+export default function DashboardPanel({title,content,PanelIcon, routeState}) {
 
     const navigate = useNavigate();
+    const project = useSelector((store)=> store.project.currentProject);
 
-    const minifiedScreen = useMediaQuery('(max-width:614px');
+    const minifiedScreen = useMediaQuery('(max-width:614px)');
 
     //navigate to tickets with predefined filters. based on dashboard panel
+    console.log(routeState);
     function onNavigateTickets() {
-
+        navigate(`/projects/${project._id}/tickets`, {state:{routeState}});
     }
 
     return (

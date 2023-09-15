@@ -20,7 +20,9 @@ import { useSelector } from "react-redux";
 export default function ProjectDashboard() {
 
     const currentProject = useSelector((store)=> store.project.currentProject);
+    const user = useSelector((store)=> store.auth.user);
 
+    
     console.log(currentProject);
 
 
@@ -45,11 +47,13 @@ export default function ProjectDashboard() {
                     <DashboardPanel
                         title={'Tickets currently assigned to me'}
                         content={currentProject?.assignedTickets || 0}
+                        routeState={{assignedTo: user._id}}
                         PanelIcon={()=> <Avatar sx={{height: '50px', width:'50px'}}>A</Avatar>}
                     />
                     <DashboardPanel
                         title={'Open Tickets (currently not assigned)'}
                         content={currentProject?.openTickets || 0}
+                        routeState={{progress: 'open'}}
                         PanelIcon={()=> <NewReleases sx={{fontSize: '3rem', color:'goldenrod'}}/>}
                     />
                     

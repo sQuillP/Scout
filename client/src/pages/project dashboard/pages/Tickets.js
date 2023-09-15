@@ -42,13 +42,13 @@ import {
 } from '@mui/icons-material'
 
 import { useNavigate, useParams } from 'react-router-dom'
-
+import { useNavigation } from 'react-router-dom';
 import "../styles/Tickets.css";
 import { useEffect, useRef, useState } from 'react';
 import CreateTicket from '../components/CreateTicket';
 import { useSelector } from 'react-redux';
 import Scout from '../../../axios/scout';
-
+import { useLocation } from 'react-router-dom';
 
 
 export default function Tickets() {
@@ -71,8 +71,10 @@ export default function Tickets() {
 
 
 
+
     const navigateTo = useNavigate();
 
+    const location = useLocation();
 
     const defaultFilters = {
         progress:[],
@@ -122,7 +124,15 @@ export default function Tickets() {
 
     useEffect(()=> {
         //call api to get all the tickets.
-        onFetchTickets({limit: limit, page:currentPage, filters:ticketFilters});
+        let initialQuery = null
+        console.log(location.state)
+        if(location.state !== null) {
+            initialQuery = {limit, page: currentPage, filters:ticketFilters, ...location.state.routeState}
+        } else {
+            initialQuery = {limit, page:currentPage, filters:ticketFilters};
+        }
+        console.log(ticketFilters)
+        onFetchTickets(initialQuery);
         return ()=> mounted.current = false;
     },[]);
 
@@ -424,15 +434,15 @@ export default function Tickets() {
                                         name="radio-buttons-group"
                                     >
                                         <FormControlLabel 
-                                            checked={ticketFilters.sortBy===1} 
-                                            onChange={(e)=> handleTicketFilterChange("sortBy",1)} 
-                                            value={1} 
+                                            checked={ticketFilters.sortBy===-1} 
+                                            onChange={(e)=> handleTicketFilterChange("sortBy",-1)} 
+                                            value={-1} 
                                             control={<Radio />} 
                                             label="Recent" />
                                         <FormControlLabel 
-                                            checked={ticketFilters.sortBy ===-1} 
-                                            onChange={(e)=> handleTicketFilterChange("sortBy",-1)} 
-                                            value={-1} control={<Radio />} 
+                                            checked={ticketFilters.sortBy ===1} 
+                                            onChange={(e)=> handleTicketFilterChange("sortBy",1)} 
+                                            value={1} control={<Radio />} 
                                             label="Oldest" />
                                     </RadioGroup>
                                 </FormControl>
@@ -504,7 +514,7 @@ export default function Tickets() {
                                             <Chip label={ticket.progress} color='default'/>
                                         </TableCell>
                                         <TableCell>
-                                            <Chip label={'high'} color={getPriorityColor(ticket.priority)}/>
+                                            <Chip label={ticket.priority} color={getPriorityColor(ticket.priority)}/>
                                         </TableCell>
                                         <TableCell>
                                             <Stack direction='row' alignItems={'center'}>
