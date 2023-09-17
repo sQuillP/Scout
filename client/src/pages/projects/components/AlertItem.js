@@ -1,40 +1,72 @@
 import { Link } from "react-router-dom"
-import { ButtonBase, Paper } from "@mui/material"
-
+import { ButtonBase, Paper, IconButton, Stack, Tooltip } from "@mui/material"
+import {Close} from '@mui/icons-material';
 import "../styles/AlertItem.css";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+
+
 
 export default function AlertItem({data, onClose}) {
 
+
+    const navigation = useNavigate();
+    const project = useSelector((store)=> store.project.currentProject);
+
     //pass in the close function with the data id
     function onCloseAlert() {
-        onClose(data.id);
+        onClose(data._id);
     }
 
     function calculatePriorityColor(priority){
-        console.log('calculating priority');
         switch(priority){
-            case "high":
+            case "ticket":
                 return 'red';
-            case "medium":
+            case "change":
                 return "gold";
-            case "low":
+            case "comment":
                 return "green";
         }
         return "green";
     }
 
+    function handleNavigation(route) {
+        navigation(route);
+        onClose();
+    }
+
     return (
-        <div className="alert-item-wrapper">
-            <ButtonBase className="alert-item-main" sx={{padding: '20px 30px 20px 20px', maxWidth: '350px'}}>
-                <div className="alert-header">
-                    <div style={{background: calculatePriorityColor(data.priority) }} className="priority-circle"></div>
+        <div 
+            onClick={()=> handleNavigation('/projects/'+project._id+'/tickets/'+data.ticket)} 
+            className="alert-item-wrapper">
+                <Stack
+                    direction={'row'}
+                    alignItems={'center'}
+                    padding={'10px'}
+                    gap={2}
+
+                >
+                    <div style={{background: calculatePriorityColor(data.notificationFor) }} className="priority-circle"></div>
                     <p className="text alert-title">{data.title}</p>
-                    <i onClick={onCloseAlert} className="alert-close-icon fa-regular fa-circle-xmark"></i>
-                </div>
+                    <Tooltip
+                        title="Clear alert"
+                    >
+                        <IconButton 
+                            sx={{
+                                position:'absolute',
+                                top:'10px',
+                                right:'10px'
+                            }}
+                            size="small"
+
+                            onClick={onCloseAlert}>
+                            <Close/>
+                        </IconButton>
+                    </Tooltip>
+                </Stack>
                 <div className="alert-content">
-                    <p className="alert-message">{data.message} this is a very loing message</p>
+                    <p className="text alert-message">{data.description.substring(0,50) + "..."}</p>
                 </div>
-            </ButtonBase>
         </div>
     )
 }

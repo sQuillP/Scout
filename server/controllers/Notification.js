@@ -8,10 +8,14 @@ import status from "../utility/status.js";
  */
 export const getMyNotifications = asyncHandler( async (req,res,next)=> {
 
+    console.log(req.params, req.user._id)
+
     const myNotifications = await Notification.find({
         individualReceiver: req.user._id,
         project: req.params.projectId        
-    });
+    })
+    .sort({createdAt: -1})
+    .limit(5);
 
 
     res.status(status.OK).json({
@@ -26,11 +30,17 @@ export const getMyNotifications = asyncHandler( async (req,res,next)=> {
  */
 export const deleteNotification = asyncHandler( async (req,res,next)=> {
     
+
     await Notification.findByIdAndDelete(req.body.notification);
 
-
+    const notifications = await Notification.find({
+        individualReceiver: req.user._id,
+        project: req.params.projectId,
+    })
+    .sort({createdAt: -1})
+    .limit(5);
 
     res.status(status.OK).json({
-        data: 'successfully deleted'
+        data: notifications
     });
 });

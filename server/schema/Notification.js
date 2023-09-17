@@ -16,18 +16,23 @@ const NotificationSchema = new mongoose.Schema({
         required: [true, "Description is necessary for notification"]
     },
     author: {
-        type: mongoose.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref:'User',
         required: false,
     },
     project: {
-        type: mongoose.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Project',
         required: [true, "Project must be associated with a project"]
     },
     individualReceiver:{
-        type: mongoose.Schema.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
+    },
+    ticket: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Ticket', 
+        required: [true, "notification must be associated with a ticket"]
     }
 },{
     timestamps: true

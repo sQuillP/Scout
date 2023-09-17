@@ -651,9 +651,15 @@ export function validateSubmitError() {
 
 
 
+
+/**
+ * @description - validate request body, make sure notification belongs to user.
+ * make sure that the user belongs to the project as well.
+ */
 export function validateDeleteNotification() {
     return async (req,res,next)=> {
         try {
+            console.log(req.body);
             if(validateDeleteNotif.isValidSync(req.body) === false) {
                 return next(
                     new ErrorResponse(
@@ -666,12 +672,27 @@ export function validateDeleteNotification() {
             const fetchedNotification = await Notification.exists({
                 _id: req.body.notification
             });
+            console.log(fetchedNotification)
+            //check if user belongs to project
+            const fetchedPermission = await Permission.find({
+                project: req.params.projectId,
+                user: req.user._id,
+            });
+
+            if(fetchedPermission === null) {
+                return next(
+                    new ErrorResponse(
+                        status.UNAUTHORIZED,
+                        "You do not belong to this project"
+                    )
+                );
+            }
 
             if(fetchedNotification  === null){
                 return next(
                     new ErrorResponse(
-                        status.BAD_REQUEST,
-                        "Invalid request body"
+                        status.NOT_FOUND,
+                        "Notification does not exist"
                     )
                 );
             }

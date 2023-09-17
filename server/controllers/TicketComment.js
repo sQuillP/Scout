@@ -4,6 +4,10 @@ import status from '../utility/status.js';
 import { createTicketCommentSchema } from './validators/TicketComment.js';
 import ErrorResponse from '../utility/ErrorResponse.js';
 import Ticket from '../schema/Ticket.js';
+import User from '../schema/User.js';
+import mongoose from 'mongoose';
+import Notification from '../schema/Notification.js';
+import Project from '../schema/Project.js';
 
 /**
  * @description - get all comments associated with ticket. You
@@ -63,7 +67,9 @@ export const createTicketComment = asyncHandler( async (req,res,next)=> {
         );
     }
 
-    if((await Ticket.exists({_id: req.params.ticketId})) === false) {
+    const fetchedTicket = await Ticket.findById(req.params.ticketId);
+
+    if(fetchedTicket === null) {
         return next(
             new ErrorResponse(
                 status.NOT_FOUND,
@@ -71,15 +77,41 @@ export const createTicketComment = asyncHandler( async (req,res,next)=> {
             )
         );
     }
-    
-
 
     req.body['author'] = req.user._id;
     req.body['ticket'] = req.params.ticketId;
 
-    await TicketComment.create(req.body);
+
+
+    const createdComment = await TicketComment.create(req.body);
     const totalComments = await TicketComment.countDocuments({ticket: req.params.ticketId});
-    
+
+    const fetchedUser = await User.findById(req.user._id);
+
+
+
+    //if the user comments on their own ticket, then they should not receive a notification.
+    if(createdComment.author._id.toString() !== fetchedTicket.assignedTo.toString()) {
+        const notificationId = new mongoose.Types.ObjectId();
+
+        const notification = {
+            notificationFor: 'comment',
+            title: `${fetchedUser.firstName} ${fetchedUser.lastName} commented on your ticket`,
+            description: createdComment.content,
+            ticket: fetchedTicket._id.toString(),
+            _id: notificationId
+        }
+
+        await Notification.create({
+            ...notification,
+            project: req.params.projectId,
+            _id: notificationId,
+            individualReceiver: fetchedTicket.assignedTo
+        });
+        
+        const io = req.app.get('socketio');
+        io.in(fetchedTicket.assignedTo.toString()).emit('receiveNotification',notification);
+    }
     
     const ticketResponse = await TicketComment.find({ticket: req.params.ticketId})
     .limit(5)

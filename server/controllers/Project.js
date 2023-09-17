@@ -351,6 +351,14 @@ export const deleteMember = asyncHandler( async(req,res,next)=> {
     //save changes and send back to user.
     await updatedProject.save();
 
+    //remove all permissions associated with the project
+    for(let i = 0; i<req.body.members.length; i++) {
+        await Permission.findOneAndRemove({
+            project: req.params.projectId,
+            user: req.body.members[i]
+        });
+    }
+
     const response = await populateUpdatedProjectResponse(updatedProject.toJSON(), req);
 
     console.log(response);

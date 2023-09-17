@@ -6,8 +6,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { getProjectById } from "../../redux/thunk/project";
 import LoadingProject from "./components/LoadingProject";
 import { socket } from "../../sockets/socketIO";
-import { pushNotification } from "../../redux/slice/projectSlice";
+import { pushNotification, setNotifications } from "../../redux/slice/projectSlice";
 import Scout from "../../axios/scout";
+
+
+
+
 export default function Project() {
 
     const {projectId} = useParams();
@@ -29,8 +33,20 @@ export default function Project() {
         }
         if(!projectId) return;
         if(user !== null) {socket.emit('join-room',user._id);}
+
+        (async ()=> {
+            try {
+                const response = await Scout.get('/notifications/'+projectId);
+                console.log(response.data.data);
+                dispatch(setNotifications(response.data.data));
+            } catch(error) {
+                console.log(error, error.message);
+            }
+        })();
+
         socket.emit('join-room',projectId)
         socket.on('receiveNotification',onReceiveNotification);
+
         return ()=> {
             socket.off('receiveNotification', onReceiveNotification);
         }
@@ -42,15 +58,6 @@ export default function Project() {
             navigate('/auth/login');
         }
     },[loadCurrentProjectFailure]);
-
-
-    async function fetchProjectInformation() {
-        try {
-            // await Scout.get()
-        } catch(error) {
-            console.log('unable to fetch project notifications');
-        }
-    }
 
     //improve outlet because of page flickering.
     return (

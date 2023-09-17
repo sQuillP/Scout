@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Badge from './Badge'
 import Menu from '@mui/material/Menu';
@@ -7,46 +7,9 @@ import MenuItem from '@mui/material/MenuItem';
 import { Avatar, Popover } from '@mui/material';
 import AlertItem from '../pages/projects/components/AlertItem';
 import { logout } from '../redux/slice/authSlice';
-
 import "./styles/HorizontalNavigation.css";
-
-const dummy_data = [
-    {
-        type: "comment",
-        message:"Hey you should come check this out. It looks really cool",
-        title:"Jenna commented on your ticket",
-        priority:'low',
-        link:"",//link to the comment
-        isRead: false,
-        id:'223'
-    },
-    {
-        type: "comment",
-        message:"Hey you should come check this out. It looks really cool",
-        title:"Jenna commented on your ticket",
-        priority:'low',
-        link:"",//link to the comment
-        isRead: false,
-        id:'123'
-    },
-    {
-        type:"monitor",
-        title:"Error in Ezer Application",
-        message:"Uncaught ReferenceError: 'user' is not defined at <anonymous>:1:1",
-        priority:'high',
-        link:"",
-        isRead: false,
-        id:'456'
-    },
-    {
-        type:"ticket",
-        title:'Ticket 2939823 has been assigned to you',
-        message:'unable to fix parsing bug',
-        priority:'medium',
-        isRead: false,
-        id:'789'
-    }
-];
+import Scout from '../axios/scout';
+import { setNotifications } from '../redux/slice/projectSlice';
 
 
 export default function HorizontalNavigation() {
@@ -54,7 +17,6 @@ export default function HorizontalNavigation() {
 
     //Have a firebase notification listener on the notifications
     //each notification will have a link to which the notification will take the user to.
-
 
     //selector 
     const [anchorEl, updateAnchorEl] = useState(null); 
@@ -65,6 +27,7 @@ export default function HorizontalNavigation() {
 
     const user = useSelector((store)=> store.auth.user);
     const notifications = useSelector((store)=> store.project.notifications);
+    const currentProject = useSelector((store)=> store.project.currentProject);
 
 
     const open = Boolean(anchorEl);
@@ -90,15 +53,49 @@ export default function HorizontalNavigation() {
     }
 
     function onDismissNotification() {
+        console.log('closing notification');
+
          
     }
+
+
+    /**
+     * 
+     * @description - perform optimistic delete on the notification in case the 
+     * request fails or stalls.
+     * @returns 
+     */
+    async function onDeleteNotification(notificationId) {
+
+        if(!notificationId){
+            handleCloseNotificationMenu();
+            return;
+        }
+
+        if(currentProject === null) return;
+        const notificationsCopy = [...notifications];
+        const removeIdx = notificationsCopy.findIndex((notif)=> notif._id === notificationId);
+        notificationsCopy.splice(removeIdx,1);
+        dispatch(setNotifications(notificationsCopy));
+        try {
+            const response = await Scout.delete('/notifications/'+currentProject._id,{
+                data: {notification: notificationId}
+            });
+            //set the actual notifications from the server
+            dispatch(setNotifications(response.data.data));
+        } catch(error) {
+            console.log(error, error.message);
+        } finally {
+            handleCloseNotificationMenu();
+        }
+    }
+
 
     function onLogoutUser() {
         dispatch(logout());
         handleCloseUserMenu();
         navigate('/auth/login');
     }
-
 
 
 
@@ -111,11 +108,11 @@ export default function HorizontalNavigation() {
             <ul className="horizontal-nav-content">
                 <li className="horizontal-nav-item">
                     <div className='icon-container'>
-                        <Badge count={notifications.length}/>
+                        {notifications.length !== 0 && <Badge count={notifications.length}/>}
                         <i onClick={onOpenPopoverMenu} className="horizontal-icon fa-solid fa-bell"></i>
                         <Popover
                             anchorEl={popoverEl}
-                            open={openNotification}
+                            open={openNotification && notifications.length !== 0}
                             onClose={handleCloseNotificationMenu}
                             anchorOrigin={{
                                 vertical: 'bottom',
@@ -126,17 +123,17 @@ export default function HorizontalNavigation() {
                                 horizontal: 'right',
                             }}
                         >
-                        <div className="alert-container">
-                            {dummy_data.map((notification) => {
-                                return (
-                                    <AlertItem 
-                                        data={notification} 
-                                        key={notification.id}
-                                        onClose={onDismissNotification}
-                                    />
-                                );
-                            }).slice(0,5)}
-                        </div>
+                            <div className="alert-container">
+                                {notifications?.slice(0,5).map((notification) => {
+                                    return (
+                                        <AlertItem 
+                                            data={notification} 
+                                            key={notification._id}
+                                            onClose={(id)=> onDeleteNotification(id)}
+                                        />
+                                    );
+                                })}
+                            </div>
                         </Popover>
                     </div>
                 </li>

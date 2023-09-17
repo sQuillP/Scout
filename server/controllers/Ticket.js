@@ -5,6 +5,8 @@ import status from "../utility/status.js";
 import { updateTicketSchema, createTicketSchema } from "./validators/Ticket.js";
 import Project from '../schema/Project.js';
 import Notification from "../schema/Notification.js";
+import User from "../schema/User.js";
+import mongoose from "mongoose";
 
 
 
@@ -87,7 +89,9 @@ export const getTicketById = asyncHandler( async (req,res,next)=> {
  */
 export const updateTicketById = asyncHandler( async (req,res,next)=> {
     const validBody = updateTicketSchema.isValidSync(req.body);
-    if(validBody === false){
+    const updateKeys = ['assignedTo', 'priority', 'progress', 'ticketType', 'description','summary'];
+    const exactBody = Object.keys(req.body).every(key => updateKeys.indexOf(key) >= 0);
+    if(validBody === false || exactBody === false){
         return next(
             new ErrorResponse(
                 status.BAD_REQUEST,
@@ -95,8 +99,22 @@ export const updateTicketById = asyncHandler( async (req,res,next)=> {
             )
         );
     }
-
-    if((await Ticket.exists({_id: req.params.ticketId}) === null)){
+    const fetchedTicket = await Ticket.findById(req.params.ticketId);
+    const fetchedProject = await Project.findById(req.params.projectId);
+    //make sure that assigned to person exists in the project
+    if(req.body.assignedTo){
+        const memberIdx = fetchedProject.members
+        .findIndex((member)=> member._id.toString() === req.body.assignedTo);
+        if(memberIdx < 0) {
+            return next(
+                new ErrorResponse(
+                    status.NOT_FOUND,
+                    "ticket user has been assigned to does not belong in group."
+                )
+            );
+        }
+    }
+    if(fetchedTicket === null){
         return next(
             new ErrorResponse(
                 status.BAD_REQUEST,
@@ -104,17 +122,34 @@ export const updateTicketById = asyncHandler( async (req,res,next)=> {
             )
         );
     }
-
-
-    const updatedTicket = await Ticket.findByIdAndUpdate(req.params.ticketId,{
-        ...req.body
-    },{new:true});
-
-
-    
-
+    //if ticket is reassigned to another user, send notification is true
+    let sendNotification = fetchedTicket.assignedTo.toString() !== req.body.assignedTo;
+    //perform the update on the user.
+    Object.keys(req.body).map((updateKey)=> {
+        fetchedTicket[updateKey] = req.body[updateKey];
+    });
+    await fetchedTicket.save();
+    if(sendNotification){
+        const updater = await User.findById(req.user._id);
+        const id = new mongoose.Types.ObjectId();
+        const notification = {
+            notificationFor:'change',
+            title:'Ticket '+fetchedTicket._id.toString() + " has been assigned to you.",
+            description: updater.firstName + " " + updater.lastName + " has updated the ticket to assign to you.",
+            ticket: fetchedTicket._id.toString(),
+            _id: id
+        };
+        await Notification.create({
+            ...notification,
+            project: fetchedProject._id,
+            individualReceiver: req.body.assignedTo,
+            _id: id
+        });
+        const io = req.app.get('socketio');
+        io.in(fetchedTicket.assignedTo.toString()).emit('receiveNotification',notification);
+    }
     res.status(status.OK).json({
-        data: updatedTicket
+        data: fetchedTicket
     });
 });
 
@@ -178,16 +213,17 @@ export const submitError = asyncHandler( async (req,res,next)=> {
         description: req.body.description,
         title: "Error discovered in " + project.title,
         notificationFor: 'ticket',
+        ticket: createdTicket._id.toString()
     };
 
     //prepare ticket notification body to assigned user
     const ticketNotification = {
         description: 'Ticket ' + createdTicket._id.toString() + " has been assigned to you",
         title:"This is an auto generated message from the server.",
-        notificationFor:'change'
+        notificationFor:'change',
+        ticket: createdTicket._id.toString()
     }
 
-    const io = req.app.get('socketio');
     //generate a new notification for each user
     //save the error message to the db for when the next user wants to log on
     for( let i = 0; i<project.members.length; i++) {
@@ -195,20 +231,27 @@ export const submitError = asyncHandler( async (req,res,next)=> {
             project: project._id,
             title: 'Error discovered in ' + project.title,
             description: req.body.description, 
-            notificationFor:'ticket'
+            notificationFor:'ticket',
+            individualReceiver: project.members[i],
+            ticket: createdTicket._id
         });
     }
 
+    //send notification to the randomly assigned user as well
     const ticketNotificationObject = await Notification.create({
         project: project._id,
         description: 'Ticket ' + createdTicket._id.toString() + " has been assigned to you",
         title:"This is an auto generated message from the server.",
         notificationFor:'change',
-        individualReceiver:randomProjectMember._id.toString()
+        individualReceiver:randomProjectMember._id.toString(),
+        ticket: createdTicket._id
     });
 
+    //IO instance
+    const io = req.app.get('socketio');
     //send notifications to all users in the project.
     io.in(project._id.toString()).emit('receiveNotification',projectErrorNotification);
+    //send notification to the random user.
     io.in(randomProjectMember._id.toString()).emit('receiveNotification',ticketNotification);
 
 
