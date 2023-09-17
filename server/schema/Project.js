@@ -3,8 +3,7 @@ import Ticket from './Ticket.js'
 import Permission from './Permission.js';
 import Invitation from './Invite.js';
 import TicketComment from './TicketComment.js';
-
-
+import Notification from './Notification.js';
 
 
 const ProjectSchema = new mongoose.Schema({
@@ -64,6 +63,7 @@ ProjectSchema.pre('findOneAndDelete', async function(next) {
     await Permission.deleteMany({project: this._conditions._id});
     await Invitation.deleteMany({project: this._conditions._id});
     await TicketComment.deleteMany({project: this._conditions._id})
+    await Notification.deleteMany({project: this._conditions._id});
     next();
 })
 

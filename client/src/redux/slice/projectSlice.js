@@ -7,6 +7,7 @@ const initialState = {
     loadingCurrentProject:true,
     loadCurrentProjectFailure: false,
     role: null,
+    notifications:[]
 };
 
 
@@ -23,6 +24,17 @@ const projectSlice = createSlice({
         },
         clearLoadingErrors(state,_) {
             state.loadCurrentProjectFailure = false;
+        },
+
+        /* Add a notification. Used for sockets. */
+        pushNotification(state, {payload}) {
+            state.notifications.push(payload);
+        },
+
+        /* Set the notifications to a new array of notifications. Use this for 
+        sending GET and POST requests to the server when logging in*/
+        setNotifications(state, {payload}) {
+            state.notifications = payload;
         }
     },
     extraReducers:(builder)=> {
@@ -40,7 +52,6 @@ const projectSlice = createSlice({
         builder.addCase(getProjectById.rejected, (state,_)=> {
             state.loadCurrentProjectFailure = true;
             state.loadingCurrentProject = false;
-            console.log('rejected')
         });
     }
 });
@@ -48,4 +59,9 @@ const projectSlice = createSlice({
 
 export default projectSlice.reducer;
 
-export const { updateProjectSync, clearLoadingErrors } = projectSlice.actions;
+export const { 
+    updateProjectSync, 
+    clearLoadingErrors, 
+    pushNotification, 
+    setNotifications 
+} = projectSlice.actions;

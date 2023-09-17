@@ -20,20 +20,23 @@ const ProjectRouter = express.Router();
 
 
 //Enforce authentication for all project routes.
-ProjectRouter.use(authenticate);
+// ProjectRouter.use(authenticate);
 
 
 
 ProjectRouter.route('/')
+.all(authenticate)
 .get(getProjects)
 .post(createProject);
 
 
 ProjectRouter.route('/myProjects')
+.all(authenticate)
 .get(getMyProjects);
 
 
 ProjectRouter.route('/myProjects/:projectId')
+.all(authenticate)
 .get(//ensure all members have access to getting project information
     validateProjectPermission(['developer','project_manager','administrator']),
     getProjectById
@@ -49,12 +52,14 @@ ProjectRouter.route('/myProjects/:projectId')
 )
 
 ProjectRouter.route("/myProjects/:projectId/refreshAPIKey")
+.all(authenticate)
 .put(
     validateProjectPermission(['administrator']),
     refreshProjectKey
 );
 
 ProjectRouter.route('/myProjects/:projectId/members')
+.all(authenticate)
 .put(
     validateProjectPermission(['administrator']),
     updateProjectMembers

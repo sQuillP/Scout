@@ -64,7 +64,7 @@ export default function HorizontalNavigation() {
     const navigate = useNavigate();
 
     const user = useSelector((store)=> store.auth.user);
-
+    const notifications = useSelector((store)=> store.project.notifications);
 
 
     const open = Boolean(anchorEl);
@@ -111,7 +111,7 @@ export default function HorizontalNavigation() {
             <ul className="horizontal-nav-content">
                 <li className="horizontal-nav-item">
                     <div className='icon-container'>
-                        <Badge count={5}/>
+                        <Badge count={notifications.length}/>
                         <i onClick={onOpenPopoverMenu} className="horizontal-icon fa-solid fa-bell"></i>
                         <Popover
                             anchorEl={popoverEl}

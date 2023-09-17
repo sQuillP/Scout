@@ -3,7 +3,9 @@ import axios from 'axios';
 
 export const isDev = !process.env.NODE_ENV || process.env.NODE_ENV ==='development';
 
-console.log('isDev:',isDev);
+export const URL = isDev ? 'http://localhost:3030/api/v1/':'new link!'
+
+console.log('isDev:',isDev, URL);
 
 /**
  * Create an api instance for the Scout api

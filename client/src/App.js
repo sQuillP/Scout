@@ -20,6 +20,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { loginFromStoredToken, updateUserSync } from './redux/slice/authSlice';
 import ViewProfile from './pages/profile/ViewProfile';
 import Scout from './axios/scout';
+
+
 function App() {
 
   const dispatch = useDispatch();

@@ -9,6 +9,9 @@ import User from "../schema/User.js";
 import Project from "../schema/Project.js";
 import bcrypt from 'bcrypt';
 import { validateUpdatePassword, validateUpdateUserDetails } from "../controllers/validators/User.js";
+import { validateDeleteNotification as validateDeleteNotif } from "../controllers/validators/Notification.js";
+import Notification from "../schema/Notification.js";
+
 
 /**
  * @description - Ensure that a user has proper permissions to do modifications on a project.
@@ -591,6 +594,93 @@ export function validateDeleteProject() {
                 new ErrorResponse(
                     status.INTERNAL_SERVER_ERROR,
                     "Internal server error in delete project middleware"
+                )
+            );
+        } finally {
+            return next();
+        }
+    }
+}
+
+
+/**
+ * @description - Return error if there is no API key or API key is missing.
+ */
+export function validateSubmitError() {
+    return async (req,res,next)=> {
+        try {
+
+            if(req.body.description === undefined || typeof req.body.description !== 'string'){
+                return next(
+                    new ErrorResponse(
+                        status.BAD_REQUEST,
+                        "Invalid request body"
+                    )
+                )
+            }
+
+            if(req.headers.apikey === undefined){
+                return next(
+                    new ErrorResponse(
+                        status.BAD_REQUEST,
+                        "API key missing"
+                    )
+                );
+            }
+            const fetchedProject = await Project.findOne({APIKey: req.headers.apikey});
+            if(fetchedProject === null) {
+                return next(
+                    new ErrorResponse(
+                        status.BAD_REQUEST,
+                        "invalid API key"
+                    )
+                );
+            }
+        } catch(error) {
+            return next(
+                new ErrorResponse(
+                    status.INTERNAL_SERVER_ERROR,
+                    "Internal server error. Contact dev team if possible"
+                )
+            );
+        } finally {
+            return next();
+        }
+    }
+}
+
+
+
+export function validateDeleteNotification() {
+    return async (req,res,next)=> {
+        try {
+            if(validateDeleteNotif.isValidSync(req.body) === false) {
+                return next(
+                    new ErrorResponse(
+                        status.BAD_REQUEST,
+                        "Invalid request body"
+                    )
+                );
+            }
+
+            const fetchedNotification = await Notification.exists({
+                _id: req.body.notification
+            });
+
+            if(fetchedNotification  === null){
+                return next(
+                    new ErrorResponse(
+                        status.BAD_REQUEST,
+                        "Invalid request body"
+                    )
+                );
+            }
+            
+        } catch(error) {
+            return next(
+                new ErrorResponse(
+                    status.INTERNAL_SERVER_ERROR,
+                    "Internal Server Error"
                 )
             );
         } finally {
