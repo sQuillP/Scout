@@ -158,7 +158,6 @@ export default function Tickets() {
             if(mounted.current === false) return;
             setTicketList(response.data.data);
             setTotalItems(response.data.totalItems);
-            console.log(response.data.totalItems)
         } catch(error) {
             console.log(error);
         } finally{

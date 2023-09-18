@@ -47,16 +47,13 @@ export default function ProfileField({
     }
 
     function formatValue(val) {
-        if(fieldLabel === 'password' && val.length > 85) return '●'.repeat(85);
-        if(fieldLabel === 'password') return '●'.repeat(val.length);
-        if(val.length >85) return val.substring(0,85) + "...";
+        if(val.length >85) return val.substring(0,40) + "...";
 
         if(Boolean(val) === false){
             return "None specified"
         }
         return val;
     }
-//●
     return (
         <div style={{...style}} className="vp-pf-container">
                 <label className="pf-label" htmlFor={fieldLabel}>{label}</label>

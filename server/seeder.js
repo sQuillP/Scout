@@ -218,7 +218,7 @@ async function dumpDB() {
 async function run() {
     const flag = process.argv[2].toLowerCase();
     try {
-        await connectDB();
+        await connectDB("mongodb://localhost:27017/Scout");
         if(flag ==='-s'){
             await dumpDB();
             const userIds = await seedUsers();

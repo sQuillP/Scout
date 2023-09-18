@@ -101,7 +101,7 @@ export default function HorizontalNavigation() {
     return (
         <div className="horizontal-main">
             <div className="horizontal-nav-item">
-                <img src="https://style.helpscout.com/images/logo/help-scout-logo-square-blue.svg" alt="" className="logo" />
+                {/* <img src="https://style.helpscout.com/images/logo/help-scout-logo-square-blue.svg" alt="" className="logo" /> */}
                 <p className="text app-title">Scout!</p>
             </div>
             <ul className="horizontal-nav-content">
@@ -142,11 +142,11 @@ export default function HorizontalNavigation() {
                             <li className="horizontal-nav-item">
                             <Link className='horizontal-nav-profile-link'>
                                 <p className="text nav-user-text">{user.firstName + " " +user.lastName}</p>
-                                {
-                                    !!user.profileImage ? <img className='horizontal-user-profile' src={user.profileImage}/> : (
+                                {/* { */}
+                                    {/* !!user.profileImage ? <img className='horizontal-user-profile' src={user.profileImage}/> : ( */}
                                         <Avatar>{user.firstName[0].toUpperCase() + user.lastName[0].toUpperCase()}</Avatar>
-                                    )
-                                }
+                                    {/* ) */}
+                                {/* } */}
                             </Link>
                             <i onClick={onOpenUserMenu} className="nav-down-icon fa-solid fa-sort-down"></i>
                             <Menu

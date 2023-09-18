@@ -38,7 +38,6 @@ const authSlice = createSlice({
             localStorage.removeItem('token');
         },
         updateUserSync(state,action) {
-            console.log('updating user sync')
             state.user = {...state.user, ...action.payload};
         }
     },
