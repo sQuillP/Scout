@@ -73,7 +73,6 @@ export default function Members() {
             try {
                 const response = await Scout.get('/users/search',queryParams);
                 if(mounted.current === false) return;
-                console.log(response.data);
                 setUserSearchResults(response.data.data);
             } catch(error) {
                 //handle api error
@@ -106,7 +105,6 @@ export default function Members() {
         try{
             const body ={project: projectId, user: uid};
             responseData = await Scout.post('/invite',body);    
-            console.log(responseData)
             if(mounted.current === false) return;
             setNewTableData(responseData.data.data);
             onOpenSnackbar("User successully invited","success");

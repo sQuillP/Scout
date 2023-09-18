@@ -15,15 +15,11 @@ export default function ProtectRoute({children}) {
     
     //this needs to be run on the initial render since redux does not have a valid token
 
-    console.log('route')
 
     //run a validation of the token before redux is able to do anything
     function _validateToken() {
         const fetchedToken = localStorage.getItem('token');
-        console.log(fetchedToken)
         if(fetchedToken === null) return false;
-
-        console.log("IN HERE", fetchedToken)
         try {
             const decodedToken= decode(fetchedToken);
             if(new Date(decodedToken.exp*1000).getTime() < Date.now()){

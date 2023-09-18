@@ -47,16 +47,13 @@ export default function CommentFilters({getFilterData, onCollapse,}){
 
     function handleFilterChange(filter, data) {
 
-        console.log(filter,data);
         const updatedData = {...filterData,[filter]:data};
         setFilterData(updatedData);
     }
 
     function onSubmitQuery() {
-        console.log('submitting')
         if(filterData.startDate !== null && filterData.endDate !== null) {
             if(filterData.startDate.isAfter(filterData.endDate)){
-                console.log('Not going to submit');
                 setFilterError("Error: Start date must be less than end date.");
                 return;
             }

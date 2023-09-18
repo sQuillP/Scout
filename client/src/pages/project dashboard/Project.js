@@ -28,7 +28,6 @@ export default function Project() {
         dispatch(getProjectById(projectId));
 
         function onReceiveNotification(data) {
-            console.log('received notification', data);
             dispatch(pushNotification(data));
         }
         if(!projectId) return;
@@ -37,7 +36,6 @@ export default function Project() {
         (async ()=> {
             try {
                 const response = await Scout.get('/notifications/'+projectId);
-                console.log(response.data.data);
                 dispatch(setNotifications(response.data.data));
             } catch(error) {
                 console.log(error, error.message);

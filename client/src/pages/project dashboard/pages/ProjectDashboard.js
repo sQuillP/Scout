@@ -23,7 +23,6 @@ export default function ProjectDashboard() {
     const user = useSelector((store)=> store.auth.user);
 
     
-    console.log(currentProject);
 
 
     function onHandleUpdateRole() {

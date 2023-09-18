@@ -109,7 +109,6 @@ export default function ProjectMembersTable({showActions = false, containerSX = 
     }
 
     function handlePageChange(e, newPage) {
-        console.log(newPage)
         setCurrentPage( newPage );
 
     }
@@ -134,7 +133,6 @@ export default function ProjectMembersTable({showActions = false, containerSX = 
                 members: [selectedId]
             }});
             dispatch(updateProjectSync(updatedProject.data.data));
-            console.log(updatedProject.data.data);
             onOpenSnackbar("Successfully removed member from group","success");
         } catch(error) {
             console.log(error, error.message);

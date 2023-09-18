@@ -49,7 +49,6 @@ export default function ProjectSettings() {
 
     const project = useSelector((store)=> store.project.currentProject);
     const user = useSelector((store)=> store.auth.user);
-    console.log(project.userPermission.role, project.userPermission.role === 'administrator');
     const dispatch = useDispatch();
 
     const [copyHoverMessage, setCopyHoverMessage] = useState('Copy to clipboard');
@@ -67,7 +66,6 @@ export default function ProjectSettings() {
     
     const navigate = useNavigate();
 
-    console.log(project.userPermission);
 
     /* For edit mode */
     const [editMode, setEditMode] = useState(false);

@@ -67,8 +67,6 @@ export function validateDeleteInvite(allowedRoles){
     return async (req,res,next)=> {
         try {
 
-            console.log(req.body);
-
             if((await acceptInviteSchema.isValid(req.body)) === false){
                 return next(
                     new ErrorResponse(
@@ -339,10 +337,8 @@ export function validateCreateTicket(){
 
     return async (req,res,next)=> {
         try {
-            console.log('validate create ticket@@@',req.body);
             let validBody = await createTicketSchema.isValid(req.body);
             const project = await Project.findById(req.params.projectId);
-            console.log(validBody, project)
             if(validBody === false || project === null || project._id.toString() !== req.body.project){
                 return next(
                     new ErrorResponse(
@@ -384,7 +380,6 @@ export function validateUpdateProject(){
         const expectedBodyKeys = ['title','description','members'];
 
         try {
-            console.log(req.body);
 
             //Make sure the API key is not changed.
             delete req.body.APIKey;
@@ -495,7 +490,6 @@ export function validateUpdateUserPassword() {
             .select('+password');
 
             const isValidPassword = await bcrypt.compare(req.body.password, fetchedUser.password);
-            console.log(isValidPassword);
             if(isValidPassword === false) {
                 return next(
                     new ErrorResponse(
@@ -570,7 +564,6 @@ export function validateDeleteProject() {
 
         try {
             const fetchedProject = await Project.findById(req.params.projectId);
-            console.log(fetchedProject)
             if(fetchedProject === null) {
                 return next(
                     new ErrorResponse(
@@ -659,7 +652,6 @@ export function validateSubmitError() {
 export function validateDeleteNotification() {
     return async (req,res,next)=> {
         try {
-            console.log(req.body);
             if(validateDeleteNotif.isValidSync(req.body) === false) {
                 return next(
                     new ErrorResponse(
@@ -672,7 +664,6 @@ export function validateDeleteNotification() {
             const fetchedNotification = await Notification.exists({
                 _id: req.body.notification
             });
-            console.log(fetchedNotification)
             //check if user belongs to project
             const fetchedPermission = await Permission.find({
                 project: req.params.projectId,

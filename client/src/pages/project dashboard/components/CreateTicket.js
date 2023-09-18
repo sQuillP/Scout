@@ -107,7 +107,6 @@ export default function CreateTicket({onCloseTicketForm, setTicketData, notifySt
         }finally {
             onCloseTicketForm(true);//this needs to be fixed
         }
-        console.log(ticketForm);
     }
 
 

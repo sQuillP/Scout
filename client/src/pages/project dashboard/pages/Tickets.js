@@ -104,7 +104,6 @@ export default function Tickets() {
 
     function handleTicketFilterChange(filter,value){
         const filterCopy = {...ticketFilters};
-        console.log(filterCopy);
         if(Array.isArray(ticketFilters[filter]) === true){
             const index = ticketFilters[filter].indexOf(value);
             if(index !== -1){
@@ -117,7 +116,6 @@ export default function Tickets() {
         else {
             filterCopy[filter] = value;
         }
-        console.log(filterCopy)
         setTicketFilters(filterCopy);
     }
 
@@ -125,13 +123,11 @@ export default function Tickets() {
     useEffect(()=> {
         //call api to get all the tickets.
         let initialQuery = null
-        console.log(location.state)
         if(location.state !== null) {
             initialQuery = {limit, page: currentPage, filters:ticketFilters, ...location.state.routeState}
         } else {
             initialQuery = {limit, page:currentPage, filters:ticketFilters};
         }
-        console.log(ticketFilters)
         onFetchTickets(initialQuery);
         return ()=> mounted.current = false;
     },[]);
@@ -157,7 +153,6 @@ export default function Tickets() {
     async function onFetchTickets(params) {
         try {
             setLoadingContent(true);
-            console.log(ticketFilters)
             mounted.current = true;
             const response = await Scout.get('/projects/myProjects/'+project._id+'/tickets',{params});
             if(mounted.current === false) return;

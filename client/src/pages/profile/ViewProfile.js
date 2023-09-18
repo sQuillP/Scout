@@ -374,7 +374,6 @@ export default function ViewProfile() {
                                                         opacity:disableSubmit?0.5:1
                                                         }} disabled={disableSubmit} className="vp-btn vp-update" type='submit'>Update</button>
                                                     <button type="button" className="vp-btn vp-cancel" onClick={()=> handleReset(setFieldValue)}>Clear Changes</button>
-                                                    {/* <button type="button" onClick={()=> console.log(password, newPassword)}>debug</button> */}
                                                 </Stack>
                                             </div>
                                         </Form>

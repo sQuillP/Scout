@@ -75,7 +75,6 @@ export default function RecentTicketsTable({onSetCardContent}) {
 
     useEffect(()=> {
         if(currentProject === null) return;
-        // console.log(currentProject);
         fetchTicketData({});
 
         return ()=> mounted.current = false;
@@ -125,7 +124,6 @@ export default function RecentTicketsTable({onSetCardContent}) {
             setLoadingTickets(true);
             const response = await Scout.get(ticket_url, {params:queryParams});
             if(mounted.current === false) return;
-            console.log(response)
             setTicketData(response.data.data);
             setTotalTicketCount(response.data.totalItems);
             

@@ -29,12 +29,12 @@ const io = new Server(server,{
         transports: ['websocket', 'polling'],
     },
 allowEIO3: true});
-app.set('socketio', io)
-
-
 dotenv.config({path:'./environments/environments.env'});
 connectDB();
 
+console.log(process.env.NODE_ENV);
+
+app.set('socketio', io)
 app.use(express.json());
 app.use(cors({origin:'*'}));
 

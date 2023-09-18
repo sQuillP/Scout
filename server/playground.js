@@ -1,5 +1,7 @@
 import * as Yup from 'yup';
 import mongoose from 'mongoose';
+import connectDB from './db/connectDB.js';
+
 /* Test some random crap for debugging purposes. */
 
 
@@ -10,8 +12,4 @@ const validateUpdatePassword = Yup.object().shape({
     })
 });
 
-console.log(validateUpdatePassword.isValidSync({
-    password: 'asdfs',
-    newPassword:'asdfs'
-}));
 

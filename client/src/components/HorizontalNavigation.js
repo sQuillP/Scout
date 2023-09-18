@@ -53,7 +53,6 @@ export default function HorizontalNavigation() {
     }
 
     function onDismissNotification() {
-        console.log('closing notification');
 
          
     }

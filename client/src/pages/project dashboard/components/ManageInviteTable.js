@@ -71,7 +71,6 @@ export default function ManageInviteTable({newTableData}){
         try{
             mounted.current = true;
             const responseData = await Scout.get('/invite/projects/'+projectId,{params:query});
-            console.log(responseData.data);
             if(mounted.current === false) return;
             setInvitations(responseData.data.data);
             setTotalItems(responseData.data.totalItems);
@@ -86,7 +85,6 @@ export default function ManageInviteTable({newTableData}){
             const deletedInvite = invitations.find((invite)=> invite._id === _id)
             const responseData = await Scout.delete('/invite',{data:{invitation: deletedInvite._id}});
             if(mounted.current === false) return;
-            console.log(responseData.data.data);
             setInvitations(responseData.data.data);
             setCurrentPage(1);
 
@@ -101,7 +99,6 @@ export default function ManageInviteTable({newTableData}){
         setSnackbarSeverity(severity);
     }
 
-    console.log(invitations);
 
     return (
         <>

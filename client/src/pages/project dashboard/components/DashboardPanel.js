@@ -37,7 +37,6 @@ export default function DashboardPanel({title,content,PanelIcon, routeState}) {
     const minifiedScreen = useMediaQuery('(max-width:614px)');
 
     //navigate to tickets with predefined filters. based on dashboard panel
-    console.log(routeState);
     function onNavigateTickets() {
         navigate(`/projects/${project._id}/tickets`, {state:{routeState}});
     }

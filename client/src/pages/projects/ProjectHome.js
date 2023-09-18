@@ -67,8 +67,6 @@ export default function ProjectHome() {
 
 
 
-    console.log(inviteBreakPoint);
-
     //page
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -112,7 +110,6 @@ export default function ProjectHome() {
      */
     async function onUpdateProjectList(params) {
         try {
-            console.log('outgoing request: ',params);
             const response = await Scout.get('/projects/myProjects',{params});
             setProjectList(response.data.data);
         } 

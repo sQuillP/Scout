@@ -383,7 +383,6 @@ export default function ViewTicket() {
         setCommentFilters(filters);
         setCommentPage(1);
         setCommentLimit(5);
-        console.log(filters);
         await fetchComments({page:1, limit: 5, filters, term: debouncedCommentSearch});
     }
 
