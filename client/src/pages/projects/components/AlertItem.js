@@ -68,5 +68,5 @@ export default function AlertItem({data, onClose}) {
                     <p className="text alert-message">{data.description.substring(0,50) + "..."}</p>
                 </div>
         </div>
-    )
+    );
 }

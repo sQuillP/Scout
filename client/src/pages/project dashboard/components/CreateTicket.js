@@ -9,6 +9,7 @@ import "../styles/CreateTicket.css";
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import Scout from "../../../axios/scout";
+import { useNavigate } from "react-router-dom";
 
 
 
@@ -25,10 +26,10 @@ export default function CreateTicket({onCloseTicketForm, setTicketData, notifySt
 
 
     const emptyForm = {
-        ticketType:'',
+        ticketType:'bug',
         description:'',
         summary:'',
-        priority:'',
+        priority:'low',
         assignedTo:null,
         project: project._id,
         progress: 'open',
@@ -37,6 +38,8 @@ export default function CreateTicket({onCloseTicketForm, setTicketData, notifySt
     const [ticketForm, setTicketForm] = useState(emptyForm);
 
     const [formErrors, setFormErrors] = useState({});
+    
+    const navigation = useNavigate();
 
     const keyMap = {
         ticketType: 'Ticket Type',
