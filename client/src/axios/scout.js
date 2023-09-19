@@ -11,7 +11,7 @@ console.log('isDev:',isDev, URL);
  * Create an api instance for the Scout api
  */
 let Scout = axios.create({
-    baseURL: 'http://localhost:3030/api/v1',
+    baseURL: 'http://54.189.145.156:3030/api/v1',
     headers: {
         'Content-Type':'application/json'
     }
